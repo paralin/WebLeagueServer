@@ -1,0 +1,15 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="WLNetwork.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="MongoURL" Type="System.String" Scope="User">
+      <Value Profile="(Default)">mongodb://dev:kapparinokappichino@kahana.mongohq.com:10065</Value>
+    </Setting>
+    <Setting Name="MongoDB" Type="System.String" Scope="User">
+      <Value Profile="(Default)">webleague</Value>
+    </Setting>
+    <Setting Name="AuthSecret" Type="System.String" Scope="User">
+      <Value Profile="(Default)">webleague-secret</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
