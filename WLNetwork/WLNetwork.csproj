@@ -118,7 +118,9 @@
   <ItemGroup>
     <Compile Include="Chat\ChatChannel.cs" />
     <Compile Include="Chat\ChatMember.cs" />
+    <Compile Include="Chat\Methods\ChatChannelUpd.cs" />
     <Compile Include="Chat\Methods\ChatMemberUpd.cs" />
+    <Compile Include="Chat\Methods\ChatMessage.cs" />
     <Compile Include="Controllers\Auth.cs" />
     <Compile Include="Controllers\Chat.cs" />
     <Compile Include="Database\Mongo.cs" />
@@ -132,6 +134,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="Utils\ObservableDictionary.cs" />
     <Compile Include="Utils\PublicIP.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

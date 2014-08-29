@@ -27,8 +27,9 @@ namespace WLNetwork.Chat.Methods
         /// Add/update some members.
         /// </summary>
         /// <param name="members"></param>
-        public ChatMemberUpd(params ChatMember[] members)
+        public ChatMemberUpd(string id, params ChatMember[] members)
         {
+            this.id = id;
             this.members = members;
         }
     }
@@ -51,8 +52,9 @@ namespace WLNetwork.Chat.Methods
         /// Create a remove op with some members.
         /// </summary>
         /// <param name="mems"></param>
-        public ChatMemberRm(params ChatMember[] mems)
+        public ChatMemberRm(string id, params ChatMember[] mems)
         {
+            this.id = id;
             this.members = new string[mems.Length];
             int i = 0;
             foreach (var mem in mems)

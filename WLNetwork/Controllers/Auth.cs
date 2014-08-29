@@ -11,6 +11,7 @@ using WLNetwork.Model;
 using WLNetwork.Properties;
 using XSockets.Core.Common.Socket.Attributes;
 using XSockets.Core.XSocket;
+using XSockets.Core.XSocket.Helpers;
 
 namespace WLNetwork.Controllers
 {
@@ -18,6 +19,15 @@ namespace WLNetwork.Controllers
     {
         private static readonly log4net.ILog log =
             log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public User User
+        {
+            get
+            {
+                if (!this.ConnectionContext.IsAuthenticated) return null;
+                return ((UserIdentity)this.ConnectionContext.User.Identity).User;
+            }
+        }
 
         [AllowAnonymous]
         public bool AuthWithToken(AuthTokenString tok)
@@ -40,6 +50,12 @@ namespace WLNetwork.Controllers
                             ConnectionContext.User = new GenericPrincipal(new UserIdentity(user),
                                 user.authItems);
                             ConnectionContext.IsAuthenticated = true;
+                            var others =
+                                this.Find(m => m != this && m.ConnectionContext.IsAuthenticated && m.User.Id == user.Id);
+                            foreach (var other in others)
+                            {
+                                other.Close();
+                            }
                             return true;
                         }
                         else

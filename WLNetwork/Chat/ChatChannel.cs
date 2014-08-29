@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using WLNetwork.Chat.Methods;
 using WLNetwork.Model;
+using WLNetwork.Utils;
 using XSockets.Core.XSocket.Helpers;
 
 namespace WLNetwork.Chat
@@ -39,7 +41,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         /// <summary>
         /// Online members of the channel.
         /// </summary>
-        public ObservableCollection<ChatMember> Members { get; set; } 
+        public ObservableDictionary<string, ChatMember> Members { get; set; } 
 
         /// <summary>
         /// Create a channel with a name and type.
@@ -51,9 +53,10 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             this.Id = Guid.NewGuid();
             this.ChannelType = ctype;
             this.Name = name;
-            this.Members = new ObservableCollection<ChatMember>();
+            this.Members = new ObservableDictionary<string, ChatMember>();
             this.Members.CollectionChanged += MembersOnCollectionChanged;
             Channels[this.Id]=this;
+            log.DebugFormat("CREATED [{0}] ({1})", Name, Id);
         }
         
         /// <summary>
@@ -63,29 +66,34 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         /// <param name="e">event</param>
         private void MembersOnCollectionChanged(object s, NotifyCollectionChangedEventArgs e)
         {
-            if (e.NewItems != null)
-            {
-                var memb = e.NewItems.OfType<ChatMember>();
-                if (e.Action == NotifyCollectionChangedAction.Add)
-                {
-                    var chatMembers = memb as ChatMember[] ?? memb.ToArray();
-                    var msg = new ChatMemberUpd(chatMembers);
-                    foreach (var mm in this.Members)
-                    {
-                        ChatController.InvokeTo(m => m.ConnectionContext.IsAuthenticated && m.User.steam.steamid == mm.SteamID, msg, ChatMemberUpd.Msg);
-                    }
-                }
-            }
             if (e.OldItems != null)
             {
-                var memb = e.OldItems.OfType<ChatMember>();
-                var chatMembers = memb as ChatMember[] ?? memb.ToArray();
-                var msg = new ChatMemberRm(chatMembers);
-                foreach (var mm in this.Members)
+                var memb = e.OldItems.OfType<KeyValuePair<string, ChatMember>>();
+                var chatMembers = memb as KeyValuePair<string, ChatMember>[] ?? memb.ToArray();
+                var msg = new ChatMemberRm(Id.ToString(), chatMembers.Select(m => m.Value).ToArray());
+                foreach (var nm in chatMembers)
+                {
+                    log.DebugFormat("PARTED [{0}] ({1}) {{{2}}}", Name, Id, nm.Value.Name);
+                }
+                foreach (var mm in this.Members.Values)
                 {
                     ChatController.InvokeTo(
                         m => m.ConnectionContext.IsAuthenticated && m.User.steam.steamid == mm.SteamID,
                         msg, ChatMemberRm.Msg);
+                }
+            }
+            if (e.NewItems != null)
+            {
+                var memb = e.NewItems.OfType<KeyValuePair<string, ChatMember>>();
+                var chatMembers = memb as KeyValuePair<string, ChatMember>[] ?? memb.ToArray();
+                var msg = new ChatMemberUpd(Id.ToString(), chatMembers.Select(m=>m.Value).ToArray());
+                foreach (var nm in chatMembers)
+                {
+                    log.DebugFormat("JOINED [{0}] ({1}) {{{2}}}", Name, Id, nm.Value.Name);
+                }
+                foreach (var mm in this.Members.Values)
+                {
+                    ChatController.InvokeTo(m => m.ConnectionContext.IsAuthenticated && m.User.steam.steamid == mm.SteamID, msg, ChatMemberUpd.Msg);
                 }
             }
             if (Members.Count == 0) Close(true);
@@ -96,7 +104,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         /// </summary>
         public void Close(bool noModifyMembers=false)
         {
-            var oldMembers = Members.ToArray();
+            var oldMembers = Members.Values.ToArray();
             if(!noModifyMembers)
                 this.Members.Clear();
             foreach (var so in oldMembers.Select(member => ChatController.Find(m => m.ConnectionContext.IsAuthenticated && m.User.steam.steamid == member.SteamID)).SelectMany(sox => sox))
@@ -105,6 +113,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             }
             ChatChannel dummy = null;
             Channels.TryRemove(this.Id, out dummy);
+            log.DebugFormat("DELETED [{0}] ({1})", Name, Id);
         }
 
         /// <summary>
@@ -119,13 +128,13 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                 log.ErrorFormat("Message transmit request with no member! Ignoring...");
                 return;
             }
-            if (this.Members.All(m => m.SteamID != member.SteamID))
+            if (this.Members.Values.All(m => m.SteamID != member.SteamID))
             {
                 log.ErrorFormat("Message transmit with member not in the channel! Ignoring....");
                 return;
             }
-            var msg = new ChatMessage() {Text = text, Member = member};
-            foreach (var mm in this.Members)
+            var msg = new ChatMessage() {Text = text, Member = member, Id = Id.ToString()};
+            foreach (var mm in this.Members.Values)
             {
                 ChatController.InvokeTo(
                         m => m.ConnectionContext.IsAuthenticated && m.User.steam.steamid == mm.SteamID,
@@ -156,7 +165,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         {
             ChatChannel chan = null;
             if (!Channels.TryGetValue(id, out chan)) return null;
-            chan.Members.Add(member);
+            chan.Members[member.SteamID] = member;
             return chan;
         }
 
@@ -173,7 +182,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             if (chan == null)
             {
                 chan = new ChatChannel(name, chanType);
-                chan.Members.Add(member);
+                chan.Members[member.SteamID] = member;
             }
             return chan;
         }
