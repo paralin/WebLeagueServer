@@ -46,7 +46,7 @@ namespace WLNetwork.Chat.Methods
         /// <summary>
         /// Member steamids
         /// </summary>
-        public string[] members { get; set; }
+        public Guid[] members { get; set; }
 
         /// <summary>
         /// Create a remove op with some members.
@@ -55,11 +55,11 @@ namespace WLNetwork.Chat.Methods
         public ChatMemberRm(string id, params ChatMember[] mems)
         {
             this.id = id;
-            this.members = new string[mems.Length];
+            this.members = new Guid[mems.Length];
             int i = 0;
             foreach (var mem in mems)
             {
-                this.members[i] = mem.SteamID;
+                this.members[i] = mem.ID;
                 i++;
             }
         }

@@ -12,6 +12,8 @@ namespace WLNetwork.Chat
     /// </summary>
     public class ChatMember
     {
+        public Guid ID { get; set; }
+
         /// <summary>
         /// Steam ID
         /// </summary>
@@ -26,8 +28,9 @@ namespace WLNetwork.Chat
         /// Create a chat member.
         /// </summary>
         /// <param name="user">user</param>
-        public ChatMember(User user)
+        public ChatMember(Guid id, User user)
         {
+            this.ID = id;
             this.SteamID = user.steam.steamid;
             this.Name = user.profile.name;
         }

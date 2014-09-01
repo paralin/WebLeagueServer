@@ -41,7 +41,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         /// <summary>
         /// Online members of the channel.
         /// </summary>
-        public ObservableDictionary<string, ChatMember> Members { get; set; } 
+        public ObservableDictionary<Guid, ChatMember> Members { get; set; } 
 
         /// <summary>
         /// Create a channel with a name and type.
@@ -53,7 +53,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             this.Id = Guid.NewGuid();
             this.ChannelType = ctype;
             this.Name = name;
-            this.Members = new ObservableDictionary<string, ChatMember>();
+            this.Members = new ObservableDictionary<Guid, ChatMember>();
             this.Members.CollectionChanged += MembersOnCollectionChanged;
             Channels[this.Id]=this;
             log.DebugFormat("CREATED [{0}] ({1})", Name, Id);
@@ -165,7 +165,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         {
             ChatChannel chan = null;
             if (!Channels.TryGetValue(id, out chan)) return null;
-            chan.Members[member.SteamID] = member;
+            chan.Members[member.ID] = member;
             return chan;
         }
 
@@ -182,7 +182,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             if (chan == null)
             {
                 chan = new ChatChannel(name, chanType);
-                chan.Members[member.SteamID] = member;
+                chan.Members[member.ID] = member;
             }
             return chan;
         }

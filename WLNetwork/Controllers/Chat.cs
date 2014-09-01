@@ -37,7 +37,7 @@ namespace WLNetwork.Controllers
             foreach (var channel in Channels)
             {
                 var member = channel.Members.Values.FirstOrDefault(m => m.SteamID == User.steam.steamid);
-                if (member != null) channel.Members.Remove(member.SteamID);
+                if (member != null) channel.Members.Remove(member.ID);
             }
             this.Channels.Clear();
         }
@@ -72,7 +72,7 @@ namespace WLNetwork.Controllers
         {
             if (req == null) return;
             if (Channels.Any(m => m.Name.ToLower() == req.Name.ToLower())) return;
-            this.Channels.Add(ChatChannel.JoinOrCreate(req.Name.ToLower(), new ChatMember(User)));
+            this.Channels.Add(ChatChannel.JoinOrCreate(req.Name.ToLower(), new ChatMember(this.ConnectionId, User)));
         }
     }
 }
