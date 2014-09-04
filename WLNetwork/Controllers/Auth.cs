@@ -50,12 +50,6 @@ namespace WLNetwork.Controllers
                             ConnectionContext.User = new GenericPrincipal(new UserIdentity(user),
                                 user.authItems);
                             ConnectionContext.IsAuthenticated = true;
-                            //var others =
-                            //    this.Find(m => m != this && m.ConnectionContext.IsAuthenticated && m.User.Id == user.Id);
-                            //foreach (var other in others)
-                            //{
-                            //    other.Close();
-                            //}
                             return true;
                         }
                         else

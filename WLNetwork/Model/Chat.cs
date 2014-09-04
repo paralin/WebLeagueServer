@@ -17,7 +17,7 @@ namespace WLNetwork.Model
         /// Chat message
         /// </summary>
         public string Text { get; set; }
-
+          
         public bool Validate()
         {
             return Channel != null && Text != null;
@@ -27,5 +27,10 @@ namespace WLNetwork.Model
     public class JoinCreateRequest
     {
         public string Name { get; set; }
+    }
+
+    public class LeaveRequest
+    {
+        public string Id { get; set; }
     }
 }

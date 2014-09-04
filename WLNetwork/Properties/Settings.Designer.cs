@@ -25,6 +25,42 @@ namespace WLNetwork.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("mongodb://10.0.1.2:27017")]
+        public string DMongoURL {
+            get {
+                return ((string)(this["DMongoURL"]));
+            }
+            set {
+                this["DMongoURL"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("webleague-dev")]
+        public string DMongoDB {
+            get {
+                return ((string)(this["DMongoDB"]));
+            }
+            set {
+                this["DMongoDB"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("webleague-secret")]
+        public string AuthSecret {
+            get {
+                return ((string)(this["AuthSecret"]));
+            }
+            set {
+                this["AuthSecret"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("mongodb://dev:kapparinokappichino@kahana.mongohq.com:10065")]
         public string MongoURL {
             get {
@@ -44,18 +80,6 @@ namespace WLNetwork.Properties {
             }
             set {
                 this["MongoDB"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("webleague-secret")]
-        public string AuthSecret {
-            get {
-                return ((string)(this["AuthSecret"]));
-            }
-            set {
-                this["AuthSecret"] = value;
             }
         }
     }

@@ -118,6 +118,7 @@
   <ItemGroup>
     <Compile Include="Chat\ChatChannel.cs" />
     <Compile Include="Chat\ChatMember.cs" />
+    <Compile Include="Chat\Exceptions\JoinCreateException.cs" />
     <Compile Include="Chat\Methods\ChatChannelUpd.cs" />
     <Compile Include="Chat\Methods\ChatMemberUpd.cs" />
     <Compile Include="Chat\Methods\ChatMessage.cs" />

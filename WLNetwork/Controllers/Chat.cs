@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using WLNetwork.Chat;
+using WLNetwork.Chat.Exceptions;
 using WLNetwork.Chat.Methods;
 using WLNetwork.Model;
 using XSockets.Core.Common.Socket.Attributes;
@@ -68,11 +69,30 @@ namespace WLNetwork.Controllers
             chan.TransmitMessage(chan.Members.Values.FirstOrDefault(m => m.SteamID == User.steam.steamid), message.Text);
         }
 
-        public void JoinOrCreate(JoinCreateRequest req)
+        public string JoinOrCreate(JoinCreateRequest req)
         {
-            if (req == null) return;
-            if (Channels.Any(m => m.Name.ToLower() == req.Name.ToLower())) return;
-            this.Channels.Add(ChatChannel.JoinOrCreate(req.Name.ToLower(), new ChatMember(this.ConnectionId, User)));
+            if (req == null) return "You didn't provide any channels to join.";
+            if (Channels.Any(m => m.Name.ToLower() == req.Name.ToLower())) return "You are already in that channel.";
+            try
+            {
+                var chan = ChatChannel.JoinOrCreate(req.Name.ToLower(), new ChatMember(this.ConnectionId, User));
+                if (chan != null)
+                    this.Channels.Add(chan);
+                return null;
+            }
+            catch (JoinCreateException ex)
+            {
+                return ex.Message;
+            }
+        }
+
+        public void Leave(LeaveRequest req)
+        {
+            if (req == null || req.Id == null) return;
+            var chan = this.Channels.FirstOrDefault(m => m.Id.ToString() == req.Id);
+            if (chan == null || !chan.Leavable) return;
+            chan.Members.Remove(this.ConnectionId);
+            this.Channels.Remove(chan);
         }
     }
 }

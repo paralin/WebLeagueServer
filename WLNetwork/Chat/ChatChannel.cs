@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using Newtonsoft.Json;
 using WLNetwork.Chat.Methods;
 using WLNetwork.Model;
 using WLNetwork.Utils;
@@ -39,6 +40,16 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         public ChannelType ChannelType { get; set; }
 
         /// <summary>
+        /// Can you leave this chat?
+        /// </summary>
+        public bool Leavable { get; set; }
+
+        /// <summary>
+        /// Will this channel ever be deleted?
+        /// </summary>
+        public bool Permanent { get; set; }
+
+        /// <summary>
         /// Online members of the channel.
         /// </summary>
         public ObservableDictionary<Guid, ChatMember> Members { get; set; } 
@@ -48,11 +59,13 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         /// </summary>
         /// <param name="name"></param>
         /// <param name="ctype"></param>
-        public ChatChannel(string name, ChannelType ctype = ChannelType.Public)
+        public ChatChannel(string name, ChannelType ctype = ChannelType.Public, bool leavable = true, bool perm = false)
         {
             this.Id = Guid.NewGuid();
             this.ChannelType = ctype;
+            this.Permanent = perm;
             this.Name = name;
+            this.Leavable = leavable;
             this.Members = new ObservableDictionary<Guid, ChatMember>();
             this.Members.CollectionChanged += MembersOnCollectionChanged;
             Channels[this.Id]=this;
@@ -68,8 +81,8 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         {
             if (e.OldItems != null)
             {
-                var memb = e.OldItems.OfType<KeyValuePair<string, ChatMember>>();
-                var chatMembers = memb as KeyValuePair<string, ChatMember>[] ?? memb.ToArray();
+                var memb = e.OldItems.OfType<KeyValuePair<Guid, ChatMember>>();
+                var chatMembers = memb.ToArray();
                 var msg = new ChatMemberRm(Id.ToString(), chatMembers.Select(m => m.Value).ToArray());
                 foreach (var nm in chatMembers)
                 {
@@ -84,8 +97,8 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             }
             if (e.NewItems != null)
             {
-                var memb = e.NewItems.OfType<KeyValuePair<string, ChatMember>>();
-                var chatMembers = memb as KeyValuePair<string, ChatMember>[] ?? memb.ToArray();
+                var memb = e.NewItems.OfType<KeyValuePair<Guid, ChatMember>>();
+                var chatMembers = memb.ToArray();
                 var msg = new ChatMemberUpd(Id.ToString(), chatMembers.Select(m=>m.Value).ToArray());
                 foreach (var nm in chatMembers)
                 {
@@ -111,9 +124,16 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             {
                 so.Channels.Remove(this);
             }
-            ChatChannel dummy = null;
-            Channels.TryRemove(this.Id, out dummy);
-            log.DebugFormat("DELETED [{0}] ({1})", Name, Id);
+            if (!Permanent)
+            {
+                ChatChannel dummy = null;
+                Channels.TryRemove(this.Id, out dummy);
+                log.DebugFormat("DELETED [{0}] ({1})", Name, Id);
+            }
+            else
+            {
+                log.DebugFormat("PRESERVED [{0}] ({1})", Name, Id);
+            }
         }
 
         /// <summary>
@@ -165,7 +185,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         {
             ChatChannel chan = null;
             if (!Channels.TryGetValue(id, out chan)) return null;
-            chan.Members[member.ID] = member;
+            chan.Members.Add(member.ID, member);
             return chan;
         }
 
@@ -182,7 +202,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             if (chan == null)
             {
                 chan = new ChatChannel(name, chanType);
-                chan.Members[member.ID] = member;
+                chan.Members.Add(member.ID, member);
             }
             return chan;
         }

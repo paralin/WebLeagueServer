@@ -22,9 +22,17 @@ namespace WLNetwork.Database
                 log.Error("Tried to create a second instance of Mongo.");
                 return;
             }
+#if DEBUG
+            Client = new MongoClient(Settings.Default.DMongoURL+"/"+Settings.Default.DMongoDB);
+#else
             Client = new MongoClient(Settings.Default.MongoURL+"/"+Settings.Default.MongoDB);
+#endif
             Server = Client.GetServer();
+#if DEBUG
+            Database = Server.GetDatabase(Settings.Default.DMongoDB);
+#else
             Database = Server.GetDatabase(Settings.Default.MongoDB);
+#endif
 
             Users = Database.GetCollection("users");
             Servers = Database.GetCollection("servers");
