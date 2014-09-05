@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using Newtonsoft.Json;
+using WLNetwork.Chat.Exceptions;
 using WLNetwork.Chat.Methods;
 using WLNetwork.Model;
 using WLNetwork.Utils;
@@ -185,6 +186,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         {
             ChatChannel chan = null;
             if (!Channels.TryGetValue(id, out chan)) return null;
+            if(chan.ChannelType != ChannelType.Public) throw new JoinCreateException("That channel is not joinable this way.");
             chan.Members.Add(member.ID, member);
             return chan;
         }

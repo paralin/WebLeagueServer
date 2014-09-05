@@ -75,7 +75,7 @@ namespace WLNetwork.Controllers
             if (Channels.Any(m => m.Name.ToLower() == req.Name.ToLower())) return "You are already in that channel.";
             try
             {
-                var chan = ChatChannel.JoinOrCreate(req.Name.ToLower(), new ChatMember(this.ConnectionId, User));
+                var chan = ChatChannel.JoinOrCreate(req.Name.ToLower(), new ChatMember(this.ConnectionId, User, User.steam.avatarfull));
                 if (chan != null)
                     this.Channels.Add(chan);
                 return null;

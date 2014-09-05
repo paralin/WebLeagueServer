@@ -25,14 +25,20 @@ namespace WLNetwork.Chat
         public string Name { get; set; }
 
         /// <summary>
+        /// Avatar image URL.
+        /// </summary>
+        public string Avatar { get; set; }
+
+        /// <summary>
         /// Create a chat member.
         /// </summary>
         /// <param name="user">user</param>
-        public ChatMember(Guid id, User user)
+        public ChatMember(Guid id, User user, string avatar = null)
         {
             this.ID = id;
             this.SteamID = user.steam.steamid;
             this.Name = user.profile.name;
+            this.Avatar = avatar;
         }
     }
 }
