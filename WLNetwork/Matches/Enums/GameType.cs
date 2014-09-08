@@ -1,4 +1,4 @@
-﻿namespace WLNetwork.Matches.Interfaces
+﻿namespace WLNetwork.Matches.Enums
 {
     public enum GameType : int
     {

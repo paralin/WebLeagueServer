@@ -1,0 +1,108 @@
+﻿using System.ComponentModel.Design;
+using System.Linq;
+using WLNetwork.Matches;
+using WLNetwork.Matches.Enums;
+using WLNetwork.Model;
+using XSockets.Core.Common.Socket.Attributes;
+using XSockets.Core.XSocket;
+using XSockets.Core.XSocket.Helpers;
+
+namespace WLNetwork.Controllers
+{
+    /// <summary>
+    /// Games controller
+    /// </summary>
+    [Authorize(Roles = "matches")]
+    public class Matches : XSocketController
+    {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public Matches()
+        {
+            this.OnAuthorizationFailed += (sender, args) => log.Warn("Failed authorize for " + args.MethodName + " [" + this.ConnectionContext.PersistentId + "]" + (this.ConnectionContext.IsAuthenticated ? " [" + this.User.steam.steamid + "]" : ""));
+            this.OnClose += (sender, args) => LeaveMatch();
+        }
+
+        private MatchGame activeMatch = null;
+
+        /// <summary>
+        /// The active match the player is in.
+        /// </summary>
+        public MatchGame Match
+        {
+            get { return activeMatch; }
+            internal set
+            {
+                this.Invoke(value, "matchsnapshot");
+                activeMatch = value;
+            }
+        }
+
+        public User User
+        {
+            get
+            {
+                if (!this.ConnectionContext.IsAuthenticated) return null;
+                return ((UserIdentity)this.ConnectionContext.User.Identity).User;
+            }
+        }
+
+        /// <summary>
+        /// Returns a snapshot of the public game list.
+        /// </summary>
+        /// <returns></returns>
+        public MatchGameInfo[] GetPublicGameList()
+        {
+            return MatchesController.PublicGames.ToArray();
+        }
+
+        /// <summary>
+        /// Returns a snapshot of games that the player could join.
+        /// </summary>
+        /// <returns></returns>
+        public MatchGame[] GetAvailableGameList()
+        {
+            //todo: List only StartGames for now 
+            return MatchesController.Games.Where(m=>m.GameType == GameType.StartGame && m.Info.Status == MatchStatus.Players).ToArray();
+        }
+
+        /// <summary>
+        /// Create a new match.
+        /// </summary>
+        /// <param name="options">Match options</param>
+        /// <returns>Error else null</returns>
+        [Authorize("startGames")]
+        public string CreateMatch(MatchCreateOptions options)
+        {
+            if (options == null) return "You didn't give any options for the match.";
+            if (string.IsNullOrWhiteSpace(options.Name)) return "You didn't specify a name.";
+            options.Name = options.Name.Replace('\n', ' ');
+            if (Match != null) return "You are already in a match.";
+            Match = new MatchGame(this.User.steam.steamid, options);
+            Match.Players.Add(new MatchPlayer(User));
+            return null;
+        }
+
+        /// <summary>
+        /// Leave an existing match.
+        /// <returns>Error else null</returns>
+        /// </summary>
+        public string LeaveMatch()
+        {
+            if (Match == null) return "You are not currently in a match.";
+            if (Match.Info.Status > MatchStatus.Players) return "You cannot leave matches in progress.";
+            if (User == null) return "You are not signed in and thus cannot be in a match.";
+            if (Match.Info.Owner == User.steam.steamid)
+            {
+                Match.Destroy();
+            }
+            else
+            {
+                var plyr = Match.Players.FirstOrDefault(m => m.SID == User.steam.steamid);
+                if (plyr != null) Match.Players.Remove(plyr);
+                Match = null;
+            }
+            return null;
+        }
+    }
+}

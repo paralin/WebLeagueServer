@@ -28,11 +28,16 @@ namespace WLNetwork.Controllers
         {
             this.Channels.CollectionChanged += ChatChannelOnCollectionChanged;
             this.OnClose += OnOnClose;
+            this.OnOpen += (sender, args) => log.Debug("CONNECTED [" + this.ConnectionContext.PersistentId + "]");
+            this.OnAuthorizationFailed +=
+                (sender, args) =>
+                    log.Warn("Failed authorize for " + args.MethodName + " [" + this.ConnectionContext.PersistentId +
+                             "]" + (this.ConnectionContext.IsAuthenticated ? " [" + this.User.steam.steamid + "]" : ""));
         }
 
         private void OnOnClose(object sender, OnClientDisconnectArgs onClientDisconnectArgs)
         {
-            log.Debug("DISCONNECTED [" + this.ConnectionContext.PersistentId + "]");
+            log.Debug("DISCONNECTED [" + this.ConnectionContext.PersistentId + "]"+(this.ConnectionContext.IsAuthenticated?" ["+this.User.steam.steamid+"]":""));
             if (!ConnectionContext.IsAuthenticated) return;
             foreach (var channel in Channels)
             {

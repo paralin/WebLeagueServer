@@ -1,4 +1,5 @@
-﻿using WLNetwork.Matches.Interfaces;
+﻿using WLNetwork.Matches.Enums;
+using WLNetwork.Model;
 
 namespace WLNetwork.Matches
 {
@@ -7,6 +8,14 @@ namespace WLNetwork.Matches
     /// </summary>
     public class MatchPlayer
     {
+        public MatchPlayer(User user)
+        {
+            this.SID = user.steam.steamid;
+            this.Name = user.profile.name;
+            this.Avatar = user.steam.avatarfull;
+            this.Team = MatchTeam.Dire;
+        }
+
         /// <summary>
         /// SteamID
         /// </summary>
