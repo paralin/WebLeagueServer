@@ -20,6 +20,11 @@ namespace WLNetwork.Controllers
         private static readonly log4net.ILog log =
             log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        public Auth()
+        {
+            this.OnOpen += (sender, args) => log.Debug("CONNECTED [" + this.ConnectionContext.PersistentId + "]");
+        }
+
         public User User
         {
             get

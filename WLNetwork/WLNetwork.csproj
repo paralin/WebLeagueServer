@@ -124,7 +124,14 @@
     <Compile Include="Chat\Methods\ChatMessage.cs" />
     <Compile Include="Controllers\Auth.cs" />
     <Compile Include="Controllers\Chat.cs" />
+    <Compile Include="Controllers\Games.cs" />
     <Compile Include="Database\Mongo.cs" />
+    <Compile Include="Matches\Interfaces\GameType.cs" />
+    <Compile Include="Matches\Interfaces\MatchTeam.cs" />
+    <Compile Include="Matches\MatchesController.cs" />
+    <Compile Include="Matches\MatchGame.cs" />
+    <Compile Include="Matches\Interfaces\MatchType.cs" />
+    <Compile Include="Matches\MatchPlayer.cs" />
     <Compile Include="Model\AuthToken.cs" />
     <Compile Include="Model\Chat.cs" />
     <Compile Include="Model\User.cs" />

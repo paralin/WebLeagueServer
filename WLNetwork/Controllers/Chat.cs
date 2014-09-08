@@ -27,7 +27,6 @@ namespace WLNetwork.Controllers
         public Chat()
         {
             this.Channels.CollectionChanged += ChatChannelOnCollectionChanged;
-            this.OnOpen += (sender, args) => log.Debug("CONNECTED [" + this.ConnectionContext.PersistentId + "]");
             this.OnClose += OnOnClose;
         }
 
