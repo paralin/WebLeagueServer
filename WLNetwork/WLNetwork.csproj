@@ -161,7 +161,4 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="XSocketsNET\ServerExample\ReadMe.txt" />
-  </ItemGroup>
 </Project>
