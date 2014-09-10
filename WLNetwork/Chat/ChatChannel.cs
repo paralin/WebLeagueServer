@@ -89,10 +89,10 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                 {
                     log.DebugFormat("PARTED [{0}] ({1}) {{{2}}}", Name, Id, nm.Value.Name);
                 }
-                foreach (var mm in this.Members.Values)
+                foreach (var mm in this.Members.Keys)
                 {
                     ChatController.InvokeTo(
-                        m => m.ConnectionContext.IsAuthenticated && m.User.steam.steamid == mm.SteamID,
+                        m => m.ConnectionContext.IsAuthenticated && m.ConnectionId == mm,
                         msg, ChatMemberRm.Msg);
                 }
             }
@@ -105,9 +105,9 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                 {
                     log.DebugFormat("JOINED [{0}] ({1}) {{{2}}}", Name, Id, nm.Value.Name);
                 }
-                foreach (var mm in this.Members.Values)
+                foreach (var mm in this.Members.Keys)
                 {
-                    ChatController.InvokeTo(m => m.ConnectionContext.IsAuthenticated && m.User.steam.steamid == mm.SteamID, msg, ChatMemberUpd.Msg);
+                    ChatController.InvokeTo(m => m.ConnectionContext.IsAuthenticated && m.ConnectionId == mm, msg, ChatMemberUpd.Msg);
                 }
             }
             if (Members.Count == 0) Close(true);

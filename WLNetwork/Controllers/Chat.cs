@@ -2,10 +2,15 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Security.Principal;
+using MongoDB.Driver.Builders;
+using Newtonsoft.Json.Linq;
 using WLNetwork.Chat;
 using WLNetwork.Chat.Exceptions;
 using WLNetwork.Chat.Methods;
+using WLNetwork.Database;
 using WLNetwork.Model;
+using WLNetwork.Properties;
 using XSockets.Core.Common.Socket.Attributes;
 using XSockets.Core.Common.Socket.Event.Arguments;
 using XSockets.Core.XSocket;
@@ -33,6 +38,56 @@ namespace WLNetwork.Controllers
                 (sender, args) =>
                     log.Warn("Failed authorize for " + args.MethodName + " [" + this.ConnectionContext.PersistentId +
                              "]" + (this.ConnectionContext.IsAuthenticated ? " [" + this.User.steam.steamid + "]" : ""));
+        }
+
+        [AllowAnonymous]
+        public string[] Authenticate()
+        {
+            try
+            {
+                string token = ConnectionContext.QueryString["token"];
+                if (token != null)
+                {
+                    //Decrypt the token
+                    try
+                    {
+                        string jsonPayload = JWT.JsonWebToken.Decode(token, Settings.Default.AuthSecret);
+                        var atoken = JObject.Parse(jsonPayload).ToObject<AuthToken>();
+                        //find the user
+                        try
+                        {
+                            var user =
+                               Mongo.Users.FindOneAs<User>(Query.And(Query.EQ("_id", atoken._id),
+                                  Query.EQ("steam.steamid", atoken.steamid)));
+                            if (user != null)
+                            {
+                                log.Debug("AUTHED [" + ConnectionContext.PersistentId + "] => [" + user.steam.steamid + "]");
+                                ConnectionContext.User = new GenericPrincipal(new UserIdentity(user),
+                                    user.authItems);
+                                ConnectionContext.IsAuthenticated = true;
+                                return user.authItems;
+                            }
+                            else
+                            {
+                                log.Warn("Authentication token valid but no user for " + jsonPayload);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Warn("Issue authenticating decrypted token " + atoken._id, ex);
+                        }
+                    }
+                    catch (JWT.SignatureVerificationException)
+                    {
+                        log.Warn("Invalid token.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error("Unable to authenticate user", ex);
+            }
+            return new string[0];
         }
 
         private void OnOnClose(object sender, OnClientDisconnectArgs onClientDisconnectArgs)
