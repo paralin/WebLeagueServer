@@ -96,8 +96,7 @@ namespace WLNetwork.Controllers
             if (!ConnectionContext.IsAuthenticated) return;
             foreach (var channel in Channels)
             {
-                var member = channel.Members.Values.FirstOrDefault(m => m.SteamID == User.steam.steamid);
-                if (member != null) channel.Members.Remove(member.ID);
+                channel.Members.Remove(this.ConnectionId);
             }
             this.Channels.Clear();
         }

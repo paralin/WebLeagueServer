@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.ComponentModel.Design;
-using System.Dynamic;
 using System.Linq;
-using MongoDB.Driver.Linq;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Matches.Methods;
 using WLNetwork.Model;
@@ -27,14 +23,14 @@ namespace WLNetwork.Matches
         /// <param name="options"></param>
         public MatchGame(string owner, MatchCreateOptions options)
         {
-            this.GameType = options.GameType;
             this.Info = new MatchGameInfo()
             {
                 Name = options.Name,
                 Public = true,
                 Status = MatchStatus.Players,
-                Mode = options.MatchType,
-                Owner = owner
+                MatchType = options.MatchType,
+                Owner = owner,
+                GameMode = options.GameMode
             };
             this.Players = new ObservableCollection<MatchPlayer>();
             this.Players.CollectionChanged += PlayersOnCollectionChanged;
@@ -42,7 +38,7 @@ namespace WLNetwork.Matches
             this.SetupStatus = MatchSetupStatus.Queue;
             MatchesController.Games.Add(this);
             //note: Don't add to public games as it's not started yet
-            log.Info("MATCH CREATE ["+this.Id+"] [" + options.Name + "] [" + options.GameType + "] [" + options.MatchType + "]");
+            log.Info("MATCH CREATE ["+this.Id+"] [" + options.Name + "] [" + options.GameMode + "] [" + options.MatchType + "]");
         }
 
         /// <summary>
@@ -57,8 +53,8 @@ namespace WLNetwork.Matches
                 Info.Name = options.Name;
                 dirty = true;
             }
-            this.GameType = options.GameType;
-            this.Info.Mode = options.MatchType;
+            this.Info.GameMode = options.GameMode;
+            this.Info.MatchType = options.MatchType;
         }
 
         private void PlayersOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
@@ -88,11 +84,6 @@ namespace WLNetwork.Matches
         public MatchGameInfo Info { get; set; }
 
         /// <summary>
-        /// Game type.
-        /// </summary>
-        public GameType GameType { get; set; }
-
-        /// <summary>
         /// Players
         /// </summary>
         public ObservableCollection<MatchPlayer> Players { get; set; }
@@ -109,9 +100,10 @@ namespace WLNetwork.Matches
     public class MatchGameInfo
     {
         public string Name { get; set; }
-        public MatchType Mode { get; set; }
+        public MatchType MatchType { get; set; }
         public bool Public { get; set; }
         public MatchStatus Status { get; set; }
         public string Owner { get; set; }
+        public GameMode GameMode { get; set; }
     }
 }

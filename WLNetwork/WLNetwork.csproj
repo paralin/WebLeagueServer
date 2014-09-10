@@ -126,7 +126,7 @@
     <Compile Include="Controllers\Chat.cs" />
     <Compile Include="Controllers\Matches.cs" />
     <Compile Include="Database\Mongo.cs" />
-    <Compile Include="Matches\Enums\GameType.cs" />
+    <Compile Include="Matches\Enums\GameMode.cs" />
     <Compile Include="Matches\Enums\MatchSetupStatus.cs" />
     <Compile Include="Matches\Enums\MatchStatus.cs" />
     <Compile Include="Matches\Enums\MatchTeam.cs" />

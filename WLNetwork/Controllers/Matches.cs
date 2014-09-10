@@ -63,7 +63,7 @@ namespace WLNetwork.Controllers
         public MatchGame[] GetAvailableGameList()
         {
             //todo: List only StartGames for now 
-            return MatchesController.Games.Where(m=>m.GameType == GameType.StartGame && m.Info.Status == MatchStatus.Players).ToArray();
+            return MatchesController.Games.Where(m=>m.Info.MatchType == MatchType.StartGame && m.Info.Status == MatchStatus.Players).ToArray();
         }
 
         /// <summary>
@@ -74,12 +74,31 @@ namespace WLNetwork.Controllers
         [Authorize("startGames")]
         public string CreateMatch(MatchCreateOptions options)
         {
+            LeaveMatch();
             if (options == null) return "You didn't give any options for the match.";
             if (string.IsNullOrWhiteSpace(options.Name)) return "You didn't specify a name.";
             options.Name = options.Name.Replace('\n', ' ');
-            if (Match != null) return "You are already in a match.";
+            if (Match != null) return "You are already in a match you cannot leave.";
             Match = new MatchGame(this.User.steam.steamid, options);
             Match.Players.Add(new MatchPlayer(User));
+            return null;
+        }
+
+        /// <summary>
+        /// Join an existing match.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public string JoinMatch(MatchJoinOptions options)
+        {
+            if (activeMatch != null && options.Id == activeMatch.Id) return "You are already in that match.";
+            LeaveMatch();
+            if (activeMatch != null) return "You cannot leave your current match.";
+            var match =
+                MatchesController.Games.FirstOrDefault(
+                    m => m.Id == options.Id && m.Info.Public && m.Info.Status == MatchStatus.Players);
+            match.Players.Add(new MatchPlayer(User));
+            Match = match;
             return null;
         }
 

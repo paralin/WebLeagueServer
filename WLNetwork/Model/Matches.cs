@@ -1,4 +1,5 @@
-﻿using WLNetwork.Matches.Enums;
+﻿using System;
+using WLNetwork.Matches.Enums;
 
 namespace WLNetwork.Model
 {
@@ -12,11 +13,19 @@ namespace WLNetwork.Model
         /// <summary>
         /// What game mode?
         /// </summary>
-        public GameType GameType { get; set; }
+        public GameMode GameMode { get; set; }
 
         /// <summary>
         /// What to name it?
         /// </summary>
         public string Name { get; set; }
+    }
+
+    public class MatchJoinOptions
+    {
+        /// <summary>
+        /// Match ID
+        /// </summary>
+        public Guid Id { get; set; }
     }
 }
