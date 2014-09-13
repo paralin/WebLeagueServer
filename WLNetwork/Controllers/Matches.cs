@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.Design;
 using System.Linq;
 using MongoDB.Driver.Linq;
+using WLNetwork.Chat;
 using WLNetwork.Matches;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Model;
@@ -17,6 +18,8 @@ namespace WLNetwork.Controllers
     public class Matches : XSocketController
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        private static readonly Chat Chat = new Chat();
 
         public Matches()
         {
@@ -35,10 +38,14 @@ namespace WLNetwork.Controllers
             internal set
             {
                 this.Invoke(value, "matchsnapshot");
+                if (value != activeMatch) UpdateMatchChannel(value);
                 activeMatch = value;
             }
         }
 
+        /// <summary>
+        /// Get the current user or null if not authed.
+        /// </summary>
         public User User
         {
             get
@@ -46,6 +53,18 @@ namespace WLNetwork.Controllers
                 if (!this.ConnectionContext.IsAuthenticated) return null;
                 return ((UserIdentity)this.ConnectionContext.User.Identity).User;
             }
+        }
+
+        /// <summary>
+        /// Join or leave the match channel.
+        /// </summary>
+        /// <param name="match"></param>
+        private void UpdateMatchChannel(MatchGame match)
+        {
+            var chat = Matches.Chat.Find(m => m.ConnectionContext.PersistentId == this.ConnectionContext.PersistentId).FirstOrDefault();
+            if (chat == null) return;
+            if (match == null) chat.Leave(ChatChannel.Channels.Values.FirstOrDefault(m=>m.MatchId==activeMatch.Id)); 
+            else chat.JoinOrCreateGameChannel(match);
         }
 
         /// <summary>
@@ -80,8 +99,9 @@ namespace WLNetwork.Controllers
             if (string.IsNullOrWhiteSpace(options.Name)) return "You didn't specify a name.";
             options.Name = options.Name.Replace('\n', ' ');
             if (Match != null) return "You are already in a match you cannot leave.";
-            Match = new MatchGame(this.User.steam.steamid, options);
-            Match.Players.Add(new MatchPlayer(User));
+            var match = new MatchGame(this.User.steam.steamid, options);
+            match.Players.Add(new MatchPlayer(User));
+            this.Match = match;
             return null;
         }
 

@@ -31,6 +31,11 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         public Guid Id { get; private set; }
 
         /// <summary>
+        /// ID of the match this channel is tied to.
+        /// </summary>
+        public Guid MatchId { get; internal set; }
+
+        /// <summary>
         /// Name of the channel.
         /// </summary>
         public string Name { get; set; }
@@ -198,12 +203,12 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         /// <param name="member"></param>
         /// <param name="chanType"></param>
         /// <returns></returns>
-        public static ChatChannel JoinOrCreate(string name, ChatMember member, ChannelType chanType = ChannelType.Public)
+        public static ChatChannel JoinOrCreate(string name, ChatMember member, ChannelType chanType = ChannelType.Public, bool leavable = true)
         {
             var chan = Join(name, member);
             if (chan == null)
             {
-                chan = new ChatChannel(name, chanType);
+                chan = new ChatChannel(name, chanType){Leavable = leavable};
                 chan.Members.Add(member.ID, member);
             }
             return chan;
