@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>XSockets.JsApi</id>
+        <version>4.0.0</version>
+        <title>XSockets.JsApi</title>
+        <authors>Team XSockets Sweden AB</authors>
+        <owners>Team XSockets Sweden AB</owners>
+        <licenseUrl>http://xsockets.net/legal</licenseUrl>
+        <projectUrl>http://xsockets.net</projectUrl>
+        <iconUrl>http://xsockets.net/$2/file/xsocketlogo.png</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Provides a javascript API for sending text and binary messages to a XSockets server with a pub/sub and rpc pattern.</description>
+        <summary>Provides a javascript API for sending text and binary messages to a XSockets server with a pub/sub and rpc pattern.</summary>
+        <releaseNotes />
+        <copyright>Team XSockets</copyright>
+        <tags>XSockets, Websockets, JavaScript, HTML5</tags>
+    </metadata>
+    <files>
+        <file src="..\..\..\..\TFS\XSOCKETS.NET\V4\Dev\Main\XSockets\XSockets.Test.Web.MVC4\js\xsockets\XSockets.latest.js" target="content\Scripts\XSockets.latest.js" />
+        <file src="..\..\..\..\TFS\XSOCKETS.NET\V4\Dev\Main\XSockets\XSockets.Test.Web.MVC4\js\xsockets\XSockets.latest.min.js" target="content\Scripts\XSockets.latest.min.js" />
+        <file src="..\..\..\..\TFS\XSOCKETS.NET\V4\Dev\Main\XSockets\XSockets.Test.Web.MVC4\js\xsockets\XSockets.latest.min.js.map" target="content\Scripts\XSockets.latest.min.js.map" />
+    </files>
+</package>

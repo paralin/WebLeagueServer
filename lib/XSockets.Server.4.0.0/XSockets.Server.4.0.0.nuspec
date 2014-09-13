@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>XSockets.Server</id>
+        <version>4.0.0</version>
+        <title>XSockets.Server</title>
+        <authors>Team XSockets Sweden AB</authors>
+        <owners>Team XSockets Sweden AB</owners>
+        <licenseUrl>http://xsockets.net/legal</licenseUrl>
+        <projectUrl>http://xsockets.net</projectUrl>
+        <iconUrl>http://xsockets.net/$2/file/xsocketlogo.png</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>The assemblies needed to run a XSockets.NET server</description>
+        <summary>The assemblies needed to run a XSockets.NET server</summary>
+        <copyright>Team XSockets Sweden AB</copyright>
+        <tags>XSockets Controllers IoT</tags>
+        <dependencies>
+            <dependency id="XSockets.Core" version="[4.0.0]" />
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="content\net\XSocketsNET\ServerExample\ReadMe.txt" target="content\net\XSocketsNET\ServerExample\ReadMe.txt" />
+        <file src="..\XSockets.Binaries.4.0.0\content\XSocketsNET\Binaries\Serilog.dll" target="lib\net40\Serilog.dll" />
+        <file src="..\XSockets.Binaries.4.0.0\content\XSocketsNET\Binaries\Serilog.FullNetFx.dll" target="lib\net40\Serilog.FullNetFx.dll" />
+        <file src="..\XSockets.Binaries.4.0.0\content\XSocketsNET\Binaries\XSockets.Controllers.dll" target="lib\net40\XSockets.Controllers.dll" />
+        <file src="..\XSockets.Binaries.4.0.0\content\XSocketsNET\Binaries\XSockets.Controllers.xml" target="lib\net40\XSockets.Controllers.xml" />
+        <file src="..\XSockets.Binaries.4.0.0\content\XSocketsNET\Binaries\XSockets.Core.Communication.dll" target="lib\net40\XSockets.Core.Communication.dll" />
+        <file src="..\XSockets.Binaries.4.0.0\content\XSocketsNET\Binaries\XSockets.Core.Communication.XML" target="lib\net40\XSockets.Core.Communication.XML" />
+        <file src="..\XSockets.Binaries.4.0.0\content\XSocketsNET\Binaries\XSockets.Enterprise.dll" target="lib\net40\XSockets.Enterprise.dll" />
+        <file src="..\XSockets.Binaries.4.0.0\content\XSocketsNET\Binaries\XSockets.Enterprise.XML" target="lib\net40\XSockets.Enterprise.XML" />
+        <file src="..\XSockets.Binaries.4.0.0\content\XSocketsNET\Binaries\XSockets.Logger.dll" target="lib\net40\XSockets.Logger.dll" />
+        <file src="..\XSockets.Binaries.4.0.0\content\XSocketsNET\Binaries\XSockets.Server.dll" target="lib\net40\XSockets.Server.dll" />
+        <file src="..\XSockets.Binaries.4.0.0\content\XSocketsNET\Binaries\XSockets.Server.XML" target="lib\net40\XSockets.Server.XML" />
+        <file src="tools\install.ps1" target="tools\install.ps1" />
+        <file src="tools\uninstall.ps1" target="tools\uninstall.ps1" />
+        <file src="..\..\Documents\Visual Studio 2013\Templates\ItemTemplates\XSockets.NET 4\XSockets.AuthenticationPipeline.zip" target="tools\XSockets.AuthenticationPipeline.zip" />
+        <file src="..\..\Documents\Visual Studio 2013\Templates\ItemTemplates\XSockets.NET 4\XSockets.ConnectionInterceptor.zip" target="tools\XSockets.ConnectionInterceptor.zip" />
+        <file src="..\..\Documents\Visual Studio 2013\Templates\ItemTemplates\XSockets.NET 4\XSockets.ConnectionPerformanceCounter.zip" target="tools\XSockets.ConnectionPerformanceCounter.zip" />
+        <file src="..\..\Documents\Visual Studio 2013\Templates\ItemTemplates\XSockets.NET 4\XSockets.Controller.zip" target="tools\XSockets.Controller.zip" />
+        <file src="..\..\Documents\Visual Studio 2013\Templates\ItemTemplates\XSockets.NET 4\XSockets.CustomConfiguration.zip" target="tools\XSockets.CustomConfiguration.zip" />
+        <file src="..\..\Documents\Visual Studio 2013\Templates\ItemTemplates\XSockets.NET 4\XSockets.ErrorInterceptor.zip" target="tools\XSockets.ErrorInterceptor.zip" />
+        <file src="..\..\Documents\Visual Studio 2013\Templates\ItemTemplates\XSockets.NET 4\XSockets.ErrorPerformanceCounter.zip" target="tools\XSockets.ErrorPerformanceCounter.zip" />
+        <file src="..\..\Documents\Visual Studio 2013\Templates\ItemTemplates\XSockets.NET 4\XSockets.Longrunning.Controller.zip" target="tools\XSockets.Longrunning.Controller.zip" />
+        <file src="..\..\Documents\Visual Studio 2013\Templates\ItemTemplates\XSockets.NET 4\XSockets.MessageInterceptor.zip" target="tools\XSockets.MessageInterceptor.zip" />
+        <file src="..\..\Documents\Visual Studio 2013\Templates\ItemTemplates\XSockets.NET 4\XSockets.MessagePerformanceCounter.zip" target="tools\XSockets.MessagePerformanceCounter.zip" />
+        <file src="..\..\Documents\Visual Studio 2013\Templates\ItemTemplates\XSockets.NET 4\XSockets.Pipeline.zip" target="tools\XSockets.Pipeline.zip" />
+        <file src="..\..\Documents\Visual Studio 2013\Templates\ItemTemplates\XSockets.NET 4\XSockets.Protocol.zip" target="tools\XSockets.Protocol.zip" />
+        <file src="..\..\Documents\Visual Studio 2013\Templates\ItemTemplates\XSockets.NET 4\XSockets.Web.Bootstrapper.zip" target="tools\XSockets.Web.Bootstrapper.zip" />
+    </files>
+</package>

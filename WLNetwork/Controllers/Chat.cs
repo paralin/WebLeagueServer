@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Security.Principal;
 using MongoDB.Driver.Builders;
+using MongoDB.Driver.Linq;
 using Newtonsoft.Json.Linq;
 using WLNetwork.Chat;
 using WLNetwork.Chat.Exceptions;
@@ -40,6 +41,29 @@ namespace WLNetwork.Controllers
                              "]" + (this.ConnectionContext.IsAuthenticated ? " [" + this.User.steam.steamid + "]" : ""));
         }
 
+        [AllowAnonymous]
+        public string[] AuthInfo()
+        {
+            var user = User;
+            if(user == null) return new string[0];
+            return user.authItems;
+        }
+
+        public override bool OnAuthorization(IAuthorizeAttribute authorizeAttribute)
+        {
+            if (User == null) return false;
+            if (!string.IsNullOrWhiteSpace(authorizeAttribute.Roles))
+            {
+                var roles = authorizeAttribute.Roles.Split(',');
+                return User.authItems.ContainsAll(roles);
+            }
+            else
+            {
+                return User.steam.steamid == authorizeAttribute.Users;
+            }
+        }
+
+        /*
         [AllowAnonymous]
         public string[] Authenticate()
         {
@@ -89,6 +113,7 @@ namespace WLNetwork.Controllers
             }
             return new string[0];
         }
+        */
 
         private void OnOnClose(object sender, OnClientDisconnectArgs onClientDisconnectArgs)
         {

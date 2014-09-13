@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>XSockets.Owin.Host</id>
+        <version>4.0.0</version>
+        <title>XSockets.Owin.Host</title>
+        <authors>Team XSockets Sweden AB</authors>
+        <owners>Team XSockets Sweden AB</owners>
+        <licenseUrl>http://xsockets.net/legal</licenseUrl>
+        <projectUrl>http://xsockets.net</projectUrl>
+        <iconUrl>http://xsockets.net/$2/file/xsocketlogo.png</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Enables XSockets as middleware in OWIN</description>
+        <summary>Enables XSockets as middleware in OWIN</summary>
+        <copyright>Team XSockets Sweden AB</copyright>
+        <tags>XSockets Owin WebSockets</tags>
+        <dependencies>
+            <dependency id="XSockets.Server" version="[4.0.0]" />
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="..\XSockets.Binaries.4.0.0\content\XSocketsNET\Binaries\XSockets.Owin.Host.dll" target="lib\net45\XSockets.Owin.Host.dll" />
+        <file src="..\XSockets.Binaries.4.0.0\content\XSocketsNET\Binaries\XSockets.Owin.Host.XML" target="lib\net45\XSockets.Owin.Host.XML" />
+        <file src="tools\install.ps1" target="tools\install.ps1" />
+        <file src="tools\uninstall.ps1" target="tools\uninstall.ps1" />
+    </files>
+</package>

@@ -158,7 +158,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             foreach (var mm in this.Members.Values)
             {
                 ChatController.InvokeTo(
-                        m => m.ConnectionContext.IsAuthenticated && m.User.steam.steamid == mm.SteamID,
+                        m => m.ConnectionContext.IsAuthenticated && m.ConnectionId == mm.ID,
                         msg, ChatMessage.Msg);
             }
         }

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.Design;
 using System.Linq;
+using MongoDB.Driver.Linq;
 using WLNetwork.Matches;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Model;
@@ -122,6 +123,20 @@ namespace WLNetwork.Controllers
                 Match = null;
             }
             return null;
+        }
+
+        public override bool OnAuthorization(IAuthorizeAttribute authorizeAttribute)
+        {
+            if (User == null) return false;
+            if (!string.IsNullOrWhiteSpace(authorizeAttribute.Roles))
+            {
+                var roles = authorizeAttribute.Roles.Split(',');
+                return User.authItems.ContainsAll(roles);
+            }
+            else
+            {
+                return User.steam.steamid == authorizeAttribute.Users;
+            }
         }
     }
 }

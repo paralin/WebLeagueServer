@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>XSockets.Plugin.Framework</id>
+        <version>4.0.0</version>
+        <title>XSockets.Plugin.Framework</title>
+        <authors>Team XSockets Sweden AB</authors>
+        <owners>Team XSockets Sweden AB</owners>
+        <licenseUrl>http://xsockets.net/legal</licenseUrl>
+        <projectUrl>http://xsockets.net</projectUrl>
+        <iconUrl>http://xsockets.net/$2/file/xsocketlogo.png</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>A package for building modular applications in a blink.</description>
+        <summary>Inspired by MEF this package lets you Export/Import types unknown a compile time.</summary>
+        <copyright>Team XSockets Sweden AB</copyright>
+        <language>en-US</language>
+        <tags>plugin, mudularity, modules</tags>
+    </metadata>
+    <files>
+        <file src="..\XSockets.Binaries.4.0.0\content\XSocketsNET\Binaries\XSockets.Plugin.Framework.dll" target="lib\net40\XSockets.Plugin.Framework.dll" />
+        <file src="..\XSockets.Binaries.4.0.0\content\XSocketsNET\Binaries\XSockets.Plugin.Framework.XML" target="lib\net40\XSockets.Plugin.Framework.XML" />
+    </files>
+</package>

@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using WLNetwork.Model;
 using XSockets.Client40.Common.Interfaces;
 using XSockets.Core.Common.Protocol;
+using XSockets.Core.Common.Socket;
 
 namespace WLNetwork.Utils
 {
