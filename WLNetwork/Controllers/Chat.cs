@@ -130,7 +130,7 @@ namespace WLNetwork.Controllers
             {
                 var memb = ichan.Players.FirstOrDefault(m => m.SID == ichan.Info.Owner);
                 if (memb == null) return;
-                var chan = ChatChannel.JoinOrCreate(Enum.GetName(typeof(MatchType), ichan.Info.MatchType)+" "+ichan.Id.ToString().Split('-')[0], new ChatMember(this.ConnectionId, User, User.steam.avatarfull), ChannelType.Lobby, false);
+                var chan = ChatChannel.JoinOrCreate(Enum.GetName(typeof(MatchType), ichan.Info.MatchType)+" "+ichan.Id.ToString().Split('-')[0], new ChatMember(this.ConnectionId, User, User.steam.avatarfull), ChannelType.Lobby, false, true);
                 if (chan != null)
                 {
                     chan.MatchId = ichan.Id;

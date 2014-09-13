@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Net;
 using Newtonsoft.Json;
 using WLNetwork.Chat.Exceptions;
 using WLNetwork.Chat.Methods;
@@ -174,11 +175,11 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         /// <param name="name"></param>
         /// <param name="member"></param>
         /// <returns></returns>
-        public static ChatChannel Join(string name, ChatMember member)
+        public static ChatChannel Join(string name, ChatMember member, bool force=false)
         {
             ChatChannel chan = Channels.Values.FirstOrDefault(m => m.Name.ToLower() == name.ToLower());
             if (chan == null) return null;
-            return Join(chan.Id, member);
+            return Join(chan.Id, member, force);
         }
 
         /// <summary>
@@ -187,11 +188,11 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         /// <param name="id"></param>
         /// <param name="member"></param>
         /// <returns></returns>
-        public static ChatChannel Join(Guid id, ChatMember member)
+        public static ChatChannel Join(Guid id, ChatMember member, bool force = false)
         {
             ChatChannel chan = null;
             if (!Channels.TryGetValue(id, out chan)) return null;
-            if(chan.ChannelType != ChannelType.Public) throw new JoinCreateException("That channel is not joinable this way.");
+            if(chan.ChannelType != ChannelType.Public && !force) throw new JoinCreateException("That channel is not joinable this way.");
             chan.Members.Add(member.ID, member);
             return chan;
         }
@@ -203,9 +204,9 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         /// <param name="member"></param>
         /// <param name="chanType"></param>
         /// <returns></returns>
-        public static ChatChannel JoinOrCreate(string name, ChatMember member, ChannelType chanType = ChannelType.Public, bool leavable = true)
+        public static ChatChannel JoinOrCreate(string name, ChatMember member, ChannelType chanType = ChannelType.Public, bool leavable = true, bool force=false)
         {
-            var chan = Join(name, member);
+            var chan = Join(name, member, force);
             if (chan == null)
             {
                 chan = new ChatChannel(name, chanType){Leavable = leavable};
