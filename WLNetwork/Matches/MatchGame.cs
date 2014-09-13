@@ -57,6 +57,16 @@ namespace WLNetwork.Matches
             this.Info.MatchType = options.MatchType;
         }
 
+        /// <summary>
+        /// Transmit an update for a player.
+        /// </summary>
+        /// <param name="player"></param>
+        public void PlayerUpdate(MatchPlayer player)
+        {
+            if (!Players.HasPlayer(player)) return;
+            Matches.InvokeTo(m => (Info.Status == MatchStatus.Players) ? m.User != null : m.Match == this, new MatchPlayerUpd(this.Id, player), MatchPlayerUpd.Msg);
+        }
+
         private void PlayersOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
         {
             if(args.NewItems != null)
@@ -65,6 +75,9 @@ namespace WLNetwork.Matches
                 Matches.InvokeTo(m => (Info.Status== MatchStatus.Players) ? m.User != null : m.Match==this, new MatchPlayerRm(this.Id, args.OldItems.OfType<MatchPlayer>().ToArray()), MatchPlayerRm.Msg);
         }
 
+        /// <summary>
+        /// Delete the game.
+        /// </summary>
         public void Destroy()
         {
             MatchesController.Games.Remove(this);
@@ -76,6 +89,9 @@ namespace WLNetwork.Matches
             log.Info("MATCH DESTROY [" + this.Id + "]");
         }
 
+        /// <summary>
+        /// ID of the game.
+        /// </summary>
         public Guid Id { get; set; }
 
         /// <summary>
@@ -105,5 +121,42 @@ namespace WLNetwork.Matches
         public MatchStatus Status { get; set; }
         public string Owner { get; set; }
         public GameMode GameMode { get; set; }
+    }
+
+    public static class MatchGameExt
+    {
+        /// <summary>
+        /// How many players in a team?
+        /// </summary>
+        /// <param name="plyrs">Players</param>
+        /// <param name="team">Team</param>
+        /// <returns></returns>
+        public static int TeamCount(this ObservableCollection<MatchPlayer> plyrs, MatchTeam team)
+        {
+            return plyrs.Count(m => m.Team == team);
+        }
+
+        /// <summary>
+        /// Find the MatchPlayer for a user.
+        /// </summary>
+        /// <param name="plyrs"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public static MatchPlayer ForUser(this ObservableCollection<MatchPlayer> plyrs, User user)
+        {
+            if (user == null) return null;
+            return plyrs.FirstOrDefault(m => m.SID == user.steam.steamid);
+        }
+
+        /// <summary>
+        /// Is this player in the team?
+        /// </summary>
+        /// <param name="players"></param>
+        /// <param name="player"></param>
+        /// <returns></returns>
+        public static bool HasPlayer(this ObservableCollection<MatchPlayer> players, MatchPlayer player)
+        {
+            return players.Contains(player);
+        }
     }
 }

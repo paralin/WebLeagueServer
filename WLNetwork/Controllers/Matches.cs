@@ -104,6 +104,23 @@ namespace WLNetwork.Controllers
         }
 
         /// <summary>
+        /// Switch teams.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public string SwitchTeam()
+        {
+            if (activeMatch == null) return "You are not currently in a match.";
+            var plyr = activeMatch.Players.ForUser(User);
+            if (plyr == null) return "Can't find you in the match. Try rejoining.";
+            var tteam = plyr.Team == MatchTeam.Dire ? MatchTeam.Radiant : MatchTeam.Dire;
+            if (activeMatch.Players.TeamCount(tteam) == 5) return "The other team is currently full.";
+            plyr.Team = tteam;
+            activeMatch.PlayerUpdate(plyr);
+            return null;
+        }
+
+        /// <summary>
         /// Leave an existing match.
         /// <returns>Error else null</returns>
         /// </summary>
