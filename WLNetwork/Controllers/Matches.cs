@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel.Design;
 using System.Linq;
 using MongoDB.Driver.Linq;
-using WLNetwork.Chat;
 using WLNetwork.Matches;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Model;
@@ -18,8 +17,6 @@ namespace WLNetwork.Controllers
     public class Matches : XSocketController
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-        private static readonly Chat Chat = new Chat();
 
         public Matches()
         {
@@ -38,14 +35,10 @@ namespace WLNetwork.Controllers
             internal set
             {
                 this.Invoke(value, "matchsnapshot");
-                if (value != activeMatch) UpdateMatchChannel(value);
                 activeMatch = value;
             }
         }
 
-        /// <summary>
-        /// Get the current user or null if not authed.
-        /// </summary>
         public User User
         {
             get
@@ -53,18 +46,6 @@ namespace WLNetwork.Controllers
                 if (!this.ConnectionContext.IsAuthenticated) return null;
                 return ((UserIdentity)this.ConnectionContext.User.Identity).User;
             }
-        }
-
-        /// <summary>
-        /// Join or leave the match channel.
-        /// </summary>
-        /// <param name="match"></param>
-        private void UpdateMatchChannel(MatchGame match)
-        {
-            var chat = Matches.Chat.Find(m => m.ConnectionContext.PersistentId == this.ConnectionContext.PersistentId).FirstOrDefault();
-            if (chat == null) return;
-            if (match == null) chat.Leave(ChatChannel.Channels.Values.FirstOrDefault(m=>m.MatchId==activeMatch.Id)); 
-            else chat.JoinOrCreateGameChannel(match);
         }
 
         /// <summary>

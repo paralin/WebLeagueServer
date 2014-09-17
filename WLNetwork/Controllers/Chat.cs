@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
@@ -11,8 +10,6 @@ using WLNetwork.Chat;
 using WLNetwork.Chat.Exceptions;
 using WLNetwork.Chat.Methods;
 using WLNetwork.Database;
-using WLNetwork.Matches;
-using WLNetwork.Matches.Enums;
 using WLNetwork.Model;
 using WLNetwork.Properties;
 using XSockets.Core.Common.Socket.Attributes;
@@ -120,30 +117,6 @@ namespace WLNetwork.Controllers
             }
         }
 
-        /// <summary>
-        /// Join or create a game channel.
-        /// </summary>
-        /// <param name="chan"></param>
-        internal void JoinOrCreateGameChannel(MatchGame ichan)
-        {
-            try
-            {
-                var memb = ichan.Players.FirstOrDefault(m => m.SID == ichan.Info.Owner);
-                if (memb == null) return;
-                var chan = ChatChannel.JoinOrCreate(Enum.GetName(typeof(MatchType), ichan.Info.MatchType)+" "+ichan.Id.ToString().Split('-')[0], new ChatMember(this.ConnectionId, User, User.steam.avatarfull), ChannelType.Lobby, false, true);
-                if (chan != null)
-                {
-                    chan.MatchId = ichan.Id;
-                    this.Channels.Add(chan);
-                }
-                return;
-            }
-            catch (JoinCreateException ex)
-            {
-                log.Error("Problem joining or creating game chat channel " + ichan.Id);
-            }
-        }
-
         public void Leave(LeaveRequest req)
         {
             if (req == null || req.Id == null) return;
@@ -151,20 +124,6 @@ namespace WLNetwork.Controllers
             if (chan == null || !chan.Leavable) return;
             chan.Members.Remove(this.ConnectionId);
             this.Channels.Remove(chan);
-        }
-
-        internal void Leave(Guid id)
-        {
-            var chan = this.Channels.FirstOrDefault(m => m.Id == id);
-            if (chan == null) return;
-            chan.Members.Remove(this.ConnectionId);
-            this.Channels.Remove(chan);
-        }
-
-        internal void Leave(ChatChannel firstOrDefault)
-        {
-            if (firstOrDefault == null) return;
-            this.Leave(firstOrDefault.Id);
         }
     }
 }
