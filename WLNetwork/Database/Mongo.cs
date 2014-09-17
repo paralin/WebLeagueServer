@@ -1,4 +1,6 @@
 ﻿using MongoDB.Driver;
+using WLCommon.Model;
+using WLNetwork.Model;
 using WLNetwork.Properties;
 
 namespace WLNetwork.Database
@@ -13,7 +15,8 @@ namespace WLNetwork.Database
         public static MongoDatabase Database;
 
         public static MongoCollection Users;
-        public static MongoCollection Servers;
+        public static MongoCollection BotHosts;
+        public static MongoCollection Bots;
 
         static Mongo()
         {
@@ -34,8 +37,9 @@ namespace WLNetwork.Database
             Database = Server.GetDatabase(Settings.Default.MongoDB);
 #endif
 
-            Users = Database.GetCollection("users");
-            Servers = Database.GetCollection("servers");
+            Users = Database.GetCollection<User>("users");
+            BotHosts = Database.GetCollection<BotHost>("botHosts");
+            Bots = Database.GetCollection("bots");
         }
     }
 }

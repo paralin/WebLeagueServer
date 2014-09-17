@@ -1,4 +1,4 @@
-﻿namespace WLNetwork.Matches.Enums
+﻿namespace WLCommon.Matches.Enums
 {
     /// <summary>
     /// Status of the bot
@@ -11,7 +11,7 @@
         Queue,
 
         /// <summary>
-        /// Bot is setting up Dota 2
+        /// BotHost is setting up Dota 2
         /// </summary>
         Init,
 

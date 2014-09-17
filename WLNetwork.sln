@@ -1,18 +1,69 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30723.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WLNetwork", "WLNetwork\WLNetwork.csproj", "{CD854E09-58F2-40CE-8049-6CD713775B5F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WLBot", "WLBot\WLBot.csproj", "{EA6AEB7A-6C58-4EA3-B116-7A0CBEAAE81D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SteamKit2", "SteamKit\SteamKit2\SteamKit2\SteamKit2.csproj", "{BEB5BF07-BB56-402A-97A3-A41C6444C6A5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WLCommon", "WLCommon\WLCommon.csproj", "{E5EDDDE6-0687-4870-90BC-183B1F5A8856}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
 		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CD854E09-58F2-40CE-8049-6CD713775B5F}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{CD854E09-58F2-40CE-8049-6CD713775B5F}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{CD854E09-58F2-40CE-8049-6CD713775B5F}.Debug|Mixed Platforms.Build.0 = Debug|x86
 		{CD854E09-58F2-40CE-8049-6CD713775B5F}.Debug|x86.ActiveCfg = Debug|x86
 		{CD854E09-58F2-40CE-8049-6CD713775B5F}.Debug|x86.Build.0 = Debug|x86
+		{CD854E09-58F2-40CE-8049-6CD713775B5F}.Release|Any CPU.ActiveCfg = Release|x86
+		{CD854E09-58F2-40CE-8049-6CD713775B5F}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{CD854E09-58F2-40CE-8049-6CD713775B5F}.Release|Mixed Platforms.Build.0 = Release|x86
 		{CD854E09-58F2-40CE-8049-6CD713775B5F}.Release|x86.ActiveCfg = Release|x86
 		{CD854E09-58F2-40CE-8049-6CD713775B5F}.Release|x86.Build.0 = Release|x86
+		{EA6AEB7A-6C58-4EA3-B116-7A0CBEAAE81D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA6AEB7A-6C58-4EA3-B116-7A0CBEAAE81D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA6AEB7A-6C58-4EA3-B116-7A0CBEAAE81D}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{EA6AEB7A-6C58-4EA3-B116-7A0CBEAAE81D}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{EA6AEB7A-6C58-4EA3-B116-7A0CBEAAE81D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EA6AEB7A-6C58-4EA3-B116-7A0CBEAAE81D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA6AEB7A-6C58-4EA3-B116-7A0CBEAAE81D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA6AEB7A-6C58-4EA3-B116-7A0CBEAAE81D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{EA6AEB7A-6C58-4EA3-B116-7A0CBEAAE81D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{EA6AEB7A-6C58-4EA3-B116-7A0CBEAAE81D}.Release|x86.ActiveCfg = Release|Any CPU
+		{BEB5BF07-BB56-402A-97A3-A41C6444C6A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BEB5BF07-BB56-402A-97A3-A41C6444C6A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BEB5BF07-BB56-402A-97A3-A41C6444C6A5}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{BEB5BF07-BB56-402A-97A3-A41C6444C6A5}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{BEB5BF07-BB56-402A-97A3-A41C6444C6A5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BEB5BF07-BB56-402A-97A3-A41C6444C6A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BEB5BF07-BB56-402A-97A3-A41C6444C6A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BEB5BF07-BB56-402A-97A3-A41C6444C6A5}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{BEB5BF07-BB56-402A-97A3-A41C6444C6A5}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{BEB5BF07-BB56-402A-97A3-A41C6444C6A5}.Release|x86.ActiveCfg = Release|Any CPU
+		{E5EDDDE6-0687-4870-90BC-183B1F5A8856}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5EDDDE6-0687-4870-90BC-183B1F5A8856}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5EDDDE6-0687-4870-90BC-183B1F5A8856}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{E5EDDDE6-0687-4870-90BC-183B1F5A8856}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{E5EDDDE6-0687-4870-90BC-183B1F5A8856}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E5EDDDE6-0687-4870-90BC-183B1F5A8856}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5EDDDE6-0687-4870-90BC-183B1F5A8856}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5EDDDE6-0687-4870-90BC-183B1F5A8856}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{E5EDDDE6-0687-4870-90BC-183B1F5A8856}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{E5EDDDE6-0687-4870-90BC-183B1F5A8856}.Release|x86.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = WLNetwork\WLNetwork.csproj

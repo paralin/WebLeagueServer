@@ -1,7 +1,7 @@
 ﻿using WLCommon.Matches.Enums;
-using WLNetwork.Model;
+using WLCommon.Model;
 
-namespace WLNetwork.Matches
+namespace WLCommon.Matches
 {
     /// <summary>
     /// A player in a match

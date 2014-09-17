@@ -2,7 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
-using WLNetwork.Matches.Enums;
+using WLCommon.Matches.Enums;
 using WLNetwork.Matches.Methods;
 using WLNetwork.Model;
 using XSockets.Core.XSocket.Helpers;

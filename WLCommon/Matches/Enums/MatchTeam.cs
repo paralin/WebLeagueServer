@@ -1,4 +1,4 @@
-﻿namespace WLNetwork.Matches.Enums
+﻿namespace WLCommon.Matches.Enums
 {
     public enum MatchTeam : int
     {

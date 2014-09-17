@@ -1,5 +1,5 @@
 ﻿using System;
-using WLNetwork.Matches.Enums;
+using WLCommon.Matches.Enums;
 
 namespace WLNetwork.Model
 {

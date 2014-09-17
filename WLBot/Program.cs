@@ -18,7 +18,7 @@ namespace WLBot
         public static void Main(string[] args)
         {
             log4net.Config.XmlConfigurator.Configure();
-            log.Info("Web League master starting up!");
+            log.Info("Web League bot slave starting up!");
             Console.CancelKeyPress += delegate
             {
                 shutdown = true;
@@ -27,7 +27,6 @@ namespace WLBot
             {
                 container.Start();
                 log.Debug("Server online and listening.");
-                new ChatChannel("main", ChannelType.Public, false, true);
                 while (!shutdown && !(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter))
                 {
                     Thread.Sleep(500);
