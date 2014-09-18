@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WLBot.Client;
 using XSockets.Core.Common.Socket;
 using XSockets.Plugin.Framework;
 
@@ -23,15 +24,15 @@ namespace WLBot
             {
                 shutdown = true;
             };
-            using (var container = Composable.GetExport<IXSocketServerContainer>())
+           
+            log.Info("Slave online and listening.");
+            var client = new WLBotClient("ws://localhost", "testbot", "testbotsecret");
+            client.Start();
+            while (!shutdown && !(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter))
             {
-                container.Start();
-                log.Debug("Server online and listening.");
-                while (!shutdown && !(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter))
-                {
-                    Thread.Sleep(500);
-                }
+                Thread.Sleep(500);
             }
+            client.Stop();
         }
     }
 }
