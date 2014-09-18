@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
+using WLCommon.Model;
 using WLNetwork.Model;
 using XSockets.Client40.Common.Interfaces;
 using XSockets.Core.Common.Protocol;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WLCommon.Model;
 using WLNetwork.Model;
 
 namespace WLNetwork.Chat

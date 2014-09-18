@@ -6,6 +6,7 @@ using System.Security.Principal;
 using MongoDB.Driver.Builders;
 using MongoDB.Driver.Linq;
 using Newtonsoft.Json.Linq;
+using WLCommon.Model;
 using WLNetwork.Chat;
 using WLNetwork.Chat.Exceptions;
 using WLNetwork.Chat.Methods;

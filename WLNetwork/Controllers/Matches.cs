@@ -2,6 +2,7 @@
 using System.Linq;
 using MongoDB.Driver.Linq;
 using WLCommon.Matches.Enums;
+using WLCommon.Model;
 using WLNetwork.Matches;
 using WLNetwork.Model;
 using XSockets.Core.Common.Socket.Attributes;
