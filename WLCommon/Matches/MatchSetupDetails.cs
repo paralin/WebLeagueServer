@@ -1,5 +1,6 @@
 ﻿using System;
 using WLCommon.Matches.Enums;
+using WLCommon.Model;
 
 namespace WLCommon.Matches
 {
@@ -26,7 +27,7 @@ namespace WLCommon.Matches
         /// <summary>
         /// The bot to use.
         /// </summary>
-        public string BotID { get; set; }
+        public Bot Bot { get; set; }
 
         /// <summary>
         /// Status of setup.

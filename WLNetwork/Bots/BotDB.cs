@@ -45,7 +45,6 @@ namespace WLNetwork.Bots
         internal static void UpdateDB()
         {
             var bots = Mongo.Bots.FindAs<Bot>(Query.Or(Query.NotExists("Invalid"), Query.EQ("Invalid", false)));
-            var updated = new List<Bot>();
             foreach (var bot in bots)
             {
                 Bot exist = null;
@@ -57,25 +56,14 @@ namespace WLNetwork.Bots
                 else if (exist.Username != bot.Username || exist.Password != bot.Password)
                 {
                     log.Debug("BOT UPDATE USERNAME ["+exist.Username+"] => ["+bot.Username+"] PASSWORD ["+exist.Password+"] => ["+bot.Password+"]");
-                    updated.Add(bot);
                     Bots[bot.Id] = bot;
                 }
             }
-            if (updated.Count > 0)
-            {
-                BotController.InvokeTo(m=>m.Authed, new BotUpd(updated.ToArray()), "botupd");
-            }
-            var removed = new List<Bot>();
             foreach (var bot in Bots.Values.Where(bot => bots.All(m => m.Id != bot.Id)))
             {
-                removed.Add(bot);
                 Bot outBot;
                 Bots.TryRemove(bot.Id, out outBot);
                 log.Debug("BOT REMOVED/INVALID ["+bot.Id+"] ["+bot.Username+"]");
-            }
-            if (removed.Count > 0)
-            {
-                BotController.InvokeTo(m=>m.Authed, new BotRm(removed.ToArray()), "botrm");
             }
         }
     }

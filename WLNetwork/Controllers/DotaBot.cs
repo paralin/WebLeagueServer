@@ -16,16 +16,5 @@ namespace WLNetwork.Controllers
         /// Is this bot authed?
         /// </summary>
         public bool Authed { get { return this.ConnectionContext.IsAuthenticated&&this.ConnectionContext.User.IsInRole("dotaBot"); } }
-
-        /// <summary>
-        /// Get a snapshot of the bot database.
-        /// </summary>
-        /// <returns></returns>
-        public Bot[] GetBotSnapshot()
-        {
-            return BotDB.Bots.Values.ToArray();
-        }
-
-        public void OnSAuthFailed()
     }
 }

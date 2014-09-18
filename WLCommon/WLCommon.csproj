@@ -40,7 +40,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bots\Enums\BotStatus.cs" />
-    <Compile Include="Bots\Methods\BotUpd.cs" />
     <Compile Include="Matches\Enums\GameMode.cs" />
     <Compile Include="Matches\Enums\MatchSetupStatus.cs" />
     <Compile Include="Matches\Enums\MatchStatus.cs" />
