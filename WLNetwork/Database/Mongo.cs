@@ -39,7 +39,7 @@ namespace WLNetwork.Database
 
             Users = Database.GetCollection<User>("users");
             BotHosts = Database.GetCollection<BotHost>("botHosts");
-            Bots = Database.GetCollection("bots");
+            Bots = Database.GetCollection<Bot>("bots");
         }
     }
 }
