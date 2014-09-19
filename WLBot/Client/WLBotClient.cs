@@ -1,5 +1,6 @@
 ﻿using System;
 using JWT;
+using Serilog;
 using WLCommon.Model;
 using XSockets.Client40;
 using XSockets.Client40.Common.Interfaces;
@@ -11,6 +12,9 @@ namespace WLBot.Client
     /// </summary>
     public class WLBotClient
     {
+        private static readonly log4net.ILog log =
+log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private XSocketClient client;
         private IController controller;
         private bool shouldReconnect = false;
@@ -31,6 +35,7 @@ namespace WLBot.Client
             client.QueryString["btoken"] =
                 JWT.JsonWebToken.Encode(new BotToken() {Id = botid, SecretData = data.ToString()}, secret,
                     JwtHashAlgorithm.HS256);
+            InitClient();
         }
 
         /// <summary>
@@ -52,6 +57,24 @@ namespace WLBot.Client
         {
             running = false;
             client.Disconnect();
+        }
+
+        private void InitClient()
+        {
+            controller.OnOpen += async (sender, args) =>
+            {
+                log.Debug("Connected to master.");
+                var status = await controller.Invoke<bool>("readyup");
+                if (status)
+                {
+                    log.Info("Authenticated and ready.");
+                }
+                else
+                {
+                    log.Error("Some issue authenticating. the host does not recognize this bot host.");
+                }
+            };
+            
         }
     }
 }

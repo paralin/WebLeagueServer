@@ -25,8 +25,7 @@ namespace WLBot
                 shutdown = true;
             };
            
-            log.Info("Slave online and listening.");
-            var client = new WLBotClient("ws://localhost", "testbot", "testbotsecret");
+            var client = new WLBotClient("ws://localhost:4502", "testbot", "testbotsecret");
             client.Start();
             while (!shutdown && !(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter))
             {
