@@ -74,7 +74,6 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                     log.Error("Some issue authenticating. the host does not recognize this bot host.");
                 }
             };
-            
         }
     }
 }

@@ -33,5 +33,10 @@ namespace WLCommon.Matches
         /// Status of setup.
         /// </summary>
         public MatchSetupStatus Status { get; set; }
+
+        /// <summary>
+        /// Password for the lobby.
+        /// </summary>
+        public string Password { get; set; }
     }
 }
