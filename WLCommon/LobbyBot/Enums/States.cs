@@ -1,4 +1,4 @@
-﻿namespace WLBot.LobbyBot.Enums
+﻿namespace WLCommon.LobbyBot.Enums
 {
     public enum States
     {

@@ -30,5 +30,7 @@ namespace WLCommon.Model
         /// Is this account valid? Will be flagged invalid if system can't sign in with the account.
         /// </summary>
         public bool Invalid { get; set; }
+
+        public bool InUse { get; set; }
     }
 }

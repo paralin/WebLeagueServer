@@ -1,6 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Appccelerate.StateMachine;
+using Appccelerate.StateMachine.Machine;
 using JWT;
+using log4net;
 using Serilog;
+using SteamKit2.GC.CSGO.Internal;
+using SteamKit2.GC.Dota.Internal;
+using WLBot.LobbyBot.Enums;
+using WLCommon.Arguments;
+using WLCommon.LobbyBot.Enums;
+using WLCommon.Matches;
 using WLCommon.Model;
 using XSockets.Client40;
 using XSockets.Client40.Common.Interfaces;
@@ -16,9 +27,12 @@ namespace WLBot.Client
 log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private XSocketClient client;
-        private IController controller;
+        public IController controller;
         private bool shouldReconnect = false;
         private bool running = false;
+
+
+        private Dictionary<MatchSetupDetails, LobbyBot.LobbyBot> Bots = new Dictionary<MatchSetupDetails, LobbyBot.LobbyBot>(); 
         /// <summary>
         /// Create a new client with an XSocket URI.
         /// </summary>
@@ -74,6 +88,164 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                     log.Error("Some issue authenticating. the host does not recognize this bot host.");
                 }
             };
+            controller.On("startsetup", (MatchSetupDetails details) =>
+            {
+                var bot = new LobbyBot.LobbyBot(details, new WLBotExtension(details, this));
+                Bots.Add(details, bot);
+                bot.Start();
+            });
+            controller.On("clearsetup", (Guid id) =>
+            {
+                var ldet = Bots.Keys.FirstOrDefault(m => m.Id == id);
+                if (ldet != null)
+                {
+                    var bot = Bots[ldet];
+                    bot.DisconnectAndCleanup();
+                    Bots.Remove(ldet);
+                }
+            });
+            controller.OnClose += (sender, args) =>
+            {
+                log.Debug("Disconnected, clearing all bots.");
+                foreach (var bv in Bots.ToArray())
+                {
+                    bv.Value.DisconnectAndCleanup();
+                }
+                Bots.Clear();
+            };
+        }
+    }
+
+    public class WLBotExtension : IExtension<States, Events>
+    {
+        private ILog log;
+        private MatchSetupDetails details;
+        private WLBotClient client;
+
+        public WLBotExtension(MatchSetupDetails details, WLBotClient client)
+        {
+            log = LogManager.GetLogger("LobbyBotE " + details.Bot.Username);
+            this.details = details;
+            this.client = client;
+        }
+
+        public void StartedStateMachine(IStateMachineInformation<States, Events> stateMachine)
+        {
+            
+        }
+
+        public void StoppedStateMachine(IStateMachineInformation<States, Events> stateMachine)
+        {
+            
+        }
+
+        public void EventQueued(IStateMachineInformation<States, Events> stateMachine, Events eventId, object eventArgument)
+        {
+            
+        }
+
+        public void EventQueuedWithPriority(IStateMachineInformation<States, Events> stateMachine, Events eventId, object eventArgument)
+        {
+            
+        }
+
+        public void SwitchedState(IStateMachineInformation<States, Events> stateMachine, IState<States, Events> oldState, IState<States, Events> newState)
+        {
+            log.Debug("Switched state to "+newState.Id);
+            if (client.controller != null)
+            {
+                client.controller.Invoke("stateupdate", new StateUpdateArgs{State=newState.Id, Id=details.Id});
+            }
+        }
+
+        public void InitializingStateMachine(IStateMachineInformation<States, Events> stateMachine, ref States initialState)
+        {
+            
+        }
+
+        public void InitializedStateMachine(IStateMachineInformation<States, Events> stateMachine, States initialState)
+        {
+            
+        }
+
+        public void EnteringInitialState(IStateMachineInformation<States, Events> stateMachine, States state)
+        {
+            
+        }
+
+        public void EnteredInitialState(IStateMachineInformation<States, Events> stateMachine, States state, ITransitionContext<States, Events> context)
+        {
+            
+        }
+
+        public void FiringEvent(IStateMachineInformation<States, Events> stateMachine, ref Events eventId, ref object eventArgument)
+        {
+            
+        }
+
+        public void FiredEvent(IStateMachineInformation<States, Events> stateMachine, ITransitionContext<States, Events> context)
+        {
+            
+        }
+
+        public void HandlingEntryActionException(IStateMachineInformation<States, Events> stateMachine, IState<States, Events> state, ITransitionContext<States, Events> context,
+            ref Exception exception)
+        {
+            
+        }
+
+        public void HandledEntryActionException(IStateMachineInformation<States, Events> stateMachine, IState<States, Events> state, ITransitionContext<States, Events> context,
+            Exception exception)
+        {
+            
+        }
+
+        public void HandlingExitActionException(IStateMachineInformation<States, Events> stateMachine, IState<States, Events> state, ITransitionContext<States, Events> context,
+            ref Exception exception)
+        {
+            
+        }
+
+        public void HandledExitActionException(IStateMachineInformation<States, Events> stateMachine, IState<States, Events> state, ITransitionContext<States, Events> context,
+            Exception exception)
+        {
+           
+        }
+
+        public void HandlingGuardException(IStateMachineInformation<States, Events> stateMachine, ITransition<States, Events> transition,
+            ITransitionContext<States, Events> transitionContext, ref Exception exception)
+        {
+            
+        }
+
+        public void HandledGuardException(IStateMachineInformation<States, Events> stateMachine, ITransition<States, Events> transition,
+            ITransitionContext<States, Events> transitionContext, Exception exception)
+        {
+            
+        }
+
+        public void HandlingTransitionException(IStateMachineInformation<States, Events> stateMachine, ITransition<States, Events> transition,
+            ITransitionContext<States, Events> context, ref Exception exception)
+        {
+            
+        }
+
+        public void HandledTransitionException(IStateMachineInformation<States, Events> stateMachine, ITransition<States, Events> transition,
+            ITransitionContext<States, Events> transitionContext, Exception exception)
+        {
+            
+        }
+
+        public void SkippedTransition(IStateMachineInformation<States, Events> stateMachineInformation, ITransition<States, Events> transition,
+            ITransitionContext<States, Events> context)
+        {
+            
+        }
+
+        public void ExecutedTransition(IStateMachineInformation<States, Events> stateMachineInformation, ITransition<States, Events> transition,
+            ITransitionContext<States, Events> context)
+        {
+           
         }
     }
 }

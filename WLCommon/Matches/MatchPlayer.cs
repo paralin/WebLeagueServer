@@ -8,12 +8,15 @@ namespace WLCommon.Matches
     /// </summary>
     public class MatchPlayer
     {
-        public MatchPlayer(User user)
+        public MatchPlayer(User user=null)
         {
-            this.SID = user.steam.steamid;
-            this.Name = user.profile.name;
-            this.Avatar = user.steam.avatarfull;
-            this.Team = MatchTeam.Dire;
+            if (user != null)
+            {
+                this.SID = user.steam.steamid;
+                this.Name = user.profile.name;
+                this.Avatar = user.steam.avatarfull;
+                this.Team = MatchTeam.Dire;
+            }
         }
 
         /// <summary>

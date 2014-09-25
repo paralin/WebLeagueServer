@@ -8,17 +8,16 @@ using log4net;
 using Newtonsoft.Json;
 using SteamKit2;
 using SteamKit2.GC.Dota.Internal;
-using SteamKit2.GC.Internal;
-using SteamKit2.Internal;
 using WLBot.LobbyBot.Enums;
 using WLBot.Utils;
+using WLCommon.LobbyBot.Enums;
 using WLCommon.Matches;
 
 namespace WLBot.LobbyBot
 {
     public class LobbyBot
     {
-#region Private Variables
+        #region Private Variables
         private ILog log;
         private SteamClient client;
         private MatchSetupDetails setupDetails;
@@ -37,7 +36,7 @@ namespace WLBot.LobbyBot
         private System.Timers.Timer reconnectTimer = new System.Timers.Timer(5000);
         private SteamUser user;
         private uint GCVersion;
-#endregion
+        #endregion
 
         /// <summary>
         /// Setup a new bot with some details.
@@ -53,15 +52,15 @@ namespace WLBot.LobbyBot
                 Username = details.Bot.Username,
                 Password = details.Bot.Password
             };
-            this.log = LogManager.GetLogger("LobbyBot "+details.Bot.Username);
-            log.Debug("Initializing a new LobbyBot, username: "+details.Bot.Username);
+            this.log = LogManager.GetLogger("LobbyBot " + details.Bot.Username);
+            log.Debug("Initializing a new LobbyBot, username: " + details.Bot.Username);
             reconnectTimer.Elapsed += (sender, args) =>
             {
                 reconnectTimer.Stop();
                 fsm.Fire(Events.AttemptReconnect);
             };
             fsm = new ActiveStateMachine<States, Events>();
-            foreach(var ext in extensions) fsm.AddExtension(ext);
+            foreach (var ext in extensions) fsm.AddExtension(ext);
             fsm.DefineHierarchyOn(States.Connecting)
                 .WithHistoryType(HistoryType.None);
             fsm.DefineHierarchyOn(States.Connected)
@@ -102,20 +101,20 @@ namespace WLBot.LobbyBot
                 .On(Events.DotaJoinedLobby).Goto(States.DotaLobby);
             fsm.In(States.DotaConnect)
                 .ExecuteOnEntry(ConnectDota)
-				.On(Events.DotaGCReady).Goto(States.DotaMenu);
-			fsm.In (States.DotaMenu)
-				.ExecuteOnEntry(CreateLobby);
-			fsm.In (States.DotaLobby)
+                .On(Events.DotaGCReady).Goto(States.DotaMenu);
+            fsm.In(States.DotaMenu)
+                .ExecuteOnEntry(CreateLobby);
+            fsm.In(States.DotaLobby)
                 .ExecuteOnEntry(EnterLobbyChat)
                 .ExecuteOnEntry(EnterBroadcastChannel)
-				.On (Events.DotaLeftLobby).Goto (States.DotaMenu).Execute(LeaveChatChannel);
+                .On(Events.DotaLeftLobby).Goto(States.DotaMenu).Execute(LeaveChatChannel);
             fsm.In(States.DotaLobbyUI);
             fsm.Initialize(States.Connecting);
         }
 
         public void CreateLobby()
         {
-            log.Debug("Setting up the lobby with passcode ["+setupDetails.Password+"]...");
+            log.Debug("Setting up the lobby with passcode [" + setupDetails.Password + "]...");
             dota.CreateLobby(setupDetails.Password, new CMsgPracticeLobbySetDetails()
             {
                 allchat = false,
@@ -124,7 +123,7 @@ namespace WLBot.LobbyBot
                 dota_tv_delay = LobbyDotaTVDelay.LobbyDotaTV_10,
                 fill_with_bots = false,
                 game_mode = (uint)(DOTA_GameMode)setupDetails.GameMode,
-                game_name = "Web League Game",
+                game_name = "Subscriber Game",
                 lan = false
             });
         }
@@ -151,7 +150,7 @@ namespace WLBot.LobbyBot
 
         private void leaveLobby()
         {
-			log.Debug("Leaving lobby.");
+            log.Debug("Leaving lobby.");
             dota.AbandonGame();
             dota.LeaveLobby();
             LeaveChatChannel();
@@ -176,10 +175,10 @@ namespace WLBot.LobbyBot
             dota.JoinBroadcastChannel();
         }
 
-		private void SwitchTeam(DOTA_GC_TEAM team=DOTA_GC_TEAM.DOTA_GC_TEAM_GOOD_GUYS)
-		{
-			dota.JoinTeam (team, 2);
-		}
+        private void SwitchTeam(DOTA_GC_TEAM team = DOTA_GC_TEAM.DOTA_GC_TEAM_GOOD_GUYS)
+        {
+            dota.JoinTeam(team, 2);
+        }
 
         private void StartReconnectTimer()
         {
@@ -204,7 +203,7 @@ namespace WLBot.LobbyBot
         private void SetOnlinePresence()
         {
             friends.SetPersonaState(EPersonaState.Online);
-            friends.SetPersonaName("Lobby Bot");
+            friends.SetPersonaName("SubGames Bot");
         }
 
         private void InitAndConnect()
@@ -318,7 +317,7 @@ namespace WLBot.LobbyBot
             dota.LaunchDota();
         }
 
-        private void DisconnectAndCleanup()
+        public void DisconnectAndCleanup()
         {
             if (client != null)
             {

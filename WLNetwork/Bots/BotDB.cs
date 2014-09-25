@@ -1,10 +1,15 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
 using MongoDB.Driver.Builders;
+using MongoDB.Driver.Linq;
+using WLCommon.Matches.Enums;
 using WLCommon.Model;
 using WLNetwork.Controllers;
 using WLNetwork.Database;
+using WLNetwork.Matches;
+using XSockets.Core.XSocket.Helpers;
 
 namespace WLNetwork.Bots
 {
@@ -17,23 +22,60 @@ namespace WLNetwork.Bots
    log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public static Timer UpdateTimer;
 
-        private static readonly DotaBot BotController = new DotaBot();
+        internal static readonly DotaBot BotController = new DotaBot();
 
         /// <summary>
         /// Bot Dictionary
         /// </summary>
         public static ConcurrentDictionary<string, Bot> Bots = new ConcurrentDictionary<string, Bot>();
 
+        public static HashSet<MatchSetup> SetupQueue = new HashSet<MatchSetup>();
+
         static BotDB()
         {
             UpdateTimer = new Timer(15000);
             UpdateTimer.Elapsed += UpdateTimerOnElapsed;
             UpdateDB();
+            UpdateTimer.Start();
         }
 
         private static void UpdateTimerOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
         {
             UpdateDB();
+        }
+
+        private static Bot FindAvailableBot()
+        {
+            return Bots.Values.FirstOrDefault(m => !m.Invalid && !m.InUse);
+        }
+
+        public static void RegisterSetup(MatchSetup setup)
+        {
+            SetupQueue.Add(setup);
+            ProcSetupQueue();
+        }
+
+        public static void ProcSetupQueue()
+        {
+            foreach (var setup in SetupQueue.ToArray())
+            {
+                var bot = FindAvailableBot();
+                if (bot != null)
+                {
+                    var cont = BotController.Find(m => m.Ready).OrderByDescending(m => m.Setups.Count).FirstOrDefault();
+                    if (cont != null)
+                    {
+                        setup.ControllerGuid = cont.PersistentId;
+                        setup.SetupStatus = MatchSetupStatus.Init;
+                        setup.Details.TransmitUpdate();
+                        setup.Details.Bot = bot;
+                        setup.Details.Bot.InUse = true;
+                        SetupQueue.Remove(setup);
+                        cont.Setups.Add(setup.Details);
+                        return;
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -62,6 +104,7 @@ namespace WLNetwork.Bots
                 Bots.TryRemove(bot.Id, out outBot);
                 log.Debug("BOT REMOVED/INVALID ["+bot.Id+"] ["+bot.Username+"]");
             }
+            ProcSetupQueue();
         }
     }
 }

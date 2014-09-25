@@ -28,18 +28,6 @@ namespace WLBot
                 shutdown = true;
             };
 
-            var testBot = new LobbyBot.LobbyBot(new MatchSetupDetails()
-            {
-                Bot = new Bot()
-                {
-                    Id = "test",
-                    Invalid = false,
-                    Password = "ciagnickeyen",
-                    Username = "webleague2"
-                }
-            });
-            testBot.Start();
-
             var client = new WLBotClient("ws://localhost:4502", Settings.Default["BotID"] as string, Settings.Default["BotSecret"] as string);
             client.Start();
             while (!shutdown && !(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter))

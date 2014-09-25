@@ -2,10 +2,13 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using WLCommon.Matches;
 using WLCommon.Matches.Enums;
 using WLCommon.Model;
+using WLNetwork.Bots;
 using WLNetwork.Matches.Methods;
 using WLNetwork.Model;
+using WLNetwork.Utils;
 using XSockets.Core.XSocket.Helpers;
 
 namespace WLNetwork.Matches
@@ -36,7 +39,6 @@ namespace WLNetwork.Matches
             this.Players = new ObservableCollection<MatchPlayer>();
             this.Players.CollectionChanged += PlayersOnCollectionChanged;
             this.Id = Guid.NewGuid();
-            this.SetupStatus = MatchSetupStatus.Queue;
             MatchesController.Games.Add(this);
             //note: Don't add to public games as it's not started yet
             log.Info("MATCH CREATE ["+this.Id+"] [" + options.Name + "] [" + options.GameMode + "] [" + options.MatchType + "]");
@@ -68,6 +70,19 @@ namespace WLNetwork.Matches
             Matches.InvokeTo(m => (Info.Status == MatchStatus.Players) ? m.User != null : m.Match == this, new MatchPlayerUpd(this.Id, player), MatchPlayerUpd.Msg);
         }
 
+        public void StartSetup()
+        {
+            if (Setup != null) return;
+            Setup = new MatchSetup(Id, new MatchSetupDetails()
+            {
+                Id = Id,
+                GameMode = this.Info.GameMode,
+                Password = RandomPassword.CreateRandomPassword(9),
+                Players = this.Players.ToArray()
+            });
+            BotDB.RegisterSetup(Setup);
+        }
+
         private void PlayersOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
         {
             if(args.NewItems != null)
@@ -87,6 +102,11 @@ namespace WLNetwork.Matches
             {
                 cont.Match = null;
             }
+            if (Setup != null)
+            {
+                BotDB.SetupQueue.Remove(Setup);
+                Setup.Details.Cleanup();
+            }
             log.Info("MATCH DESTROY [" + this.Id + "]");
         }
 
@@ -105,10 +125,35 @@ namespace WLNetwork.Matches
         /// </summary>
         public ObservableCollection<MatchPlayer> Players { get; set; }
 
-        /// <summary>
-        /// Status of the bot assigned to setup the match
-        /// </summary>
-        public MatchSetupStatus SetupStatus { get; set; }
+        private MatchSetup _setup;
+
+        public MatchSetup Setup
+        {
+            get { return _setup; }
+            set
+            {
+                _setup = value;
+                TransmitSetupUpdate();
+            }
+        }
+
+        private void TransmitSetupUpdate()
+        {
+            if (_setup == null)
+            {
+                foreach (var cont in Matches.Find(m => m.Match == this))
+                {
+                    cont.Invoke("clearsetup");
+                }
+            }
+            else
+            {
+                foreach (var cont in Matches.Find(m => m.Match == this))
+                {
+                    cont.Invoke(_setup, "setupsnapshot");
+                }
+            }
+        }
     }
 
     /// <summary>

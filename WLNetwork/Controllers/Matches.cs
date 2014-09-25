@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.Design;
 using System.Linq;
 using MongoDB.Driver.Linq;
+using WLCommon.Matches;
 using WLCommon.Matches.Enums;
 using WLCommon.Model;
 using WLNetwork.Matches;
@@ -84,6 +85,20 @@ namespace WLNetwork.Controllers
             var match = new MatchGame(this.User.steam.steamid, options);
             match.Players.Add(new MatchPlayer(User));
             this.Match = match;
+            return null;
+        }
+
+        /// <summary>
+        /// Starts the queue to find a bot for the match
+        /// </summary>
+        /// <returns></returns>
+        public string StartMatch()
+        {
+            if (Match == null) return "You are not currently in a match.";
+            if (User == null) return "You are not logged in for some reason.";
+            if (Match.Info.Owner != this.User.steam.steamid) return "You are not the host of this game.";
+            if (Match.Setup != null) return "The match is already being set up.";
+            Match.StartSetup();
             return null;
         }
 
