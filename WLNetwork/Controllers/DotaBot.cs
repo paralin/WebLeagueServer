@@ -52,7 +52,7 @@ namespace WLNetwork.Controllers
 
         private void Cleanup()
         {
-            foreach (var setup in Setups)
+            foreach (var setup in Setups.ToArray())
             {
                 setup.Cleanup();
             }

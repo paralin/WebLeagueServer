@@ -18,11 +18,6 @@ namespace WLNetwork.Matches
         public Guid Id { get; private set; }
 
         /// <summary>
-        /// Status of the bot assigned to setup the match
-        /// </summary>
-        public MatchSetupStatus SetupStatus { get; set; }
-
-        /// <summary>
         /// Guid of the assigned controller
         /// </summary>
         [JsonIgnore]

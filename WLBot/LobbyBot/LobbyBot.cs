@@ -114,6 +114,7 @@ namespace WLBot.LobbyBot
 
         public void CreateLobby()
         {
+            dota.LeaveLobby();
             log.Debug("Setting up the lobby with passcode [" + setupDetails.Password + "]...");
             dota.CreateLobby(setupDetails.Password, new CMsgPracticeLobbySetDetails()
             {
@@ -197,7 +198,7 @@ namespace WLBot.LobbyBot
 
         private bool ShouldReconnect()
         {
-            return reconnect;
+            return isRunning && reconnect;
         }
 
         private void SetOnlinePresence()
@@ -319,6 +320,7 @@ namespace WLBot.LobbyBot
 
         public void DisconnectAndCleanup()
         {
+            isRunning = false;
             if (client != null)
             {
                 if (user != null)
@@ -329,7 +331,22 @@ namespace WLBot.LobbyBot
                 if (client.IsConnected) client.Disconnect();
                 client = null;
             }
-            isRunning = false;
+        }
+
+        public void Destroy()
+        {
+            reconnect = false;
+            DisconnectAndCleanup();
+            if (fsm != null)
+            {
+                fsm.Stop();
+                fsm.ClearExtensions();
+                fsm = null;
+            }
+            user = null;
+            client = null;
+            friends = null;
+            dota = null;
         }
     }
 }

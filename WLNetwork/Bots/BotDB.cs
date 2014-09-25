@@ -66,7 +66,7 @@ namespace WLNetwork.Bots
                     if (cont != null)
                     {
                         setup.ControllerGuid = cont.PersistentId;
-                        setup.SetupStatus = MatchSetupStatus.Init;
+                        setup.Details.Status = MatchSetupStatus.Init;
                         setup.Details.TransmitUpdate();
                         setup.Details.Bot = bot;
                         setup.Details.Bot.InUse = true;

@@ -19,14 +19,9 @@ namespace WLNetwork.Matches
             return MatchesController.Games.FirstOrDefault(m => m.Id == details.Id);
         }
 
-        public static void Cleanup(this MatchSetupDetails details)
+        public static void Cleanup(this MatchSetupDetails details, bool shutdown=false)
         {
             var game = details.GetGame();
-            if (details.Bot != null)
-            {
-                details.Bot.InUse = false;
-                details.Bot = null;
-            }
             if (details.Status >= MatchSetupStatus.Init && game != null)
             {
                 var setup = game.Setup;
@@ -46,8 +41,13 @@ namespace WLNetwork.Matches
                     }
                     BotDB.SetupQueue.Remove(setup);
                     game.Setup = null;
-                    game.StartSetup();
+                    if(!shutdown) game.StartSetup();
                 }
+            }
+            if (details.Bot != null)
+            {
+                details.Bot.InUse = false;
+                details.Bot = null;
             }
         }
 

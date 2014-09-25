@@ -100,7 +100,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                 if (ldet != null)
                 {
                     var bot = Bots[ldet];
-                    bot.DisconnectAndCleanup();
+                    bot.Destroy();
                     Bots.Remove(ldet);
                 }
             });
@@ -109,7 +109,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                 log.Debug("Disconnected, clearing all bots.");
                 foreach (var bv in Bots.ToArray())
                 {
-                    bv.Value.DisconnectAndCleanup();
+                    bv.Value.Destroy();
                 }
                 Bots.Clear();
             };

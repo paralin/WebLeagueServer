@@ -96,8 +96,6 @@ namespace WLNetwork.Matches
         /// </summary>
         public void Destroy()
         {
-            MatchesController.Games.Remove(this);
-            MatchesController.PublicGames.Remove(this.Info);
             foreach (var cont in Matches.Find(m => m.Match == this))
             {
                 cont.Match = null;
@@ -105,8 +103,10 @@ namespace WLNetwork.Matches
             if (Setup != null)
             {
                 BotDB.SetupQueue.Remove(Setup);
-                Setup.Details.Cleanup();
+                Setup.Details.Cleanup(true);
             }
+            MatchesController.Games.Remove(this);
+            MatchesController.PublicGames.Remove(this.Info);
             log.Info("MATCH DESTROY [" + this.Id + "]");
         }
 
