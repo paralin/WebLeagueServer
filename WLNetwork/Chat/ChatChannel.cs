@@ -105,7 +105,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                 {
                     log.DebugFormat("JOINED [{0}] ({1}) {{{2}}}", Name, Id, nm.Value.Name);
                 }
-                foreach (var mm in this.Members.Keys)
+                foreach (var mm in this.Members.Keys.ToArray())
                 {
                     ChatController.InvokeTo(m => m.ConnectionContext.IsAuthenticated && m.ConnectionId == mm, msg, ChatMemberUpd.Msg);
                 }

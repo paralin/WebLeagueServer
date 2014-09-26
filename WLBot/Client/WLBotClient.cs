@@ -4,14 +4,17 @@ using System.Linq;
 using Appccelerate.StateMachine;
 using Appccelerate.StateMachine.Machine;
 using JWT;
+using KellermanSoftware.CompareNetObjects;
 using log4net;
 using Serilog;
 using SteamKit2.GC.CSGO.Internal;
 using SteamKit2.GC.Dota.Internal;
 using WLBot.LobbyBot.Enums;
+using WLCommon;
 using WLCommon.Arguments;
 using WLCommon.LobbyBot.Enums;
 using WLCommon.Matches;
+using WLCommon.Matches.Enums;
 using WLCommon.Model;
 using XSockets.Client40;
 using XSockets.Client40.Common.Interfaces;
@@ -92,6 +95,30 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             {
                 var bot = new LobbyBot.LobbyBot(details, new WLBotExtension(details, this));
                 Bots.Add(details, bot);
+                bot.LobbyUpdate += delegate(CSODOTALobby lobby, ComparisonResult differences)
+                {
+                    PlayerReadyArgs args = new PlayerReadyArgs();
+                    var members =
+                        lobby.members.Where(
+                            m =>
+                                m.team == DOTA_GC_TEAM.DOTA_GC_TEAM_BAD_GUYS ||
+                                m.team == DOTA_GC_TEAM.DOTA_GC_TEAM_GOOD_GUYS);
+                    var players = new List<PlayerReadyArgs.Player>();
+                    int i = 0;
+                    foreach (var member in members)
+                    {
+                        var plyr = details.Players.FirstOrDefault(m => m.SID == member.id+"");
+                        if(plyr != null) players.Add(new PlayerReadyArgs.Player
+                        {
+                            IsReady = (member.team == DOTA_GC_TEAM.DOTA_GC_TEAM_BAD_GUYS && plyr.Team == MatchTeam.Dire) || (member.team == DOTA_GC_TEAM.DOTA_GC_TEAM_GOOD_GUYS && plyr.Team == MatchTeam.Radiant),
+                            SteamID = plyr.SID
+                        });
+                        i++;
+                    }
+                    args.Players = players.ToArray();
+                    args.Id = details.Id;
+                    controller.Invoke("playerready", args);
+                };
                 bot.Start();
             });
             controller.On("clearsetup", (Guid id) =>
@@ -102,6 +129,15 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                     var bot = Bots[ldet];
                     bot.Destroy();
                     Bots.Remove(ldet);
+                }
+            });
+            controller.On("finalize", (Guid id) =>
+            {
+                var ldet = Bots.Keys.FirstOrDefault(m => m.Id == id);
+                if (ldet != null)
+                {
+                    var bot = Bots[ldet];
+                    bot.StartGameAndLeave();
                 }
             });
             controller.OnClose += (sender, args) =>

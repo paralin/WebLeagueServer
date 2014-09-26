@@ -38,5 +38,10 @@ namespace WLCommon.Matches
         /// Team
         /// </summary>
         public MatchTeam Team { get; set; }
+
+        /// <summary>
+        /// Is ready in the match?
+        /// </summary>
+        public bool Ready { get; set; }
     }
 }

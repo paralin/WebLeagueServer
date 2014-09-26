@@ -8,4 +8,15 @@ namespace WLCommon.Arguments
         public Guid Id { get; set; }
         public States State { get; set; }
     }
+    public class PlayerReadyArgs
+    {
+        public Guid Id { get; set; }
+        public Player[] Players { get; set; }
+
+        public class Player
+        {
+            public string SteamID { get; set; }
+            public bool IsReady { get; set; }
+        }
+    }
 }

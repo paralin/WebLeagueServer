@@ -67,11 +67,12 @@ namespace WLNetwork.Controllers
             var game = Setups.FirstOrDefault(m => m.Id == args.Id);
             if (game == null)
             {
-                log.Warn("Bot state update for unknown match, "+args.Id+", commanding shutdown...");
+                //log.Warn("Bot state update for unknown match, "+args.Id+", commanding shutdown...");
                 this.Invoke(args.Id, "clearsetup");
             }
             else
             {
+                log.Debug(game.Bot.Username+" -> state => "+args.State);
                 switch (args.State)
                 {
                     case States.DisconnectNoRetry:
@@ -90,6 +91,28 @@ namespace WLNetwork.Controllers
                         game.TransmitUpdate();
                         break;
                     }
+                }
+            }
+        }
+
+        public void PlayerReady(PlayerReadyArgs args)
+        {
+            var game = Setups.FirstOrDefault(m => m.Id == args.Id);
+            if (game == null)
+            {
+                this.Invoke(args.Id, "clearsetup");
+            }
+            else
+            {
+                foreach (var plyr in game.Players)
+                {
+                    plyr.Ready = args.Players.Any(m => m.IsReady && m.SteamID == plyr.SID);
+                }
+                var g = game.GetGame();
+                if (g != null)
+                {
+                    g.Players = g.Players;
+                    //also change status
                 }
             }
         }
@@ -131,6 +154,11 @@ namespace WLNetwork.Controllers
             if (Authed) _ready = true;
             BotDB.ProcSetupQueue();
             return Ready;
+        }
+
+        public void Finalize(MatchGame game)
+        {
+             this.Invoke(game.Id, "finalize");
         }
     }
 }

@@ -6,6 +6,7 @@ using WLCommon.Matches;
 using WLCommon.Matches.Enums;
 using WLCommon.Model;
 using WLNetwork.Bots;
+using WLNetwork.Controllers;
 using WLNetwork.Matches.Methods;
 using WLNetwork.Model;
 using WLNetwork.Utils;
@@ -19,6 +20,7 @@ namespace WLNetwork.Matches
     public class MatchGame
     {
         private static readonly Controllers.Matches Matches = new Controllers.Matches();
+        private static readonly Controllers.DotaBot Bot = new Controllers.DotaBot();
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
@@ -27,8 +29,10 @@ namespace WLNetwork.Matches
         /// <param name="options"></param>
         public MatchGame(string owner, MatchCreateOptions options)
         {
+            this.Id = Guid.NewGuid();
             this.Info = new MatchGameInfo()
             {
+                Id = Id,
                 Name = options.Name,
                 Public = true,
                 Status = MatchStatus.Players,
@@ -38,7 +42,6 @@ namespace WLNetwork.Matches
             };
             this.Players = new ObservableCollection<MatchPlayer>();
             this.Players.CollectionChanged += PlayersOnCollectionChanged;
-            this.Id = Guid.NewGuid();
             MatchesController.Games.Add(this);
             //note: Don't add to public games as it's not started yet
             log.Info("MATCH CREATE ["+this.Id+"] [" + options.Name + "] [" + options.GameMode + "] [" + options.MatchType + "]");
@@ -80,7 +83,7 @@ namespace WLNetwork.Matches
                 Players = this.Players.ToArray()
             });
             this.Info.Status = MatchStatus.Lobby;
-            
+            this.Info = this.Info;
             BotDB.RegisterSetup(Setup);
         }
 
@@ -206,11 +209,24 @@ namespace WLNetwork.Matches
         {
             if(_info != null)
             {
-                foreach (var cont in Matches.Find(m => m.Match == this))
+                foreach (var cont in Matches.Find())//Matches.Find(m => m.Match == this))
                 {
                     cont.Invoke(_info, "infosnapshot");
                 }
             }
+        }
+
+        /// <summary>
+        /// Start the match in-game
+        /// </summary>
+        public void Finalize()
+        {
+            var controller = Bot.Find(m => m.PersistentId == Setup.ControllerGuid).FirstOrDefault();
+            if (controller != null)
+            {
+                controller.Finalize(this);
+            }
+            Destroy();
         }
     }
 
@@ -219,6 +235,7 @@ namespace WLNetwork.Matches
     /// </summary>
     public class MatchGameInfo
     {
+        public Guid Id { get; set; }
         public string Name { get; set; }
         public MatchType MatchType { get; set; }
         public bool Public { get; set; }

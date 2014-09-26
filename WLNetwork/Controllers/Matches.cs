@@ -103,6 +103,20 @@ namespace WLNetwork.Controllers
         }
 
         /// <summary>
+        /// Starts the game in-game
+        /// </summary>
+        /// <returns></returns>
+        public string FinalizeMatch()
+        {
+            if (Match == null) return "You are not currently in a match.";
+            if (User == null) return "You are not logged in for some reason.";
+            if (Match.Info.Owner != this.User.steam.steamid) return "You are not the host of this game.";
+            if (Match.Setup == null || Match.Setup.Details.Status != MatchSetupStatus.Wait || Match.Players.Any(m =>!m.Ready)) return "The match cannot be started yet.";
+            Match.Finalize();
+            return null;
+        }
+
+        /// <summary>
         /// Join an existing match.
         /// </summary>
         /// <param name="options"></param>

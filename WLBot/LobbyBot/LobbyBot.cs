@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using Appccelerate.StateMachine;
 using Appccelerate.StateMachine.Machine;
+using KellermanSoftware.CompareNetObjects;
 using log4net;
 using Newtonsoft.Json;
 using SteamKit2;
@@ -37,6 +38,10 @@ namespace WLBot.LobbyBot
         private SteamUser user;
         private uint GCVersion;
         #endregion
+
+        public delegate void LobbyUpdateHandler(CSODOTALobby lobby, ComparisonResult differences);
+
+        public event LobbyUpdateHandler LobbyUpdate;
 
         /// <summary>
         /// Setup a new bot with some details.
@@ -116,17 +121,19 @@ namespace WLBot.LobbyBot
         {
             dota.LeaveLobby();
             log.Debug("Setting up the lobby with passcode [" + setupDetails.Password + "]...");
-            dota.CreateLobby(setupDetails.Password, new CMsgPracticeLobbySetDetails()
+            var ldetails = new CMsgPracticeLobbySetDetails()
             {
                 allchat = false,
                 allow_cheats = false,
                 allow_spectating = true,
                 dota_tv_delay = LobbyDotaTVDelay.LobbyDotaTV_10,
                 fill_with_bots = false,
-                game_mode = (uint)(DOTA_GameMode)setupDetails.GameMode,
-                game_name = "Subscriber Game",
-                lan = false
-            });
+                game_mode = (uint) (DOTA_GameMode) setupDetails.GameMode,
+                game_name = "Subscriber Game"
+            };
+            ldetails.game_version = DOTAGameVersion.GAME_VERSION_CURRENT;
+            ldetails.server_region = 1;
+            dota.CreateLobby(setupDetails.Password, ldetails);
         }
 
         public void Start()
@@ -304,6 +311,7 @@ namespace WLBot.LobbyBot
                     {
                         var msg = "Update: " + string.Join(", ", dstrings);
                         log.Debug(msg);
+                        if (LobbyUpdate != null) LobbyUpdate(dota.Lobby, diffs);
                     }
                 }, manager);
             }
@@ -337,6 +345,8 @@ namespace WLBot.LobbyBot
 
         public void Destroy()
         {
+            manager.Unregister();
+            manager = null;
             if (fsm != null)
             {
                 fsm.Stop();
@@ -349,6 +359,15 @@ namespace WLBot.LobbyBot
             client = null;
             friends = null;
             dota = null;
+            manager = null;
+            log.Debug("Bot destroyed due to remote command.");
+        }
+
+        public void StartGameAndLeave()
+        {
+            dota.LaunchLobby();
+            dota.AbandonGame();
+            dota.LeaveLobby();
         }
     }
 }
