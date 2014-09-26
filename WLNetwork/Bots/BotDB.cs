@@ -59,9 +59,12 @@ namespace WLNetwork.Bots
         {
             foreach (var setup in SetupQueue.ToArray())
             {
+                var dirty = false;
+                var newStatus = MatchSetupStatus.Queue;
                 var bot = FindAvailableBot();
                 if (bot != null)
                 {
+                    newStatus = MatchSetupStatus.QueueHost;
                     var cont = BotController.Find(m => m.Ready).OrderByDescending(m => m.Setups.Count).FirstOrDefault();
                     if (cont != null)
                     {
@@ -74,6 +77,15 @@ namespace WLNetwork.Bots
                         cont.Setups.Add(setup.Details);
                         return;
                     }
+                }
+                if (newStatus != setup.Details.Status)
+                {
+                    setup.Details.Status = newStatus;
+                    dirty = true;
+                }
+                if (dirty)
+                {
+                    setup.Details.TransmitUpdate();
                 }
             }
         }

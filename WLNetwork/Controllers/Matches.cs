@@ -83,8 +83,8 @@ namespace WLNetwork.Controllers
             options.Name = options.Name.Replace('\n', ' ');
             if (Match != null) return "You are already in a match you cannot leave.";
             var match = new MatchGame(this.User.steam.steamid, options);
-            match.Players.Add(new MatchPlayer(User));
             this.Match = match;
+            match.Players.Add(new MatchPlayer(User));
             return null;
         }
 
@@ -110,16 +110,18 @@ namespace WLNetwork.Controllers
         public string JoinMatch(MatchJoinOptions options)
         {
             if (activeMatch != null && options.Id == activeMatch.Id) return "You are already in that match.";
-            LeaveMatch();
-            if (activeMatch != null) return "You cannot leave your current match.";
+            //LeaveMatch();
+            if (activeMatch != null) return "You are already in a match, leave that one first.";
             var match =
                 MatchesController.Games.FirstOrDefault(
                     m => m.Id == options.Id && m.Info.Public && m.Info.Status == MatchStatus.Players);
-            match.Players.Add(new MatchPlayer(User));
+            if (match == null) return "That match can't be found.";
             Match = match;
+            match.Players.Add(new MatchPlayer(User));
             return null;
         }
 
+        /* Removed by request, autobalance teams now
         /// <summary>
         /// Switch teams.
         /// </summary>
@@ -136,6 +138,7 @@ namespace WLNetwork.Controllers
             activeMatch.PlayerUpdate(plyr);
             return null;
         }
+         */
 
         /// <summary>
         /// Leave an existing match.
@@ -144,9 +147,10 @@ namespace WLNetwork.Controllers
         public string LeaveMatch()
         {
             if (Match == null) return "You are not currently in a match.";
-            if (Match.Info.Status > MatchStatus.Players) return "You cannot leave matches in progress.";
             if (User == null) return "You are not signed in and thus cannot be in a match.";
-            if (Match.Info.Owner == User.steam.steamid)
+            var isOwner = Match.Info.Owner == User.steam.steamid;
+            if ((Match.Info.Status > MatchStatus.Lobby && isOwner) || (Match.Info.Status > MatchStatus.Players && !isOwner)) return "You cannot leave matches in progress.";
+            if (isOwner)
             {
                 Match.Destroy();
             }

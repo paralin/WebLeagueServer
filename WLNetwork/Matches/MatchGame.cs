@@ -64,10 +64,9 @@ namespace WLNetwork.Matches
         /// Transmit an update for a player.
         /// </summary>
         /// <param name="player"></param>
-        public void PlayerUpdate(MatchPlayer player)
+        public void PlayerUpdate()
         {
-            if (!Players.HasPlayer(player)) return;
-            Matches.InvokeTo(m => (Info.Status == MatchStatus.Players) ? m.User != null : m.Match == this, new MatchPlayerUpd(this.Id, player), MatchPlayerUpd.Msg);
+            RebalanceTeams();
         }
 
         public void StartSetup()
@@ -80,15 +79,44 @@ namespace WLNetwork.Matches
                 Password = RandomPassword.CreateRandomPassword(9),
                 Players = this.Players.ToArray()
             });
+            this.Info.Status = MatchStatus.Lobby;
+            
             BotDB.RegisterSetup(Setup);
         }
 
         private void PlayersOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
         {
-            if(args.NewItems != null)
-                Matches.InvokeTo(m=>(Info.Status== MatchStatus.Players) ? m.User != null : m.Match==this, new MatchPlayerUpd(this.Id, args.NewItems.OfType<MatchPlayer>().ToArray()), MatchPlayerUpd.Msg);
-            if(args.OldItems != null)
-                Matches.InvokeTo(m => (Info.Status== MatchStatus.Players) ? m.User != null : m.Match==this, new MatchPlayerRm(this.Id, args.OldItems.OfType<MatchPlayer>().ToArray()), MatchPlayerRm.Msg);
+            RebalanceTeams();
+        }
+
+        private bool _balancing = false;
+
+        /// <summary>
+        /// Balance teams
+        /// </summary>
+        public void RebalanceTeams()
+        {
+            if (_balancing) return;
+            _balancing = true;
+            //Simple algorithm to later be replaced
+            int direCount = 0;
+            int radiCount = 0;
+            foreach (var plyr in Players)
+            {
+                if (plyr.Team == MatchTeam.Spectate) continue;
+                if (direCount < radiCount && direCount < 5)
+                {
+                    plyr.Team = MatchTeam.Dire;
+                    direCount++;
+                }
+                else
+                {
+                    plyr.Team = MatchTeam.Radiant;
+                    radiCount++;
+                }
+            }
+            Players = Players;
+            _balancing = false;
         }
 
         /// <summary>
@@ -115,15 +143,34 @@ namespace WLNetwork.Matches
         /// </summary>
         public Guid Id { get; set; }
 
+        private MatchGameInfo _info;
+
         /// <summary>
         /// Public info about the match.
         /// </summary>
-        public MatchGameInfo Info { get; set; }
+        public MatchGameInfo Info
+        {
+            get { return _info; }
+            set
+            {
+                _info = value;
+                TransmitInfoUpdate();
+            }
+        }
+
+        private ObservableCollection<MatchPlayer> _players; 
 
         /// <summary>
         /// Players
         /// </summary>
-        public ObservableCollection<MatchPlayer> Players { get; set; }
+        public ObservableCollection<MatchPlayer> Players {
+            get { return _players; }
+            set
+            {
+                _players = value;
+                Matches.InvokeTo(m=>m.User != null && ((this.Info.Public&&this.Info.Status == MatchStatus.Players)||(m.Match == this)), new MatchPlayersSnapshot(this), MatchPlayersSnapshot.Msg);
+            } 
+        }
 
         private MatchSetup _setup;
 
@@ -151,6 +198,17 @@ namespace WLNetwork.Matches
                 foreach (var cont in Matches.Find(m => m.Match == this))
                 {
                     cont.Invoke(_setup, "setupsnapshot");
+                }
+            }
+        }
+
+        private void TransmitInfoUpdate()
+        {
+            if(_info != null)
+            {
+                foreach (var cont in Matches.Find(m => m.Match == this))
+                {
+                    cont.Invoke(_info, "infosnapshot");
                 }
             }
         }

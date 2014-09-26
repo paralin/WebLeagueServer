@@ -86,7 +86,6 @@ namespace WLBot.LobbyBot
                 .On(Events.LogonFailSteamGuard).Goto(States.DisconnectNoRetry) //.Execute(() => reconnect = false)
                 .On(Events.LogonFailBadCreds).Goto(States.DisconnectNoRetry);
             fsm.In(States.Connected)
-                .ExecuteOnEntry(SetOnlinePresence)
                 .ExecuteOnExit(DisconnectAndCleanup)
                 .On(Events.Disconnected).If(ShouldReconnect).Goto(States.Connecting)
                 .Otherwise().Goto(States.Disconnected);
@@ -103,6 +102,7 @@ namespace WLBot.LobbyBot
                 .ExecuteOnEntry(ConnectDota)
                 .On(Events.DotaGCReady).Goto(States.DotaMenu);
             fsm.In(States.DotaMenu)
+                 .ExecuteOnEntry(SetOnlinePresence)
                 .ExecuteOnEntry(CreateLobby);
             fsm.In(States.DotaLobby)
                 .ExecuteOnEntry(EnterLobbyChat)
@@ -325,24 +325,26 @@ namespace WLBot.LobbyBot
             {
                 if (user != null)
                 {
+                    if(dota != null) dota.LeaveLobby();
                     user.LogOff();
                     user = null;
                 }
                 if (client.IsConnected) client.Disconnect();
+                client.ClearHandlers();
                 client = null;
             }
         }
 
         public void Destroy()
         {
-            reconnect = false;
-            DisconnectAndCleanup();
             if (fsm != null)
             {
                 fsm.Stop();
                 fsm.ClearExtensions();
                 fsm = null;
             }
+            reconnect = false;
+            DisconnectAndCleanup();
             user = null;
             client = null;
             friends = null;

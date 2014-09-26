@@ -135,7 +135,7 @@
     <Compile Include="Matches\MatchSetup.cs" />
     <Compile Include="Matches\MatchSetupDetailsEx.cs" />
     <Compile Include="Matches\Methods\AvailableGameUpd.cs" />
-    <Compile Include="Matches\Methods\MatchPlayerUpd.cs" />
+    <Compile Include="Matches\Methods\MatchPlayersSnapshot.cs" />
     <Compile Include="Matches\Methods\PublicMatchUpd.cs" />
     <Compile Include="Model\AuthToken.cs" />
     <Compile Include="Model\Chat.cs" />
