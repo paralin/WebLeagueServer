@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Text.RegularExpressions;
 using WLCommon.Matches;
 using WLCommon.Matches.Enums;
 using WLCommon.Model;
@@ -38,9 +39,12 @@ namespace WLNetwork.Matches
                 Status = MatchStatus.Players,
                 MatchType = options.MatchType,
                 Owner = owner,
-                GameMode = options.GameMode
+                GameMode = options.GameMode,
+                Opponent = options.OpponentSID,
+                CaptainStatus = CaptainsStatus.DirePick
             };
-            this.Players = new ObservableCollection<MatchPlayer>();
+            pickedAlready = true;
+            this.Players = new ObservableRangeCollection<MatchPlayer>();
             this.Players.CollectionChanged += PlayersOnCollectionChanged;
             MatchesController.Games.Add(this);
             //note: Don't add to public games as it's not started yet
@@ -72,6 +76,19 @@ namespace WLNetwork.Matches
             RebalanceTeams();
         }
 
+        public void StartPicks()
+        {
+            if (Info.Status == MatchStatus.Teams) return;
+            Info.Status = MatchStatus.Teams;
+            pickedAlready = true;
+            Info.CaptainStatus = CaptainsStatus.DirePick;
+            foreach (var player in Players.Where(m=>!m.IsCaptain))
+            {
+                player.Team = MatchTeam.Unassigned;;
+            }
+            this.Info = this.Info;
+        }
+
         public void StartSetup()
         {
             if (Setup != null) return;
@@ -89,7 +106,9 @@ namespace WLNetwork.Matches
 
         private void PlayersOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
         {
+            if (_balancing) return;
             RebalanceTeams();
+            Players = Players;
         }
 
         private bool _balancing = false;
@@ -99,7 +118,7 @@ namespace WLNetwork.Matches
         /// </summary>
         public void RebalanceTeams()
         {
-            if (_balancing) return;
+            if (_balancing || Info.MatchType != MatchType.StartGame) return;
             _balancing = true;
             //Simple algorithm to later be replaced
             int direCount = 0;
@@ -118,7 +137,6 @@ namespace WLNetwork.Matches
                     radiCount++;
                 }
             }
-            Players = Players;
             _balancing = false;
         }
 
@@ -161,22 +179,28 @@ namespace WLNetwork.Matches
             }
         }
 
-        private ObservableCollection<MatchPlayer> _players; 
+        private ObservableRangeCollection<MatchPlayer> _players; 
 
         /// <summary>
         /// Players
         /// </summary>
-        public ObservableCollection<MatchPlayer> Players {
+        public ObservableRangeCollection<MatchPlayer> Players {
             get { return _players; }
             set
             {
-                _players = value;
-                Matches.InvokeTo(m=>m.User != null && ((this.Info.Public&&this.Info.Status == MatchStatus.Players)||(m.Match == this)), new MatchPlayersSnapshot(this), MatchPlayersSnapshot.Msg);
+                lock (value)
+                {
+                    _players = value;
+                    Matches.InvokeTo(
+                        m =>
+                            m.User != null &&
+                            ((this.Info.Public && this.Info.Status == MatchStatus.Players) || (m.Match == this)),
+                        new MatchPlayersSnapshot(this), MatchPlayersSnapshot.Msg);
+                }
             } 
         }
 
         private MatchSetup _setup;
-
         public MatchSetup Setup
         {
             get { return _setup; }
@@ -186,6 +210,11 @@ namespace WLNetwork.Matches
                 TransmitSetupUpdate();
             }
         }
+
+        /// <summary>
+        /// This is for two picks in captains, set to true at start so first pick is just 1
+        /// </summary>
+        private bool pickedAlready = false;
 
         private void TransmitSetupUpdate()
         {
@@ -228,6 +257,50 @@ namespace WLNetwork.Matches
             }
             Destroy();
         }
+
+        public void KickUnassigned()
+        {
+            var toRemove = Players.Where(m => m.Team == MatchTeam.Unassigned).ToArray();
+            Players.RemoveRange(toRemove);
+            foreach (var cont in toRemove.Select(player => Matches.Find(m => m.User != null && m.User.steam.steamid == player.SID).FirstOrDefault()).Where(cont => cont != null))
+            {
+                cont.Match = null;
+            }
+        }
+
+        /// <summary>
+        /// Pick a player
+        /// </summary>
+        /// <param name="sid"></param>
+        public void PickPlayer(string sid, MatchTeam team)
+        {
+            var player = Players.FirstOrDefault(m => m.SID == sid);
+            if (player == null || player.Team != MatchTeam.Unassigned) return;
+            player.Team = team;
+            Players = Players;
+            if (Players.Count(m => m.Team != MatchTeam.Unassigned && m.Team != MatchTeam.Spectate) >= 10)
+            {
+                Info.CaptainStatus = CaptainsStatus.DirePick;
+                KickUnassigned();
+                StartSetup();
+                pickedAlready = true;
+            }
+            else
+            {
+                if (pickedAlready)
+                {
+                    Info.CaptainStatus = Info.CaptainStatus == CaptainsStatus.DirePick
+                        ? CaptainsStatus.RadiantPick
+                        : CaptainsStatus.DirePick;
+                    Info = Info;
+                    pickedAlready = false;
+                }
+                else
+                {
+                    pickedAlready = true;
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -242,6 +315,8 @@ namespace WLNetwork.Matches
         public MatchStatus Status { get; set; }
         public string Owner { get; set; }
         public GameMode GameMode { get; set; }
+        public string Opponent { get; set; }
+        public CaptainsStatus CaptainStatus { get; set; }
     }
 
     public static class MatchGameExt

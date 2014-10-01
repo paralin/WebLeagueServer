@@ -8,6 +8,11 @@
         Players=0,
 
         /// <summary>
+        /// Team selection for Captains
+        /// </summary>
+        Teams,
+
+        /// <summary>
         /// Joining the in-game lobby
         /// </summary>
         Lobby,

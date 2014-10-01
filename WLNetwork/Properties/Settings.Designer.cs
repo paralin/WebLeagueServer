@@ -61,7 +61,7 @@ namespace WLNetwork.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("mongodb://wl.paral.in")]
+        [global::System.Configuration.DefaultSettingValueAttribute("mongodb://sg:putamadrecyka@104.232.107.196")]
         public string MongoURL {
             get {
                 return ((string)(this["MongoURL"]));

@@ -43,5 +43,10 @@ namespace WLCommon.Matches
         /// Is ready in the match?
         /// </summary>
         public bool Ready { get; set; }
+
+        /// <summary>
+        /// Is a captain?
+        /// </summary>
+        public bool IsCaptain { get; set; }
     }
 }

@@ -130,12 +130,15 @@
     <Compile Include="Controllers\DotaBot.cs" />
     <Compile Include="Controllers\Matches.cs" />
     <Compile Include="Database\Mongo.cs" />
+    <Compile Include="Matches\Challenge.cs" />
     <Compile Include="Matches\MatchesController.cs" />
     <Compile Include="Matches\MatchGame.cs" />
     <Compile Include="Matches\MatchSetup.cs" />
     <Compile Include="Matches\MatchSetupDetailsEx.cs" />
     <Compile Include="Matches\Methods\AvailableGameUpd.cs" />
+    <Compile Include="Matches\Methods\ChallengeResponse.cs" />
     <Compile Include="Matches\Methods\MatchPlayersSnapshot.cs" />
+    <Compile Include="Matches\Methods\PickPlayer.cs" />
     <Compile Include="Matches\Methods\PublicMatchUpd.cs" />
     <Compile Include="Model\AuthToken.cs" />
     <Compile Include="Model\Chat.cs" />
@@ -148,6 +151,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="Utils\ObservableDictionary.cs" />
+    <Compile Include="Utils\ObservableRangeCollection.cs" />
     <Compile Include="Utils\PublicIP.cs" />
     <Compile Include="Utils\RandomPassword.cs" />
     <Compile Include="Utils\XSLogger.cs" />

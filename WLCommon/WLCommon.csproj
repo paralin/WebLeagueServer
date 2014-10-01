@@ -42,6 +42,7 @@
     <Compile Include="Arguments\StateUpdateArgs.cs" />
     <Compile Include="Bots\Enums\BotStatus.cs" />
     <Compile Include="LobbyBot\Enums\States.cs" />
+    <Compile Include="Matches\Enums\CaptainsStatus.cs" />
     <Compile Include="Matches\Enums\GameMode.cs" />
     <Compile Include="Matches\Enums\MatchSetupStatus.cs" />
     <Compile Include="Matches\Enums\MatchStatus.cs" />

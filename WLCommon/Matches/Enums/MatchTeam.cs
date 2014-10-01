@@ -4,6 +4,7 @@
     {
         Radiant=0,
         Dire=1,
-        Spectate=2
+        Spectate=2,
+        Unassigned=3
     }
 }
