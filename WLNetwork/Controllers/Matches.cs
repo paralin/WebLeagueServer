@@ -126,7 +126,7 @@ namespace WLNetwork.Controllers
         public MatchGame[] GetAvailableGameList()
         {
             //todo: List only StartGames for now 
-            return MatchesController.Games.Where(m=>m.Info.MatchType == MatchType.StartGame && m.Info.Status == MatchStatus.Players).ToArray();
+            return MatchesController.Games.ToArray();
         }
 
         /// <summary>

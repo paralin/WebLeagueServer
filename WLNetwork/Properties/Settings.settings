@@ -12,7 +12,7 @@
       <Value Profile="(Default)">webleague-secret</Value>
     </Setting>
     <Setting Name="MongoURL" Type="System.String" Scope="User">
-      <Value Profile="(Default)">mongodb://sg:putamadrecyka@104.232.107.196</Value>
+      <Value Profile="(Default)">mongodb://sg:putamadrecyka@104.131.107.196</Value>
     </Setting>
     <Setting Name="MongoDB" Type="System.String" Scope="User">
       <Value Profile="(Default)">webleague</Value>
