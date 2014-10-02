@@ -1,15 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using WLBot.Client;
 using WLBot.Properties;
-using WLCommon.Matches;
-using WLCommon.Model;
-using XSockets.Core.Common.Socket;
-using XSockets.Plugin.Framework;
 
 namespace WLBot
 {
