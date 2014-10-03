@@ -23,16 +23,38 @@ namespace WLNetwork.Controllers
     public class Matches : XSocketController
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
+        private bool userped = false;
         public Matches()
         {
             this.OnAuthorizationFailed += (sender, args) => log.Warn("Failed authorize for " + args.MethodName + " [" + this.ConnectionContext.PersistentId + "]" + (this.ConnectionContext.IsAuthenticated ? " [" + this.User.steam.steamid + "]" : ""));
+            this.OnOpen += (sender, args) =>
+            {
+                var other = this.Find(m => m != this && m.User != null && m.User.steam.steamid == User.steam.steamid).FirstOrDefault();
+                if (other != null)
+                {
+                    other.userped = true;
+                    if (other.Challenge != null)
+                    {
+                        Challenge = other.Challenge;
+                        if(other.challengeTimer.Enabled)
+                            challengeTimer.Start();
+                        other.Match = null;
+                    }
+                    if (other.Match != null)
+                    {
+                        Match = other.Match;
+                        other.Match = null;
+                    }
+                    other.UserpConnection();
+                }
+            };
             this.OnClose += (sender, args) =>
             {
-                LeaveMatch();
+                if(!userped)
+                    LeaveMatch();
                 challengeTimer.Stop();
                 challengeTimer.Close();
-                if (Challenge != null)
+                if (Challenge != null && !userped)
                 {
                     var tcont =
                         this.Find(m => m.User != null && m.User.steam.steamid == Challenge.ChallengedSID)
@@ -289,6 +311,14 @@ namespace WLNetwork.Controllers
             tcont.challengeTimer.Start();
             Challenge = target;
             return null;
+        }
+
+        public void UserpConnection()
+        {
+            log.Debug("USERPED");
+            userped = true;
+            this.Invoke("userped");
+            this.Close();
         }
 
         public override bool OnAuthorization(IAuthorizeAttribute authorizeAttribute)

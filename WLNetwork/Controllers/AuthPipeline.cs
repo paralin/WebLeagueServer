@@ -4,10 +4,12 @@ using MongoDB.Driver.Builders;
 using Newtonsoft.Json.Linq;
 using WLCommon.Model;
 using WLNetwork.Database;
+using WLNetwork.Matches;
 using WLNetwork.Model;
 using WLNetwork.Properties;
 using XSockets.Core.Common.Protocol;
 using XSockets.Core.Common.Socket;
+using XSockets.Core.XSocket.Helpers;
 using XSockets.Plugin.Framework.Attributes;
 
 namespace WLNetwork.Controllers
@@ -15,6 +17,8 @@ namespace WLNetwork.Controllers
     [Export(typeof(IXSocketAuthenticationPipeline))]
     public class AuthPipeline : IXSocketAuthenticationPipeline
     {
+        private static readonly Controllers.Matches Matches = new Controllers.Matches();
+
         private static readonly log4net.ILog log =
            log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public IPrincipal GetPrincipal(IXSocketProtocol protocol)
