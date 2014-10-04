@@ -156,7 +156,7 @@ namespace WLBot.LobbyBot
             dota.CloseDota();
         }
 
-        private void leaveLobby()
+        public void leaveLobby()
         {
             log.Debug("Leaving lobby.");
             dota.AbandonGame();

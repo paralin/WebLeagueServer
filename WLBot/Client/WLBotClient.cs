@@ -126,6 +126,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                 if (ldet != null)
                 {
                     var bot = Bots[ldet];
+                    bot.leaveLobby();
                     bot.Destroy();
                     Bots.Remove(ldet);
                 }

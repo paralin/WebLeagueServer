@@ -123,6 +123,7 @@ namespace WLNetwork.Controllers
             else
             {
                 game.State = args.State;
+                log.Debug(game.Bot.Username + " -> match_state => " + args.State);
                 var g = game.GetGame();
                 if (g != null)
                 {
