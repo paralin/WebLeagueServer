@@ -1,4 +1,5 @@
 ﻿using System;
+using SteamKit2.GC.Dota.Internal;
 using WLCommon.LobbyBot.Enums;
 
 namespace WLCommon.Arguments
@@ -18,5 +19,11 @@ namespace WLCommon.Arguments
             public string SteamID { get; set; }
             public bool IsReady { get; set; }
         }
+    }
+
+    public class MatchStateArgs
+    {
+        public Guid Id { get; set; }
+        public DOTA_GameState State { get; set; }
     }
 }

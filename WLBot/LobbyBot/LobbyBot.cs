@@ -369,5 +369,10 @@ namespace WLBot.LobbyBot
             dota.AbandonGame();
             dota.LeaveLobby();
         }
+
+        public void StartGame()
+        {
+            dota.LaunchLobby();
+        }
     }
 }

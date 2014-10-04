@@ -1,4 +1,5 @@
 ﻿using System;
+using SteamKit2.GC.Dota.Internal;
 using WLCommon.Matches.Enums;
 using WLCommon.Model;
 
@@ -38,5 +39,10 @@ namespace WLCommon.Matches
         /// Password for the lobby.
         /// </summary>
         public string Password { get; set; }
+
+        /// <summary>
+        /// Current game state
+        /// </summary>
+        public DOTA_GameState State { get; set; }
     }
 }

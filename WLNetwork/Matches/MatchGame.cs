@@ -2,12 +2,10 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Text.RegularExpressions;
 using WLCommon.Matches;
 using WLCommon.Matches.Enums;
 using WLCommon.Model;
 using WLNetwork.Bots;
-using WLNetwork.Controllers;
 using WLNetwork.Matches.Methods;
 using WLNetwork.Model;
 using WLNetwork.Utils;
@@ -78,7 +76,7 @@ namespace WLNetwork.Matches
 
         public void StartPicks()
         {
-            if (Info.Status == MatchStatus.Teams) return;
+            if (Info.Status != MatchStatus.Players) return;
             Info.Status = MatchStatus.Teams;
             pickedAlready = true;
             Info.CaptainStatus = CaptainsStatus.DirePick;
@@ -91,7 +89,7 @@ namespace WLNetwork.Matches
 
         public void StartSetup()
         {
-            if (Setup != null) return;
+            if (Setup != null || Info.Status != MatchStatus.Players) return;
             Setup = new MatchSetup(Id, new MatchSetupDetails()
             {
                 Id = Id,
@@ -118,7 +116,7 @@ namespace WLNetwork.Matches
         /// </summary>
         public void RebalanceTeams()
         {
-            if (_balancing || Info.MatchType != MatchType.StartGame) return;
+            if (_balancing || Info.MatchType != MatchType.StartGame || Info.Status > MatchStatus.Lobby) return;
             _balancing = true;
             //Simple algorithm to later be replaced
             int direCount = 0;
@@ -250,12 +248,16 @@ namespace WLNetwork.Matches
         /// </summary>
         public void Finalize()
         {
+            if (Info.Status == MatchStatus.Play) return;
             var controller = Bot.Find(m => m.PersistentId == Setup.ControllerGuid).FirstOrDefault();
             if (controller != null)
             {
                 controller.Finalize(this);
             }
-            Destroy();
+            Setup.Details.Status = MatchSetupStatus.Done;
+            Setup = Setup;
+            Info.Status = MatchStatus.Play;
+            Info = Info;
         }
 
         public void KickUnassigned()

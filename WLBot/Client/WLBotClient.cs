@@ -94,6 +94,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                 Bots.Add(details, bot);
                 bot.LobbyUpdate += delegate(CSODOTALobby lobby, ComparisonResult differences)
                 {
+                    if (lobby == null) return;
                     PlayerReadyArgs args = new PlayerReadyArgs();
                     var members =
                         lobby.members.Where(
@@ -115,6 +116,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                     args.Players = players.ToArray();
                     args.Id = details.Id;
                     controller.Invoke("playerready", args);
+                    controller.Invoke("matchstatus", new MatchStateArgs(){Id = details.Id, State = lobby.game_state});
                 };
                 bot.Start();
             });
@@ -134,7 +136,8 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                 if (ldet != null)
                 {
                     var bot = Bots[ldet];
-                    bot.StartGameAndLeave();
+                    //bot.StartGameAndLeave();
+                    bot.StartGame();
                 }
             });
             controller.OnClose += (sender, args) =>

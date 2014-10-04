@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using SteamKit2.GC.Dota.Internal;
 using WLCommon.Arguments;
 using WLCommon.LobbyBot.Enums;
 using WLCommon.Matches;
@@ -108,6 +109,28 @@ namespace WLNetwork.Controllers
                 {
                     g.Players = g.Players;
                     //also change status
+                }
+            }
+        }
+
+        public void MatchStatus(MatchStateArgs args)
+        {
+            var game = Setups.FirstOrDefault(m => m.Id == args.Id);
+            if (game == null)
+            {
+                this.Invoke(args.Id, "clearsetup");
+            }
+            else
+            {
+                game.State = args.State;
+                var g = game.GetGame();
+                if (g != null)
+                {
+                    if (game.State == DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME)
+                    {
+                        //todo: record match result
+                        g.Destroy();
+                    }else g.Setup = g.Setup;
                 }
             }
         }

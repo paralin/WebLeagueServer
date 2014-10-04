@@ -154,6 +154,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\SteamKit\SteamKit2\SteamKit2\SteamKit2.csproj">
+      <Project>{beb5bf07-bb56-402a-97a3-a41c6444c6a5}</Project>
+      <Name>SteamKit2</Name>
+    </ProjectReference>
     <ProjectReference Include="..\WLCommon\WLCommon.csproj">
       <Project>{e5eddde6-0687-4870-90bc-183b1f5a8856}</Project>
       <Name>WLCommon</Name>

@@ -36,7 +36,7 @@ namespace WLNetwork.Controllers
                     if (other.Challenge != null)
                     {
                         Challenge = other.Challenge;
-                        if(other.challengeTimer.Enabled)
+                        if (other.challengeTimer.Enabled)
                             challengeTimer.Start();
                         other.Match = null;
                     }
@@ -46,6 +46,15 @@ namespace WLNetwork.Controllers
                         other.Match = null;
                     }
                     other.UserpConnection();
+                }
+                else
+                {
+                    //See if we're in any matches already
+                    var game = MatchesController.Games.FirstOrDefault(m => m.Players.Any(x => x.SID == User.steam.steamid));
+                    if (game != null)
+                    {
+                        Match = game;
+                    }
                 }
             };
             this.OnClose += (sender, args) =>
