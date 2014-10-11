@@ -1,5 +1,6 @@
 ﻿using MongoDB.Driver;
 using WLCommon.Model;
+using WLNetwork.Matches;
 using WLNetwork.Model;
 using WLNetwork.Properties;
 
@@ -17,6 +18,7 @@ namespace WLNetwork.Database
         public static MongoCollection Users;
         public static MongoCollection BotHosts;
         public static MongoCollection Bots;
+        public static MongoCollection Results;
 
         static Mongo()
         {
@@ -40,6 +42,7 @@ namespace WLNetwork.Database
             Users = Database.GetCollection<User>("users");
             BotHosts = Database.GetCollection<BotHost>("botHosts");
             Bots = Database.GetCollection<Bot>("bots");
+            Results = Database.GetCollection<MatchResult>("matchResults");
         }
     }
 }

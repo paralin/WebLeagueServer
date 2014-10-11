@@ -52,6 +52,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.6.0.5\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="protobuf-net, Version=2.0.0.668, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\protobuf-net.2.0.0.668\lib\net40\protobuf-net.dll</HintPath>
+    </Reference>
     <Reference Include="Serilog, Version=1.4.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Serilog.1.4.10\lib\net45\Serilog.dll</HintPath>
@@ -120,11 +124,13 @@
     <Compile Include="Matches\Challenge.cs" />
     <Compile Include="Matches\MatchesController.cs" />
     <Compile Include="Matches\MatchGame.cs" />
+    <Compile Include="Matches\MatchResultVote.cs" />
     <Compile Include="Matches\MatchSetup.cs" />
     <Compile Include="Matches\MatchSetupDetailsEx.cs" />
     <Compile Include="Matches\Methods\AvailableGameUpd.cs" />
     <Compile Include="Matches\Methods\ChallengeResponse.cs" />
     <Compile Include="Matches\Methods\MatchPlayersSnapshot.cs" />
+    <Compile Include="Matches\Methods\MatchVoteArgs.cs" />
     <Compile Include="Matches\Methods\PickPlayer.cs" />
     <Compile Include="Matches\Methods\PublicMatchUpd.cs" />
     <Compile Include="Model\AuthToken.cs" />

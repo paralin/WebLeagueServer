@@ -32,6 +32,8 @@ namespace WLBot.LobbyBot
         protected bool isRunning = false;
         private CallbackManager manager;
 
+        private bool dontRecreateLobby;
+
         private Thread procThread;
         private bool reconnect;
         private System.Timers.Timer reconnectTimer = new System.Timers.Timer(5000);
@@ -42,6 +44,8 @@ namespace WLBot.LobbyBot
         public delegate void LobbyUpdateHandler(CSODOTALobby lobby, ComparisonResult differences);
 
         public event LobbyUpdateHandler LobbyUpdate;
+
+        private Dictionary<ulong, Action<CMsgDOTAMatch>> Callbacks = new Dictionary<ulong, Action<CMsgDOTAMatch>>(); 
 
         /// <summary>
         /// Setup a new bot with some details.
@@ -108,7 +112,7 @@ namespace WLBot.LobbyBot
                 .On(Events.DotaGCReady).Goto(States.DotaMenu);
             fsm.In(States.DotaMenu)
                  .ExecuteOnEntry(SetOnlinePresence)
-                .ExecuteOnEntry(CreateLobby);
+                 .ExecuteOnEntry(CreateLobby);
             fsm.In(States.DotaLobby)
                 .ExecuteOnEntry(EnterLobbyChat)
                 .ExecuteOnEntry(EnterBroadcastChannel)
@@ -119,7 +123,9 @@ namespace WLBot.LobbyBot
 
         public void CreateLobby()
         {
-            dota.LeaveLobby();
+            if (dontRecreateLobby) return;
+            dontRecreateLobby = true;
+            leaveLobby();
             log.Debug("Setting up the lobby with passcode [" + setupDetails.Password + "]...");
             var ldetails = new CMsgPracticeLobbySetDetails()
             {
@@ -158,10 +164,22 @@ namespace WLBot.LobbyBot
 
         public void leaveLobby()
         {
-            log.Debug("Leaving lobby.");
+            if (dota.Lobby != null)
+            {
+                this.dontRecreateLobby = true;
+                log.Debug("Leaving lobby.");
+            }
             dota.AbandonGame();
             dota.LeaveLobby();
             LeaveChatChannel();
+        }
+
+        private ulong MatchId;
+        public void FetchMatchResult(ulong match_id, Action<CMsgDOTAMatch> callback)
+        {
+            MatchId = match_id;
+            Callbacks[match_id] = callback;
+            dota.RequestMatchResult(match_id);
         }
 
         private void LeaveChatChannel()
@@ -180,7 +198,8 @@ namespace WLBot.LobbyBot
 
         private void EnterBroadcastChannel()
         {
-            dota.JoinBroadcastChannel();
+            //dota.JoinBroadcastChannel();
+            dota.JoinCoachSlot();
         }
 
         private void SwitchTeam(DOTA_GC_TEAM team = DOTA_GC_TEAM.DOTA_GC_TEAM_GOOD_GUYS)
@@ -251,6 +270,15 @@ namespace WLBot.LobbyBot
                     {
                         fsm.Fire(Events.Connected);
                     }
+                }, manager);
+                new Callback<DotaGCHandler.MatchResultResponse>(c =>
+                {
+                    Action<CMsgDOTAMatch> cb;
+                    ulong id;
+                    id = c.result.match != null ? c.result.match.match_id : MatchId;
+                    if (!Callbacks.TryGetValue(id, out cb)) return;
+                    Callbacks.Remove(id);
+                    cb(c.result.match);
                 }, manager);
                 new Callback<DotaGCHandler.GCWelcomeCallback>(c =>
                 {

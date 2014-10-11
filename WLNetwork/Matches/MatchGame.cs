@@ -2,14 +2,18 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Security.Cryptography;
+using SteamKit2.GC.Dota.Internal;
 using WLCommon.Matches;
 using WLCommon.Matches.Enums;
 using WLCommon.Model;
 using WLNetwork.Bots;
+using WLNetwork.Database;
 using WLNetwork.Matches.Methods;
 using WLNetwork.Model;
 using WLNetwork.Utils;
 using XSockets.Core.XSocket.Helpers;
+using MatchType = WLCommon.Matches.Enums.MatchType;
 
 namespace WLNetwork.Matches
 {
@@ -152,9 +156,18 @@ namespace WLNetwork.Matches
                 BotDB.SetupQueue.Remove(Setup);
                 Setup.Details.Cleanup(true);
             }
-            MatchesController.Games.Remove(this);
-            MatchesController.PublicGames.Remove(this.Info);
-            log.Info("MATCH DESTROY [" + this.Id + "]");
+            if (MatchesController.Games.Contains(this))
+            {
+                MatchesController.Games.Remove(this);
+                MatchesController.PublicGames.Remove(this.Info);
+                log.Info("MATCH DESTROY [" + this.Id + "]");
+            }
+        }
+
+        ~MatchGame()
+        {
+            //Destructor
+            Destroy();
         }
 
         /// <summary>
@@ -225,9 +238,15 @@ namespace WLNetwork.Matches
             }
             else
             {
-                foreach (var cont in Matches.Find(m => m.Match == this))
+                lock (_setup)
                 {
-                    cont.Invoke(_setup, "setupsnapshot");
+                    var bot = _setup.Details.Bot;
+                    _setup.Details.Bot = null;
+                    foreach (var cont in Matches.Find(m => m.Match == this))
+                    {
+                        cont.Invoke(_setup, "setupsnapshot");
+                    }
+                    _setup.Details.Bot = bot;
                 }
             }
         }
@@ -246,7 +265,7 @@ namespace WLNetwork.Matches
         /// <summary>
         /// Start the match in-game
         /// </summary>
-        public void Finalize()
+        public void StartMatch()
         {
             if (Info.Status == MatchStatus.Play) return;
             var controller = Bot.Find(m => m.PersistentId == Setup.ControllerGuid).FirstOrDefault();
@@ -302,6 +321,38 @@ namespace WLNetwork.Matches
                     pickedAlready = true;
                 }
             }
+        }
+    
+    
+        /// <summary>
+        /// Complete the game
+        /// </summary>
+        /// <param name="matchId"></param>
+        /// <param name="match"></param>
+        public void ProcessMatchResult(ulong matchId, CMsgDOTAMatch match = null)
+        {
+            if (!MatchesController.Games.Contains(this)) return;
+            log.Debug("PROCESSING RESULT " + matchId+" HAS DATA "+(match!=null?"YES":"NO"));
+            var result = new MatchResult()
+            {
+                Id = matchId,
+                RequiresVote = match == null,
+                Result = match
+            };
+            if (!result.RequiresVote)
+            {
+                result.RadiantWon = match.good_guys_win;
+                Mongo.Results.Save(result);
+            }
+            else
+            {
+                result.StartVote();
+            }
+            foreach (var c in Players.Select(player => Matches.Find(m => m.User != null && m.User.steam.steamid == player.SID)).SelectMany(cont => cont))
+            {
+                c.Result = result;
+            }
+            Destroy();
         }
     }
 

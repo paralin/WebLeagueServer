@@ -29,6 +29,7 @@ namespace WLNetwork.Controllers
             this.OnAuthorizationFailed += (sender, args) => log.Warn("Failed authorize for " + args.MethodName + " [" + this.ConnectionContext.PersistentId + "]" + (this.ConnectionContext.IsAuthenticated ? " [" + this.User.steam.steamid + "]" : ""));
             this.OnOpen += (sender, args) =>
             {
+                if (this.User == null) return;
                 var other = this.Find(m => m != this && m.User != null && m.User.steam.steamid == User.steam.steamid).FirstOrDefault();
                 if (other != null)
                 {
@@ -45,6 +46,11 @@ namespace WLNetwork.Controllers
                         Match = other.Match;
                         other.Match = null;
                     }
+                    if (other.Result != null)
+                    {
+                        Result = other.Result;
+                        other.Result = null;
+                    }
                     other.UserpConnection();
                 }
                 else
@@ -59,6 +65,7 @@ namespace WLNetwork.Controllers
             };
             this.OnClose += (sender, args) =>
             {
+                if (this.User == null) return;
                 if(!userped)
                     LeaveMatch();
                 challengeTimer.Stop();
@@ -107,6 +114,21 @@ namespace WLNetwork.Controllers
             {
                 this.Invoke(value, "matchsnapshot");
                 activeMatch = value;
+            }
+        }
+
+        private MatchResult activeResult = null;
+
+        /// <summary>
+        /// The active match the player is in.
+        /// </summary>
+        public MatchResult Result
+        {
+            get { return activeResult; }
+            internal set
+            {
+                this.Invoke(value, "resultsnapshot");
+                activeResult = value;
             }
         }
 
@@ -211,6 +233,25 @@ namespace WLNetwork.Controllers
         }
 
         /// <summary>
+        /// Dismiss a result.
+        /// </summary>
+        public void DismissResult()
+        {
+            if (Result != null && Result.VotingOpen && !Result.Votes.ContainsKey(this.User.steam.steamid)) return;
+            Result = null;
+        }
+
+        /// <summary>
+        /// Vote for the match result
+        /// </summary>
+        /// <param name="args"></param>
+        public void VoteResult(MatchVoteArgs args)
+        {
+            if (Result == null) return;
+            Result.UpdateVote(User.steam.steamid, args.Vote);
+        }
+
+        /// <summary>
         /// Starts the game in-game
         /// </summary>
         /// <returns></returns>
@@ -220,7 +261,7 @@ namespace WLNetwork.Controllers
             if (User == null) return "You are not logged in for some reason.";
             if (Match.Info.Owner != this.User.steam.steamid) return "You are not the host of this game.";
             if (Match.Setup == null || Match.Setup.Details.Status != MatchSetupStatus.Wait || Match.Players.Any(m =>!m.Ready)) return "The match cannot be started yet.";
-            Match.Finalize();
+            Match.StartMatch();
             return null;
         }
 

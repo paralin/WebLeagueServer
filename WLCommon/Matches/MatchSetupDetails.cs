@@ -44,5 +44,10 @@ namespace WLCommon.Matches
         /// Current game state
         /// </summary>
         public DOTA_GameState State { get; set; }
+
+        /// <summary>
+        /// Match ID
+        /// </summary>
+        public ulong MatchId { get; set; }
     }
 }

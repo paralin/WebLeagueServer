@@ -44,10 +44,13 @@ namespace WLNetwork.Matches
                     if(!shutdown) game.StartSetup();
                 }
             }
-            if (details.Bot != null)
+            lock (details)
             {
-                details.Bot.InUse = false;
-                details.Bot = null;
+                if (details.Bot != null)
+                {
+                    details.Bot.InUse = false;
+                    details.Bot = null;
+                }
             }
         }
 

@@ -1,6 +1,10 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using MongoDB.Driver;
 using SteamKit2.GC.Dota.Internal;
 using WLCommon.Arguments;
 using WLCommon.LobbyBot.Enums;
@@ -68,24 +72,27 @@ namespace WLNetwork.Controllers
             }
             else
             {
-                log.Debug(game.Bot.Username+" -> state => "+args.State);
-                switch (args.State)
+                lock (game)
                 {
-                    case States.DisconnectNoRetry:
+                    log.Debug(game.Bot.Username + " -> state => " + args.State);
+                    switch (args.State)
                     {
-                        log.Debug("Bot setup failed for " + game.Bot.Username + ", finding another...");
-                        game.Bot.InUse = false;
-                        game.Bot.Invalid = true;
-                        Mongo.Bots.Save(game.Bot);
-                        game.Cleanup();
-                        break;
-                    }
-                    case States.DotaLobbyUI:
-                    {
-                        log.Debug("Bot lobby setup finished for " + game.Bot.Username);
-                        game.Status = MatchSetupStatus.Wait;
-                        game.TransmitUpdate();
-                        break;
+                        case States.DisconnectNoRetry:
+                        {
+                            log.Debug("Bot setup failed for " + game.Bot.Username + ", finding another...");
+                            game.Bot.InUse = false;
+                            game.Bot.Invalid = true;
+                            Mongo.Bots.Save(game.Bot);
+                            game.Cleanup();
+                            break;
+                        }
+                        case States.DotaLobbyUI:
+                        {
+                            log.Debug("Bot lobby setup finished for " + game.Bot.Username);
+                            game.Status = MatchSetupStatus.Wait;
+                            game.TransmitUpdate();
+                            break;
+                        }
                     }
                 }
             }
@@ -113,6 +120,46 @@ namespace WLNetwork.Controllers
             }
         }
 
+        public void MatchId(MatchIdArgs args)
+        {
+            var game = Setups.FirstOrDefault(m => m.Id == args.Id);
+            if (game == null)
+            {
+                this.Invoke(args.Id, "clearsetup");
+            }
+            else
+            {
+                log.Debug("MATCH ID FIXED "+args.Id+" "+args.match_id);
+                game.MatchId = args.match_id;
+            }
+        }
+
+        public void LeaverStatus(LeaverStatusArgs args)
+        {
+            var game = Setups.FirstOrDefault(m => m.Id == args.Id);
+            if (game == null)
+            {
+                this.Invoke(args.Id, "clearsetup");
+            }
+            else
+            {
+                foreach (var plyr in args.Players)
+                {
+                    var tplyr = game.Players.FirstOrDefault(m => m.SID == plyr.SteamID);
+                    if (tplyr != null)
+                    {
+                        tplyr.IsLeaver = plyr.Status != DOTALeaverStatus_t.DOTA_LEAVER_NONE;
+                        tplyr.LeaverReason = plyr.Status;
+                    }
+                }
+                var g = game.GetGame();
+                if (g != null)
+                {
+                    g.Players = g.Players;
+                }
+            }
+        }
+
         public void MatchStatus(MatchStateArgs args)
         {
             var game = Setups.FirstOrDefault(m => m.Id == args.Id);
@@ -123,15 +170,64 @@ namespace WLNetwork.Controllers
             else
             {
                 game.State = args.State;
-                log.Debug(game.Bot.Username + " -> match_state => " + args.State);
+                //log.Debug(game.Bot.Username + " -> match_state => " + args.State);
                 var g = game.GetGame();
                 if (g != null)
                 {
-                    if (game.State == DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME)
+                    if (args.Status == CSODOTALobby.State.POSTGAME)
                     {
-                        //todo: record match result
-                        g.Destroy();
+                        g.Info.Status = WLCommon.Matches.Enums.MatchStatus.Complete;
+                        g.Info = g.Info;
                     }else g.Setup = g.Setup;
+                }
+            }
+        }
+
+        public void LobbyClear(LobbyClearArgs args)
+        {
+            var game = Setups.FirstOrDefault(m => m.Id == args.Id);
+            if (game == null)
+            {
+                this.Invoke(args.Id, "clearsetup");
+            }
+            else
+            {
+                var g = game.GetGame();
+                if (g != null)
+                {
+                    Task.Run(() =>
+                    {
+                        Thread.Sleep(2000);
+                        this.Invoke(new FetchMatchResultArgs() { Id = game.Id, MatchId = game.MatchId }, "fetchmatchresult");
+                        Thread.Sleep(5000);
+                        game = Setups.FirstOrDefault(m => m.Id == args.Id);
+                        if (game != null)
+                        {
+                            g = game.GetGame();
+                            if (g != null)
+                            {
+                                g.ProcessMatchResult(game.MatchId);
+                            }
+                        }
+                    });
+                }
+            }
+        }
+
+        public void MatchResult(FetchMatchResultArgs args)
+        {
+            log.Debug("MATCH RESULT "+args.MatchId+" RECEIVED");
+            var game = Setups.FirstOrDefault(m => m.Id == args.Id);
+            if (game == null)
+            {
+                this.Invoke(args.Id, "clearsetup");
+            }
+            else
+            {
+                var g = game.GetGame();
+                if (g != null)
+                {
+                    g.ProcessMatchResult(args.MatchId, args.Match);
                 }
             }
         }
@@ -148,8 +244,11 @@ namespace WLNetwork.Controllers
                 var newItems = e.NewItems.OfType<MatchSetupDetails>();
                 foreach (var match in newItems)
                 {
-                    log.Debug("Starting bot setup for "+match.Id+" "+match.Bot.Username);
-                    this.Invoke(match, "startsetup");
+                    lock (match)
+                    {
+                        log.Debug("Starting bot setup for " + match.Id + " " + match.Bot.Username);
+                        this.Invoke(match, "startsetup");
+                    }
                 }
             }
             if (e.OldItems != null)
@@ -157,8 +256,11 @@ namespace WLNetwork.Controllers
                 var newItems = e.OldItems.OfType<MatchSetupDetails>();
                 foreach (var match in newItems)
                 {
-                    log.Debug("Starting bot shutdown for " + match.Bot.Username);
-                    this.Invoke(match.Id, "clearsetup");
+                    lock (match)
+                    {
+                        log.Debug("Starting bot shutdown for " + match.Bot.Username);
+                        this.Invoke(match.Id, "clearsetup");
+                    }
                 }
             }
         }

@@ -1,4 +1,5 @@
-﻿using WLCommon.Matches.Enums;
+﻿using SteamKit2.GC.Dota.Internal;
+using WLCommon.Matches.Enums;
 using WLCommon.Model;
 
 namespace WLCommon.Matches
@@ -48,5 +49,15 @@ namespace WLCommon.Matches
         /// Is a captain?
         /// </summary>
         public bool IsCaptain { get; set; }
+
+        /// <summary>
+        /// Is this person a leaver?
+        /// </summary>
+        public bool IsLeaver { get; set; }
+
+        /// <summary>
+        /// Reason they left
+        /// </summary>
+        public DOTALeaverStatus_t LeaverReason { get; set; }
     }
 }

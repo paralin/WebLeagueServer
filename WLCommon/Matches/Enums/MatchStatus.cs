@@ -23,7 +23,7 @@
         Play,
 
         /// <summary>
-        /// Game is complete and should be ignored. Ultimately the match should be out of the server memory at this point
+        /// Game is complete and the result is being fetched
         /// </summary>
         Complete
     }

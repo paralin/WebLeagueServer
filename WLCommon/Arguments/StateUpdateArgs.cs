@@ -25,5 +25,36 @@ namespace WLCommon.Arguments
     {
         public Guid Id { get; set; }
         public DOTA_GameState State { get; set; }
+        public CSODOTALobby.State Status { get; set; }
+    }
+
+    public class FetchMatchResultArgs
+    {
+        public Guid Id { get; set; }
+        public ulong MatchId { get; set; }
+        public CMsgDOTAMatch Match { get; set; }
+    }
+
+    public class MatchIdArgs
+    {
+        public Guid Id { get; set; }
+        public ulong match_id { get; set; }
+    }
+
+    public class LobbyClearArgs
+    {
+        public Guid Id { get; set; }
+    }
+
+    public class LeaverStatusArgs
+    {
+        public Guid Id { get; set; }
+        public Player[] Players { get; set; }
+
+        public class Player
+        {
+            public string SteamID { get; set; }
+            public DOTALeaverStatus_t Status { get; set; }
+        }
     }
 }

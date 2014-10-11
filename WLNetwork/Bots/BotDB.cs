@@ -68,14 +68,17 @@ namespace WLNetwork.Bots
                     var cont = BotController.Find(m => m.Ready).OrderByDescending(m => m.Setups.Count).FirstOrDefault();
                     if (cont != null)
                     {
-                        setup.ControllerGuid = cont.PersistentId;
-                        setup.Details.Status = MatchSetupStatus.Init;
-                        setup.Details.TransmitUpdate();
-                        setup.Details.Bot = bot;
-                        setup.Details.Bot.InUse = true;
-                        SetupQueue.Remove(setup);
-                        cont.Setups.Add(setup.Details);
-                        return;
+                        lock (setup)
+                        {
+                            setup.ControllerGuid = cont.PersistentId;
+                            setup.Details.Status = MatchSetupStatus.Init;
+                            setup.Details.TransmitUpdate();
+                            setup.Details.Bot = bot;
+                            setup.Details.Bot.InUse = true;
+                            SetupQueue.Remove(setup);
+                            cont.Setups.Add(setup.Details);
+                            return;
+                        }
                     }
                 }
                 if (newStatus != setup.Details.Status)
