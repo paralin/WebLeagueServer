@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
@@ -11,6 +12,7 @@ using WLNetwork.Bots;
 using WLNetwork.Database;
 using WLNetwork.Matches.Methods;
 using WLNetwork.Model;
+using WLNetwork.Rating;
 using WLNetwork.Utils;
 using XSockets.Core.XSocket.Helpers;
 using MatchType = WLCommon.Matches.Enums.MatchType;
@@ -93,7 +95,7 @@ namespace WLNetwork.Matches
 
         public void StartSetup()
         {
-            if (Setup != null || Info.Status != MatchStatus.Players) return;
+            if (Setup != null || (Info.Status != MatchStatus.Players && Info.MatchType != MatchType.Captains)) return;
             Setup = new MatchSetup(Id, new MatchSetupDetails()
             {
                 Id = Id,
@@ -122,10 +124,10 @@ namespace WLNetwork.Matches
         {
             if (_balancing || Info.MatchType != MatchType.StartGame || Info.Status > MatchStatus.Lobby) return;
             _balancing = true;
-            //Simple algorithm to later be replaced
+            //MMR algorithm
             int direCount = 0;
             int radiCount = 0;
-            foreach (var plyr in Players)
+            foreach (var plyr in Players.OrderByDescending(m=>m.Rating))
             {
                 if (plyr.Team == MatchTeam.Spectate) continue;
                 if (direCount < radiCount && direCount < 5)
@@ -337,11 +339,14 @@ namespace WLNetwork.Matches
             {
                 Id = matchId,
                 RequiresVote = match == null,
-                Result = match
+                Result = match,
+                Players = this.Players.Where(m=>m.Team == MatchTeam.Dire || m.Team == MatchTeam.Radiant).Select(x=>new MatchResultPlayer(x)).ToArray(),
+                Votes = new Dictionary<string, bool>()
             };
             if (!result.RequiresVote)
             {
                 result.RadiantWon = match.good_guys_win;
+                RatingCalculator.CalculateRatingDelta(result);
                 Mongo.Results.Save(result);
             }
             else

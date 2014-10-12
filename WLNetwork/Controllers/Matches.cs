@@ -3,10 +3,12 @@ using System.Linq;
 using System.Runtime.Serialization.Formatters;
 using System.Threading.Tasks;
 using System.Timers;
+using MongoDB.Driver.Builders;
 using MongoDB.Driver.Linq;
 using WLCommon.Matches;
 using WLCommon.Matches.Enums;
 using WLCommon.Model;
+using WLNetwork.Database;
 using WLNetwork.Matches;
 using WLNetwork.Matches.Methods;
 using WLNetwork.Model;
@@ -161,6 +163,11 @@ namespace WLNetwork.Controllers
                 if (!this.ConnectionContext.IsAuthenticated) return null;
                 return ((UserIdentity)this.ConnectionContext.User.Identity).User;
             }
+            private set
+            {
+                if (!this.ConnectionContext.IsAuthenticated) return;
+                ((UserIdentity) this.ConnectionContext.User.Identity).User = value;
+            }
         }
 
         /// <summary>
@@ -238,7 +245,9 @@ namespace WLNetwork.Controllers
         public void DismissResult()
         {
             if (Result != null && Result.VotingOpen && !Result.Votes.ContainsKey(this.User.steam.steamid)) return;
+            var result = Result;
             Result = null;
+            result.CheckEarlyComplete();
         }
 
         /// <summary>
@@ -383,6 +392,12 @@ namespace WLNetwork.Controllers
             {
                 return User.steam.steamid == authorizeAttribute.Users;
             }
+        }
+
+        public void ReloadUser()
+        {
+            var user = Mongo.Users.FindOneAs<User>(Query.EQ("steam.steamid", User.steam.steamid));
+            if (user != null) User = user;
         }
     }
 }

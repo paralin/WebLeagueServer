@@ -54,6 +54,7 @@
     <Compile Include="Matches\Enums\MatchTeam.cs" />
     <Compile Include="Matches\Enums\MatchType.cs" />
     <Compile Include="Matches\MatchPlayer.cs" />
+    <Compile Include="Matches\MatchResultPlayer.cs" />
     <Compile Include="Matches\MatchSetupDetails.cs" />
     <Compile Include="Model\Bot.cs" />
     <Compile Include="Model\BotHost.cs" />

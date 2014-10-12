@@ -143,6 +143,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="Rating\RatingCalculator.cs" />
     <Compile Include="Utils\ObservableDictionary.cs" />
     <Compile Include="Utils\ObservableRangeCollection.cs" />
     <Compile Include="Utils\PublicIP.cs" />

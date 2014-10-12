@@ -178,6 +178,21 @@ namespace WLNetwork.Controllers
                     {
                         g.Info.Status = WLCommon.Matches.Enums.MatchStatus.Complete;
                         g.Info = g.Info;
+                        Task.Run(() =>
+                        {
+                            Thread.Sleep(2000);
+                            this.Invoke(new FetchMatchResultArgs() { Id = game.Id, MatchId = game.MatchId }, "fetchmatchresult");
+                            Thread.Sleep(5000);
+                            game = Setups.FirstOrDefault(m => m.Id == args.Id);
+                            if (game != null)
+                            {
+                                g = game.GetGame();
+                                if (g != null)
+                                {
+                                    g.ProcessMatchResult(game.MatchId);
+                                }
+                            }
+                        });
                     }else g.Setup = g.Setup;
                 }
             }
@@ -192,6 +207,7 @@ namespace WLNetwork.Controllers
             }
             else
             {
+                /*
                 var g = game.GetGame();
                 if (g != null)
                 {
@@ -210,7 +226,7 @@ namespace WLNetwork.Controllers
                             }
                         }
                     });
-                }
+                }*/
             }
         }
 

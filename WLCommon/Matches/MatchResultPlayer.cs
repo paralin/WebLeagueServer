@@ -1,23 +1,26 @@
-﻿using SteamKit2.GC.Dota.Internal;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using SteamKit2.GC.Dota.Internal;
 using WLCommon.Matches.Enums;
-using WLCommon.Model;
 
 namespace WLCommon.Matches
 {
-    /// <summary>
-    /// A player in a match
-    /// </summary>
-    public class MatchPlayer
+    public class MatchResultPlayer
     {
-        public MatchPlayer(User user=null)
+        public MatchResultPlayer(MatchPlayer player = null)
         {
-            if (user != null)
+            if (player != null)
             {
-                this.SID = user.steam.steamid;
-                this.Name = user.profile.name;
-                this.Avatar = user.steam.avatarfull;
-                this.Team = MatchTeam.Dire;
-                this.Rating = user.profile.rating;
+                this.SID = player.SID;
+                this.Name = player.Name;
+                this.Team = player.Team;
+                this.IsCaptain = player.IsCaptain;
+                this.IsLeaver = player.IsLeaver;
+                this.LeaverReason = player.LeaverReason;
+                this.RatingBefore = player.Rating;
             }
         }
 
@@ -32,19 +35,9 @@ namespace WLCommon.Matches
         public string Name { get; set; }
 
         /// <summary>
-        /// Avatar
-        /// </summary>
-        public string Avatar { get; set; }
-
-        /// <summary>
         /// Team
         /// </summary>
         public MatchTeam Team { get; set; }
-
-        /// <summary>
-        /// Is ready in the match?
-        /// </summary>
-        public bool Ready { get; set; }
 
         /// <summary>
         /// Is a captain?
@@ -64,6 +57,6 @@ namespace WLCommon.Matches
         /// <summary>
         /// Rating at the start of the match
         /// </summary>
-        public int Rating { get; set; }
+        public int RatingBefore { get; set; }
     }
 }

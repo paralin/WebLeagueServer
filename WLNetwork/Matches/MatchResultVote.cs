@@ -2,10 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
+using MongoDB.Driver.Builders;
 using Newtonsoft.Json;
 using SteamKit2.GC.Dota.Internal;
+using WLCommon.Matches;
+using WLCommon.Matches.Enums;
 using WLNetwork.Database;
+using WLNetwork.Rating;
 using XSockets.Core.XSocket.Helpers;
 
 namespace WLNetwork.Matches
@@ -18,6 +24,11 @@ namespace WLNetwork.Matches
         /// Match ID
         /// </summary>
         public ulong Id { get; set; }
+
+        /// <summary>
+        /// Has rating applied yet?
+        /// </summary>
+        public bool RatingApplied { get; set; }
 
         /// <summary>
         /// Requires voting (automatic result impossible)?
@@ -49,6 +60,21 @@ namespace WLNetwork.Matches
         /// </summary>
         public Dictionary<string, bool> Votes { get; set; }
 
+        /// <summary>
+        /// A version of MatchPlayer minified
+        /// </summary>
+        public MatchResultPlayer[] Players { get; set; }
+
+        /// <summary>
+        /// Rating change for dire
+        /// </summary>
+        public int RatingDire { get; set; }
+
+        /// <summary>
+        /// Rating change for radiant
+        /// </summary>
+        public int RatingRadiant { get; set; }
+
             /// <summary>
         /// The timer for voting
         /// </summary>
@@ -69,6 +95,7 @@ namespace WLNetwork.Matches
             VotingEnds = DateTime.UtcNow + TimeSpan.FromMinutes(3);
             VoteTimer.Stop();
             VoteTimer.Start();
+            RatingCalculator.CalculateRatingDelta(this);
             VotingOpen = true;
             TransmitUpdate();
             Mongo.Results.Save(this);
@@ -80,17 +107,42 @@ namespace WLNetwork.Matches
             if(Votes == null) Votes = new Dictionary<string, bool>();
             if (Votes.ContainsKey(steamid) && Votes[steamid] == radiantwon) return;
             Votes[steamid] = radiantwon;
-            RadiantWon = Votes.Count(m => m.Value) > Votes.Count(m => !m.Value);
+            var newWon = Votes.Count(m => m.Value) > Votes.Count(m => !m.Value);
+            if (newWon != RadiantWon)
+            {
+                RadiantWon = newWon;
+                RatingCalculator.CalculateRatingDelta(this);
+            }
             TransmitUpdate();
             Mongo.Results.Save(this);
+        }
+
+        public void ApplyRating()
+        {
+            if (RatingApplied) return;
+            Mongo.Users.Update(
+                Query.In("steam.steamid",
+                    Players.Where(m => m.Team == MatchTeam.Radiant).Select(m => new BsonString(m.SID)).ToArray()),
+                Update.Inc("profile.rating", RatingRadiant));
+            Mongo.Users.Update(
+                Query.In("steam.steamid",
+                    Players.Where(m => m.Team == MatchTeam.Dire).Select(m => new BsonString(m.SID)).ToArray()),
+                Update.Inc("profile.rating", RatingDire));
+            RatingApplied = true;
+            foreach (var cont in Matches.Find(m => m.User!=null && Players.Any(x=>x.SID == m.User.steam.steamid)))
+            {
+                cont.ReloadUser();
+            }
         }
 
         public void Complete()
         {
             if (!VotingOpen) return;
+            RatingCalculator.CalculateRatingDelta(this);
             VoteTimer.Stop();
             VotingOpen = false;
             TransmitUpdate();
+            ApplyRating();
             Mongo.Results.Save(this);
         }
 
@@ -105,6 +157,11 @@ namespace WLNetwork.Matches
             {
                 cont.Result = this;
             }
+        }
+
+        public void CheckEarlyComplete()
+        {
+            if (!Matches.Find(m => m.Result == this).Any())  Complete();
         }
     }
 }

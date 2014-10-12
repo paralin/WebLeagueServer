@@ -127,7 +127,7 @@ namespace WLBot.LobbyBot
             dontRecreateLobby = true;
             leaveLobby();
             log.Debug("Setting up the lobby with passcode [" + setupDetails.Password + "]...");
-            var ldetails = new CMsgPracticeLobbySetDetails()
+            var ldetails = new CMsgPracticeLobbySetDetails
             {
                 allchat = false,
                 allow_cheats = false,
@@ -135,10 +135,10 @@ namespace WLBot.LobbyBot
                 dota_tv_delay = LobbyDotaTVDelay.LobbyDotaTV_10,
                 fill_with_bots = false,
                 game_mode = (uint) (DOTA_GameMode) setupDetails.GameMode,
-                game_name = "Subscriber Game"
+                game_name = "Subscriber Game",
+                game_version = DOTAGameVersion.GAME_VERSION_CURRENT,
+                server_region = 1
             };
-            ldetails.game_version = DOTAGameVersion.GAME_VERSION_CURRENT;
-            ldetails.server_region = 1;
             dota.CreateLobby(setupDetails.Password, ldetails);
         }
 

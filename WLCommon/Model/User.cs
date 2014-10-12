@@ -58,5 +58,6 @@ namespace WLCommon.Model
     public class Profile
     {
         public string name { get; set; }
+        public int rating { get; set; }
     }
 }
