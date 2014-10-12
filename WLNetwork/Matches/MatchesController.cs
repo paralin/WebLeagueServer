@@ -40,11 +40,11 @@ namespace WLNetwork.Matches
         {
             if (args.NewItems != null)
             {
-                var newAvailable = args.NewItems.OfType<MatchGame>().Where(m => m.Info.Status == MatchStatus.Players);
+                var newAvailable = args.NewItems.OfType<MatchGameInfo>();
                 Matches.InvokeTo(m => m.User != null, new PublicMatchUpd(newAvailable.ToArray()), PublicMatchUpd.Msg);
             }
             if (args.OldItems != null)
-                Matches.InvokeTo(m => m.User != null, new PublicMatchRm(args.OldItems.OfType<MatchGame>().ToArray()), PublicMatchRm.Msg);
+                Matches.InvokeTo(m => m.User != null, new PublicMatchRm(args.OldItems.OfType<MatchGameInfo>().ToArray()), PublicMatchRm.Msg);
         }
 
         private static void GamesOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)

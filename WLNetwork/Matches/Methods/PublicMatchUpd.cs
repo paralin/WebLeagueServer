@@ -16,13 +16,13 @@ namespace WLNetwork.Matches.Methods
         /// <summary>
         /// Matches to add/update
         /// </summary>
-        public MatchGame[] matches { get; set; }
+        public MatchGameInfo[] matches { get; set; }
 
         /// <summary>
         /// Add/update some channels.
         /// </summary>
         /// <param name="members"></param>
-        public PublicMatchUpd(params MatchGame[] matches)
+        public PublicMatchUpd(params MatchGameInfo[] matches)
         {
             this.matches = matches;
         }
@@ -41,7 +41,7 @@ namespace WLNetwork.Matches.Methods
         /// Create a remove op with some members.
         /// </summary>
         /// <param name="mems"></param>
-        public PublicMatchRm(params MatchGame[] matches)
+        public PublicMatchRm(params MatchGameInfo[] matches)
         {
             this.ids = new string[matches.Length];
             int i = 0;

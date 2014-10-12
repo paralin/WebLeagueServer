@@ -88,7 +88,7 @@ namespace WLNetwork.Matches
             Info.CaptainStatus = CaptainsStatus.DirePick;
             foreach (var player in Players.Where(m=>!m.IsCaptain))
             {
-                player.Team = MatchTeam.Unassigned;;
+                player.Team = MatchTeam.Unassigned;
             }
             this.Info = this.Info;
         }
@@ -279,6 +279,7 @@ namespace WLNetwork.Matches
             Setup = Setup;
             Info.Status = MatchStatus.Play;
             Info = Info;
+            MatchesController.PublicGames.Add(Info);
         }
 
         public void KickUnassigned()
