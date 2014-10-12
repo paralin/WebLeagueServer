@@ -216,7 +216,7 @@ namespace WLBot.LobbyBot
         {
             LobbyBot bot = state as LobbyBot;
             if (bot == null) return;
-            while (bot.isRunning)
+            while (bot.isRunning && bot.manager != null)
             {
                 bot.manager.RunWaitCallbacks(TimeSpan.FromSeconds(1));
             }

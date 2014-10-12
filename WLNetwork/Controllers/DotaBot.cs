@@ -91,6 +91,7 @@ namespace WLNetwork.Controllers
                             log.Debug("Bot lobby setup finished for " + game.Bot.Username);
                             game.Status = MatchSetupStatus.Wait;
                             game.TransmitUpdate();
+                            game.TransmitLobbyReady();
                             break;
                         }
                     }

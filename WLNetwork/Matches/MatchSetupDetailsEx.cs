@@ -58,5 +58,15 @@ namespace WLNetwork.Matches
                 if (match != null) match.Setup = match.Setup;
             }
         }
+
+        private static readonly Controllers.Matches Matches = new Controllers.Matches();
+        public static void TransmitLobbyReady(this MatchSetupDetails detials)
+        {
+            var game = detials.GetGame();
+            if (game == null) return;
+            var match = MatchesController.Games.FirstOrDefault(m => m.Id == game.Id);
+            if (match == null) return;
+            Matches.InvokeTo(m=>m.Match == match, "onlobbyready");
+        }
     }
 }
