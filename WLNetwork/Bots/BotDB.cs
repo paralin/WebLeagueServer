@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
@@ -99,27 +100,35 @@ namespace WLNetwork.Bots
         internal static void UpdateDB()
         {
             var bots = Mongo.Bots.FindAs<Bot>(Query.Or(Query.NotExists("Invalid"), Query.EQ("Invalid", false)));
-            foreach (var bot in bots)
+            try
             {
-                Bot exist = null;
-                if (!Bots.TryGetValue(bot.Id, out exist))
+                foreach (var bot in bots)
                 {
-                    log.Debug("BOT ADDED [" + bot.Id + "]" + " [" + bot.Username + "]");
-                    Bots[bot.Id] = bot;
+                    Bot exist = null;
+                    if (!Bots.TryGetValue(bot.Id, out exist))
+                    {
+                        log.Debug("BOT ADDED [" + bot.Id + "]" + " [" + bot.Username + "]");
+                        Bots[bot.Id] = bot;
+                    }
+                    else if (exist.Username != bot.Username || exist.Password != bot.Password)
+                    {
+                        log.Debug("BOT UPDATE USERNAME [" + exist.Username + "] => [" + bot.Username + "] PASSWORD [" +
+                                  exist.Password + "] => [" + bot.Password + "]");
+                        Bots[bot.Id] = bot;
+                    }
                 }
-                else if (exist.Username != bot.Username || exist.Password != bot.Password)
+                foreach (var bot in Bots.Values.Where(bot => bots.All(m => m.Id != bot.Id)))
                 {
-                    log.Debug("BOT UPDATE USERNAME ["+exist.Username+"] => ["+bot.Username+"] PASSWORD ["+exist.Password+"] => ["+bot.Password+"]");
-                    Bots[bot.Id] = bot;
+                    Bot outBot;
+                    Bots.TryRemove(bot.Id, out outBot);
+                    log.Debug("BOT REMOVED/INVALID [" + bot.Id + "] [" + bot.Username + "]");
                 }
+                ProcSetupQueue();
             }
-            foreach (var bot in Bots.Values.Where(bot => bots.All(m => m.Id != bot.Id)))
+            catch (Exception ex)
             {
-                Bot outBot;
-                Bots.TryRemove(bot.Id, out outBot);
-                log.Debug("BOT REMOVED/INVALID ["+bot.Id+"] ["+bot.Username+"]");
+                log.Error("Mongo connection failure? ", ex);
             }
-            ProcSetupQueue();
         }
     }
 }
