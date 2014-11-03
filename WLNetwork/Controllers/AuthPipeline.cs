@@ -41,11 +41,19 @@ namespace WLNetwork.Controllers
                                     Query.EQ("steam.steamid", atoken.steamid)));
                             if (user != null)
                             {
-                                log.Debug("AUTHED [" + protocol.ConnectionContext.PersistentId + "] => ["+user.steam.steamid+"]");
-                                protocol.ConnectionContext.User = new GenericPrincipal(new UserIdentity(user),
-                                    user.authItems);
-                                protocol.ConnectionContext.IsAuthenticated = true;
-                                return protocol.ConnectionContext.User;
+                                if (user.profile.vouched)
+                                {
+                                    log.Debug("AUTHED [" + protocol.ConnectionContext.PersistentId + "] => [" +
+                                              user.steam.steamid + "]");
+                                    protocol.ConnectionContext.User = new GenericPrincipal(new UserIdentity(user),
+                                        user.authItems);
+                                    protocol.ConnectionContext.IsAuthenticated = true;
+                                    return protocol.ConnectionContext.User;
+                                }
+                                else
+                                {
+                                    log.Warn("Unvouched user tried to connect.");
+                                }
                             }
                             else
                             {
