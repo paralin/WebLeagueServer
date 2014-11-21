@@ -31,6 +31,11 @@ namespace WLNetwork.Chat
         public string Avatar { get; set; }
 
         /// <summary>
+        /// Rating
+        /// </summary>
+        public int Rating { get; set; }
+
+        /// <summary>
         /// Create a chat member.
         /// </summary>
         /// <param name="user">user</param>
@@ -39,6 +44,7 @@ namespace WLNetwork.Chat
             this.ID = id;
             this.SteamID = user.steam.steamid;
             this.Name = user.profile.name;
+            this.Rating = user.profile.rating;
             this.Avatar = avatar;
         }
     }

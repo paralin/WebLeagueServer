@@ -19,6 +19,7 @@ namespace WLNetwork.Matches
     public class MatchResult
     {
         private static readonly Controllers.Matches Matches = new Controllers.Matches();
+        private static readonly Controllers.Chat Chats = new Controllers.Chat();
 
         /// <summary>
         /// Match ID
@@ -130,6 +131,10 @@ namespace WLNetwork.Matches
                 Update.Inc("profile.rating", RatingDire));
             RatingApplied = true;
             foreach (var cont in Matches.Find(m => m.User!=null && Players.Any(x=>x.SID == m.User.steam.steamid)))
+            {
+                cont.ReloadUser();
+            }
+            foreach (var cont in Chats.Find(m => m.User != null && Players.Any(x => x.SID == m.User.steam.steamid)))
             {
                 cont.ReloadUser();
             }

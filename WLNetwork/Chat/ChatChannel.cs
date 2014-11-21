@@ -85,10 +85,11 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                 var memb = e.OldItems.OfType<KeyValuePair<Guid, ChatMember>>();
                 var chatMembers = memb.ToArray();
                 var msg = new ChatMemberRm(Id.ToString(), chatMembers.Select(m => m.Value).ToArray());
-                foreach (var nm in chatMembers)
-                {
-                    log.DebugFormat("PARTED [{0}] ({1}) {{{2}}}", Name, Id, nm.Value.Name);
-                }
+                if(e.Action != NotifyCollectionChangedAction.Replace)
+                    foreach (var nm in chatMembers)
+                    {
+                        log.DebugFormat("PARTED [{0}] ({1}) {{{2}}}", Name, Id, nm.Value.Name);
+                    }
                 foreach (var mm in this.Members.Keys)
                 {
                     ChatController.InvokeTo(
@@ -101,10 +102,11 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                 var memb = e.NewItems.OfType<KeyValuePair<Guid, ChatMember>>();
                 var chatMembers = memb.ToArray();
                 var msg = new ChatMemberUpd(Id.ToString(), chatMembers.Select(m=>m.Value).ToArray());
-                foreach (var nm in chatMembers)
-                {
-                    log.DebugFormat("JOINED [{0}] ({1}) {{{2}}}", Name, Id, nm.Value.Name);
-                }
+                if (e.Action != NotifyCollectionChangedAction.Replace)
+                    foreach (var nm in chatMembers)
+                    {
+                        log.DebugFormat("JOINED [{0}] ({1}) {{{2}}}", Name, Id, nm.Value.Name);
+                    }
                 foreach (var mm in this.Members.Keys.ToArray())
                 {
                     ChatController.InvokeTo(m => m.ConnectionContext.IsAuthenticated && m.ConnectionId == mm, msg, ChatMemberUpd.Msg);

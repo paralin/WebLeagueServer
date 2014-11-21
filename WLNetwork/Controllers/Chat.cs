@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Principal;
 using MongoDB.Driver.Builders;
 using MongoDB.Driver.Linq;
@@ -92,6 +93,8 @@ namespace WLNetwork.Controllers
             }
         }
 
+        private ChatMember member = null;
+
         public void SendMessage(Message message)
         {
             if (message == null || !this.ConnectionContext.IsAuthenticated || !message.Validate()) return;
@@ -107,7 +110,8 @@ namespace WLNetwork.Controllers
             if (Channels.Any(m => m.Name.ToLower() == req.Name.ToLower())) return "You are already in that channel.";
             try
             {
-                var chan = ChatChannel.JoinOrCreate(req.Name.ToLower(), new ChatMember(this.ConnectionId, User, User.steam.avatarfull));
+                if(member == null) ReloadUser();
+                var chan = ChatChannel.JoinOrCreate(req.Name.ToLower(), member);
                 if (chan != null)
                     this.Channels.Add(chan);
                 return null;
@@ -125,6 +129,17 @@ namespace WLNetwork.Controllers
             if (chan == null || !chan.Leavable) return;
             chan.Members.Remove(this.ConnectionId);
             this.Channels.Remove(chan);
+        }
+
+        public void ReloadUser()
+        {
+            //todo: Assuming it's already updated by Matches
+            if (User == null) return;
+            member = new ChatMember(this.ConnectionId, User, User.steam.avatarfull);
+            foreach (var chat in Channels)
+            {
+                chat.Members[member.ID] = member;
+            }
         }
     }
 }

@@ -161,7 +161,7 @@
       <Name>SteamKit2</Name>
     </ProjectReference>
     <ProjectReference Include="..\WLCommon\WLCommon.csproj">
-      <Project>{E5EDDDE6-0687-4870-90BC-183B1F5A8856}</Project>
+      <Project>{e5eddde6-0687-4870-90bc-183b1f5a8856}</Project>
       <Name>WLCommon</Name>
     </ProjectReference>
   </ItemGroup>
