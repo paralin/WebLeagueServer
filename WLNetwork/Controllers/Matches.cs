@@ -360,6 +360,7 @@ namespace WLNetwork.Controllers
             target.ChallengerSID = User.steam.steamid;
             target.ChallengerName = User.steam.personaname;
             if (target.ChallengedSID == null) return "You didn't specify a person to challenge.";
+            if (target.ChallengedSID == User.steam.steamid) return "You cannot challenge yourself!";
             var tcont = this.Find(m => m.User != null && m.User.steam.steamid == target.ChallengedSID).FirstOrDefault();
             if (tcont == null) return "That player is no longer online.";
             if (tcont.Match != null) return "That player is already in a match.";
