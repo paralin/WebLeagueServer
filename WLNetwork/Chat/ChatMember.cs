@@ -21,6 +21,11 @@ namespace WLNetwork.Chat
         public string SteamID { get; set; }
 
         /// <summary>
+        /// User ID
+        /// </summary>
+        public string UID { get; set; }
+
+        /// <summary>
         /// Name of the member.
         /// </summary>
         public string Name { get; set; }
@@ -43,6 +48,7 @@ namespace WLNetwork.Chat
         {
             this.ID = id;
             this.SteamID = user.steam.steamid;
+            this.UID = user.Id;
             this.Name = user.profile.name;
             this.Rating = user.profile.rating;
             this.Avatar = avatar;
