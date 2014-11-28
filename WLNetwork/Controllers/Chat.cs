@@ -141,5 +141,15 @@ namespace WLNetwork.Controllers
                 chat.Members[member.ID] = member;
             }
         }
+
+        public void BroadcastServiceMessage(string message)
+        {
+            if (message == null || !this.ConnectionContext.IsAuthenticated) return;
+            foreach (var channel in Channels)
+            {
+                channel.TransmitMessage(member, message, true);
+            }
+            log.DebugFormat("[BROADCAST] {0}: \"{1}\"", User.profile.name, message);
+        }
     }
 }

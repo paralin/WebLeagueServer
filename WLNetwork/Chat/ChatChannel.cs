@@ -144,7 +144,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         /// </summary>
         /// <param name="member">the sender</param>
         /// <param name="text">message</param>
-        public void TransmitMessage(ChatMember member, string text)
+        public void TransmitMessage(ChatMember member, string text, bool service=false)
         {
             if (member == null)
             {
@@ -156,7 +156,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                 log.ErrorFormat("Message transmit with member not in the channel! Ignoring....");
                 return;
             }
-            var msg = new ChatMessage() {Text = text, Member = member, Id = Id.ToString()};
+            var msg = new ChatMessage() {Text = text, Member = member, Id = Id.ToString(), Auto=service};
             foreach (var mm in this.Members.Values)
             {
                 ChatController.InvokeTo(
