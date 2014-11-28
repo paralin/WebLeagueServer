@@ -205,7 +205,7 @@ namespace WLNetwork.Controllers
             var match = new MatchGame(this.User.steam.steamid, options);
             this.Match = match;
             match.Players.Add(new MatchPlayer(User));
-            var chat = this.FindOn<Chat>(m => m.ConnectionId == ConnectionId).FirstOrDefault();
+            var chat = this.FindOn<Chat>(m => m.ConnectionContext.PersistentId == ConnectionContext.PersistentId).FirstOrDefault();
             if (chat != null) chat.BroadcastServiceMessage("created a new match.");
             return null;
         }
@@ -290,7 +290,7 @@ namespace WLNetwork.Controllers
             Challenge = null;
             if (other == null) return;
             other.Challenge = null;
-            var chat = this.FindOn<Chat>(m => m.ConnectionId == ConnectionId).FirstOrDefault();
+            var chat = this.FindOn<Chat>(m => m.ConnectionContext.PersistentId == ConnectionContext.PersistentId).FirstOrDefault();
             if (chat != null) chat.BroadcastServiceMessage(resp.accept ? "accepted the challenge." : "declined the challenge.");
             if (!resp.accept) return;
             //Create the match
@@ -374,7 +374,7 @@ namespace WLNetwork.Controllers
             tcont.Challenge = target;
             tcont.challengeTimer.Start();
             Challenge = target;
-            var chat = this.FindOn<Chat>(m => m.ConnectionId == ConnectionId).FirstOrDefault();
+            var chat = this.FindOn<Chat>(m => m.ConnectionContext.PersistentId == ConnectionContext.PersistentId).FirstOrDefault();
             if (chat != null) chat.BroadcastServiceMessage(string.Format("challenged {0} to a Captain's match!", tcont.User.profile.name));
             return null;
         }
