@@ -165,12 +165,20 @@ namespace WLBot.LobbyBot
             dota.CloseDota();
         }
 
-        public void leaveLobby()
+        public void leaveLobby(bool kickAll = true)
         {
             if (dota.Lobby != null)
             {
                 this.dontRecreateLobby = true;
                 log.Debug("Leaving lobby.");
+                if (kickAll && dota.Lobby.leader_id == user.SteamID.ConvertToUInt64())
+                {
+                    log.Debug("Kicking all members while leaving");
+                    foreach (var member in dota.Lobby.members)
+                    {
+                        dota.KickPlayerFromLobby((uint)(member.id-76561197960265728));
+                    }
+                }
             }
             dota.AbandonGame();
             dota.LeaveLobby();
@@ -366,7 +374,10 @@ namespace WLBot.LobbyBot
             {
                 if (user != null)
                 {
-                    if(dota != null) dota.LeaveLobby();
+                    if (dota != null)
+                    {
+                        leaveLobby();
+                    }
                     user.LogOff();
                     user = null;
                 }
