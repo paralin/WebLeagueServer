@@ -18,6 +18,8 @@ namespace WLBot.LobbyBot.Enums
         DotaGCDisconnect,
         LogonFailSteamGuard,
         LogonFailBadCreds,
-        AttemptReconnect
+        AttemptReconnect,
+        DotaEnterLobbyUI,
+        DotaEnterLobbyRun
     }
 }

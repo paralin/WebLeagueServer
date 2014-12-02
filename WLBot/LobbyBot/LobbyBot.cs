@@ -117,7 +117,10 @@ namespace WLBot.LobbyBot
                 .ExecuteOnEntry(EnterLobbyChat)
                 .ExecuteOnEntry(EnterBroadcastChannel)
                 .On(Events.DotaLeftLobby).Goto(States.DotaMenu).Execute(LeaveChatChannel);
-            fsm.In(States.DotaLobbyUI);
+            fsm.In(States.DotaLobbyUI)
+                .On(Events.DotaEnterLobbyRun).Goto(States.DotaLobbyPlay);
+            fsm.In(States.DotaLobbyPlay)
+                .On(Events.DotaEnterLobbyUI).Goto(States.DotaLobbyUI);
             fsm.Initialize(States.Connecting);
         }
 
@@ -339,6 +342,8 @@ namespace WLBot.LobbyBot
                     {
                         var msg = "Update: " + string.Join(", ", dstrings);
                         log.Debug(msg);
+                        if (dota.Lobby.state == CSODOTALobby.State.UI) fsm.FirePriority(Events.DotaEnterLobbyUI);
+                        else if(dota.Lobby.state == CSODOTALobby.State.RUN) fsm.FirePriority(Events.DotaEnterLobbyRun);
                         if (LobbyUpdate != null) LobbyUpdate(dota.Lobby, diffs);
                     }
                 }, manager);

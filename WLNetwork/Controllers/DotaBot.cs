@@ -88,7 +88,7 @@ namespace WLNetwork.Controllers
                         }
                         case States.DotaLobbyUI:
                         {
-                            log.Debug("Bot lobby setup finished for " + game.Bot.Username);
+                            log.Debug("Bot entered LobbyUI " + game.Bot.Username);
                             game.Status = MatchSetupStatus.Wait;
                             game.TransmitUpdate();
                             game.TransmitLobbyReady();
