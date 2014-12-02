@@ -90,6 +90,7 @@ namespace WLNetwork.Controllers
                         {
                             log.Debug("Bot entered LobbyUI " + game.Bot.Username);
                             game.Status = MatchSetupStatus.Wait;
+                            game.State = DOTA_GameState.DOTA_GAMERULES_STATE_INIT;
                             game.TransmitUpdate();
                             game.TransmitLobbyReady();
                             break;
