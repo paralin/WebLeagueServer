@@ -202,6 +202,7 @@ namespace WLNetwork.Controllers
             if (string.IsNullOrWhiteSpace(options.Name)) return "You didn't specify a name.";
             options.Name = options.Name.Replace('\n', ' ');
             if (Match != null) return "You are already in a match you cannot leave.";
+			options.MatchType = MatchType.StartGame;
             var match = new MatchGame(this.User.steam.steamid, options);
             this.Match = match;
             match.Players.Add(new MatchPlayer(User));

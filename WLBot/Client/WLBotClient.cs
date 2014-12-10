@@ -356,5 +356,11 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         {
            
         }
+
+		public void ExecutingTransition(IStateMachineInformation<States, Events> stateMachineInformation, ITransition<States, Events> transition,
+            ITransitionContext<States, Events> context)
+        {
+           
+        }
     }
 }

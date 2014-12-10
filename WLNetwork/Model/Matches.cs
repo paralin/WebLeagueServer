@@ -5,10 +5,11 @@ namespace WLNetwork.Model
 {
     public class MatchCreateOptions
     {
-        /// <summary>
-        /// What kind of match?
-        /// </summary>
-        public MatchType MatchType { get; set; }
+		/// <summary>
+		/// What type of match?
+		/// </summary>
+		/// <value>The type of the match.</value>
+		public MatchType MatchType { get; set; }
 
         /// <summary>
         /// What game mode?
