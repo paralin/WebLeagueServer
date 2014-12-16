@@ -41,7 +41,7 @@ namespace WLNetwork.Controllers
                                     Query.EQ("steam.steamid", atoken.steamid)));
                             if (user != null)
                             {
-                                if (user.profile.vouched)
+                                if (user.vouch != null)
                                 {
                                     log.Debug("AUTHED [" + protocol.ConnectionContext.PersistentId + "] => [" +
                                               user.steam.steamid + "]");
