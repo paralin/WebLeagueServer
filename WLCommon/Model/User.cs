@@ -1,4 +1,5 @@
-﻿using System.Security.Principal;
+﻿using System.Dynamic;
+using System.Security.Principal;
 
 namespace WLCommon.Model
 {
@@ -29,6 +30,17 @@ namespace WLCommon.Model
         public string[] authItems { get; set; }
         public Profile profile { get; set; }
         public SteamService steam { get; set; }
+        public Vouch vouch { get; set; }
+    }
+
+    public class Vouch
+    {
+        public int __v { get; set; }
+        public string Id { get; set; }
+        public string name { get; set; }
+        public string teamname { get; set; }
+        public string teamavatar { get; set; }
+        public string avatar { get; set; }
     }
 
     public class SteamService
@@ -59,6 +71,5 @@ namespace WLCommon.Model
     {
         public string name { get; set; }
         public int rating { get; set; }
-        public bool vouched { get; set; }
     }
 }
