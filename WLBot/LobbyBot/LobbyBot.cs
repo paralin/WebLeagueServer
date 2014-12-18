@@ -7,6 +7,7 @@ using Appccelerate.StateMachine.Machine;
 using KellermanSoftware.CompareNetObjects;
 using log4net;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SteamKit2;
 using SteamKit2.GC.Dota.Internal;
 using WLBot.LobbyBot.Enums;
@@ -336,6 +337,10 @@ namespace WLBot.LobbyBot
                     {
                         log.Debug("Kicked from the lobby!");
                     }
+                }, manager);
+                new Callback<DotaGCHandler.ConnectionStatus>(c =>
+                {
+                    log.DebugFormat("GC Connection Status: {0}", JObject.FromObject(c.result));
                 }, manager);
                 //new Callback<DotaGCHandler.LiveLeagueGameUpdate>(c => log.DebugFormat("Tournament games: {0}", c.result.live_league_games), manager);
                 new Callback<DotaGCHandler.PracticeLobbyUpdate>(c =>
