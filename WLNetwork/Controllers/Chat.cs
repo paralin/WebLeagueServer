@@ -135,7 +135,8 @@ namespace WLNetwork.Controllers
         {
             //todo: Assuming it's already updated by Matches
             if (User == null) return;
-            member = new ChatMember(this.ConnectionId, User, User.steam.avatarfull);
+			var overava = User.vouch != null && !string.IsNullOrEmpty(User.vouch.avatar);
+			member = new ChatMember(this.ConnectionId, User, overava ? User.vouch.avatar : User.steam.avatarfull);
             foreach (var chat in Channels)
             {
                 chat.Members[member.ID] = member;
