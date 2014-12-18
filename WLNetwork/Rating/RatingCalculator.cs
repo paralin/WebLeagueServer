@@ -58,7 +58,7 @@ namespace WLNetwork.Rating
                 if (plyr.RatingBefore == 0) plyr.RatingBefore = BaseMmr;
             }
 
-            if (data.Result > EMatchOutcome.k_EMatchOutcome_DireVictory)
+            if (data.Result > EMatchOutcome.k_EMatchOutcome_DireVictory || data.Players.Count(m=>m.Team == MatchTeam.Dire)==0 || data.Players.Count(m=>m.Team == MatchTeam.Radiant)==0)
             {
                 data.RatingDire = 0;
                 data.RatingRadiant = 0;
