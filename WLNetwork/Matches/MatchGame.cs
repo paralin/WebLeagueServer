@@ -332,28 +332,20 @@ namespace WLNetwork.Matches
         /// </summary>
         /// <param name="matchId"></param>
         /// <param name="match"></param>
-        public void ProcessMatchResult(ulong matchId, CMsgDOTAMatch match = null)
+        public void ProcessMatchResult(EMatchOutcome outcome)
         {
             if (!MatchesController.Games.Contains(this)) return;
-            log.Debug("PROCESSING RESULT " + matchId+" HAS DATA "+(match!=null?"YES":"NO"));
+            var matchId = Setup.Details.MatchId;
+            log.Debug("PROCESSING RESULT " + matchId+" WITH OUTCOME "+outcome);
             var result = new MatchResult()
             {
                 Id = matchId,
-                RequiresVote = match == null,
-                Result = match,
                 Players = this.Players.Where(m=>m.Team == MatchTeam.Dire || m.Team == MatchTeam.Radiant).Select(x=>new MatchResultPlayer(x)).ToArray(),
-                Votes = new Dictionary<string, bool>()
+                Result = outcome
             };
-            if (!result.RequiresVote)
-            {
-                result.RadiantWon = match.good_guys_win;
-                RatingCalculator.CalculateRatingDelta(result);
-                Mongo.Results.Save(result);
-            }
-            else
-            {
-                result.StartVote();
-            }
+            RatingCalculator.CalculateRatingDelta(result);
+            result.ApplyRating();
+            result.Save();
             foreach (var c in Players.Select(player => Matches.Find(m => m.User != null && m.User.steam.steamid == player.SID)).SelectMany(cont => cont))
             {
                 c.Result = result;

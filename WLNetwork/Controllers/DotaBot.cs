@@ -180,21 +180,6 @@ namespace WLNetwork.Controllers
                     {
                         g.Info.Status = WLCommon.Matches.Enums.MatchStatus.Complete;
                         g.Info = g.Info;
-                        Task.Run(() =>
-                        {
-                            Thread.Sleep(2000);
-                            this.Invoke(new FetchMatchResultArgs() { Id = game.Id, MatchId = game.MatchId }, "fetchmatchresult");
-                            Thread.Sleep(5000);
-                            game = Setups.FirstOrDefault(m => m.Id == args.Id);
-                            if (game != null)
-                            {
-                                g = game.GetGame();
-                                if (g != null)
-                                {
-                                    g.ProcessMatchResult(game.MatchId);
-                                }
-                            }
-                        });
                     }else g.Setup = g.Setup;
                 }
             }
@@ -207,34 +192,10 @@ namespace WLNetwork.Controllers
             {
                 this.Invoke(args.Id, "clearsetup");
             }
-            else
-            {
-                /*
-                var g = game.GetGame();
-                if (g != null)
-                {
-                    Task.Run(() =>
-                    {
-                        Thread.Sleep(2000);
-                        this.Invoke(new FetchMatchResultArgs() { Id = game.Id, MatchId = game.MatchId }, "fetchmatchresult");
-                        Thread.Sleep(5000);
-                        game = Setups.FirstOrDefault(m => m.Id == args.Id);
-                        if (game != null)
-                        {
-                            g = game.GetGame();
-                            if (g != null)
-                            {
-                                g.ProcessMatchResult(game.MatchId);
-                            }
-                        }
-                    });
-                }*/
-            }
         }
 
-        public void MatchResult(FetchMatchResultArgs args)
+        public void MatchOutcome(MatchOutcomeArgs args)
         {
-            log.Debug("MATCH RESULT "+args.MatchId+" RECEIVED");
             var game = Setups.FirstOrDefault(m => m.Id == args.Id);
             if (game == null)
             {
@@ -245,7 +206,7 @@ namespace WLNetwork.Controllers
                 var g = game.GetGame();
                 if (g != null)
                 {
-                    g.ProcessMatchResult(args.MatchId, args.Match);
+                    g.ProcessMatchResult(args.match_outcome);
                 }
             }
         }

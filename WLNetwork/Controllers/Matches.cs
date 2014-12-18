@@ -247,20 +247,7 @@ namespace WLNetwork.Controllers
         /// </summary>
         public void DismissResult()
         {
-            if (Result != null && Result.VotingOpen && !Result.Votes.ContainsKey(this.User.steam.steamid)) return;
-            var result = Result;
             Result = null;
-            result.CheckEarlyComplete();
-        }
-
-        /// <summary>
-        /// Vote for the match result
-        /// </summary>
-        /// <param name="args"></param>
-        public void VoteResult(MatchVoteArgs args)
-        {
-            if (Result == null) return;
-            Result.UpdateVote(User.steam.steamid, args.Vote);
         }
 
         /// <summary>

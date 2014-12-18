@@ -20,7 +20,7 @@ namespace WLBot
                 shutdown = true;
             };
 
-            var client = new WLBotClient("ws://localhost:4502", Settings.Default["BotID"] as string, Settings.Default["BotSecret"] as string);
+            var client = new WLBotClient("ws://wln.paral.in:4502", Settings.Default["BotID"] as string, Settings.Default["BotSecret"] as string);
             client.Start();
             while (!shutdown && !(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter))
             {

@@ -167,6 +167,10 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                     {
                         controller.Invoke("matchid", new MatchIdArgs(){Id = details.Id, match_id = lobby.match_id});
                     }
+                    if (differences.Differences.Any(m => m.PropertyName == ".match_outcome") && lobby.match_outcome != EMatchOutcome.k_EMatchOutcome_Unknown)
+                    {
+                        controller.Invoke("matchoutcome", new MatchOutcomeArgs() { Id = details.Id, match_outcome = lobby.match_outcome });
+                    }
                 };
                 bot.Start();
             });
@@ -209,7 +213,6 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                 if (ldet != null)
                 {
                     var bot = Bots[ldet];
-                    //bot.StartGameAndLeave();
                     bot.StartGame();
                 }
             });

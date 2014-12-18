@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Driver.Builders;
+using SteamKit2.GC.Dota.Internal;
 using WLCommon.Matches.Enums;
 using WLCommon.Model;
 using WLNetwork.Database;
@@ -57,6 +58,13 @@ namespace WLNetwork.Rating
                 if (plyr.RatingBefore == 0) plyr.RatingBefore = BaseMmr;
             }
 
+            if (data.Result > EMatchOutcome.k_EMatchOutcome_DireVictory)
+            {
+                data.RatingDire = 0;
+                data.RatingRadiant = 0;
+                return;
+            }
+
             //avg the MMR
             double radiantAvg = data.Players.Where(m => m.Team == MatchTeam.Radiant).Average(m => m.RatingBefore);
             double direAvg = data.Players.Where(m => m.Team == MatchTeam.Dire).Average(m => m.RatingBefore);
@@ -74,7 +82,7 @@ namespace WLNetwork.Rating
             //calculate the increments and decrements based on win only
             int incRadiant = 0;
             int incDire = 0;
-            if (data.RadiantWon)
+            if (data.Result == EMatchOutcome.k_EMatchOutcome_RadVictory)
             {
                 incRadiant = (int) Math.Round(radiantFactor.Factor*(1.0 - radiantWinProb));
                 incDire = (int) Math.Round(direFactor.Factor*-direWinProb);

@@ -41,6 +41,12 @@ namespace WLCommon.Arguments
         public ulong match_id { get; set; }
     }
 
+    public class MatchOutcomeArgs
+    {
+        public Guid Id { get; set; }
+        public EMatchOutcome match_outcome { get; set; }
+    }
+
     public class LobbyClearArgs
     {
         public Guid Id { get; set; }

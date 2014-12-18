@@ -120,7 +120,7 @@
     <Compile Include="Matches\Challenge.cs" />
     <Compile Include="Matches\MatchesController.cs" />
     <Compile Include="Matches\MatchGame.cs" />
-    <Compile Include="Matches\MatchResultVote.cs" />
+    <Compile Include="Matches\MatchResult.cs" />
     <Compile Include="Matches\MatchSetup.cs" />
     <Compile Include="Matches\MatchSetupDetailsEx.cs" />
     <Compile Include="Matches\Methods\AvailableGameUpd.cs" />

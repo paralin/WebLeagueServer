@@ -171,7 +171,7 @@ namespace WLBot.LobbyBot
             {
                 this.dontRecreateLobby = true;
                 log.Debug("Leaving lobby.");
-                if (kickAll && dota.Lobby.leader_id == user.SteamID.ConvertToUInt64())
+                if (kickAll && dota.Lobby.leader_id == user.SteamID.ConvertToUInt64() && dota.Lobby.state == CSODOTALobby.State.UI)
                 {
                     log.Debug("Kicking all members while leaving");
                     foreach (var member in dota.Lobby.members)
@@ -350,8 +350,12 @@ namespace WLBot.LobbyBot
                     {
                         var msg = "Update: " + string.Join(", ", dstrings);
                         log.Debug(msg);
-                        if (dota.Lobby.state == CSODOTALobby.State.UI) fsm.FirePriority(Events.DotaEnterLobbyUI);
-                        else if(dota.Lobby.state == CSODOTALobby.State.RUN) fsm.FirePriority(Events.DotaEnterLobbyRun);
+                        if (dota.Lobby != null)
+                        {
+                            if (dota.Lobby.state == CSODOTALobby.State.UI) fsm.FirePriority(Events.DotaEnterLobbyUI);
+                            else if (dota.Lobby.state == CSODOTALobby.State.RUN)
+                                fsm.FirePriority(Events.DotaEnterLobbyRun);
+                        }
                         if (LobbyUpdate != null) LobbyUpdate(dota.Lobby, diffs);
                     }
                 }, manager);
