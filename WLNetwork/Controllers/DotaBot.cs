@@ -4,7 +4,9 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Builders;
 using SteamKit2.GC.Dota.Internal;
 using WLCommon.Arguments;
 using WLCommon.LobbyBot.Enums;
@@ -96,6 +98,33 @@ namespace WLNetwork.Controllers
                             break;
                         }
                     }
+                }
+            }
+        }
+
+        public void MatchResult(FetchMatchResultArgs args)
+        {
+            log.Debug("MATCH RESULT " + args.MatchId + " RECEIVED");
+            var game = Setups.FirstOrDefault(m => m.Id == args.Id);
+            if (game == null)
+            {
+                this.Invoke(args.Id, "clearsetup");
+            }
+            else
+            {
+                Setups.Remove(game);
+            }
+            if (args.Match != null)
+            {
+                var write =  Mongo.Results.Update(Query.EQ("_id", args.MatchId),
+                    Update.Set("Match", BsonValue.Create(args.Match)), UpdateFlags.Multi);
+                if (!write.Ok || write.DocumentsAffected == 0)
+                {
+                    log.Warn("CAN'T FIND DATABASE ENTRY FOR " + args.MatchId);
+                }
+                else
+                {
+                    log.Debug("STORED MATCH RESULT FOR "+args.MatchId+" REPLAY SALT "+args.Match.replay_salt);
                 }
             }
         }
@@ -207,6 +236,14 @@ namespace WLNetwork.Controllers
                 if (g != null)
                 {
                     g.ProcessMatchResult(args.match_outcome);
+                    Task.Run(() =>
+                    {
+                        Thread.Sleep(2000);
+                        this.Invoke(new FetchMatchResultArgs() { Id = game.Id, MatchId = game.MatchId }, "fetchmatchresult");
+                        Thread.Sleep(5000);
+                        //Shutdown the bot if it still exists
+                        Setups.Remove(game);
+                    });
                 }
             }
         }

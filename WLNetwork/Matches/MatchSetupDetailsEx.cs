@@ -14,7 +14,7 @@ namespace WLNetwork.Matches
             return MatchesController.Games.FirstOrDefault(m => m.Id == details.Id);
         }
 
-        public static void Cleanup(this MatchSetupDetails details, bool shutdown=false)
+        public static void Cleanup(this MatchSetupDetails details, bool shutdown=false, bool preserveBot = false)
         {
             var game = details.GetGame();
             if (details.Status >= MatchSetupStatus.Init && game != null)
@@ -23,7 +23,7 @@ namespace WLNetwork.Matches
                 if (setup != null)
                 {
                     var cont = setup.ControllerGuid;
-                    if (Guid.Empty!=cont)
+                    if (Guid.Empty!=cont && !preserveBot)
                     {
                         var ccont =
                             BotDB.BotController.Find(

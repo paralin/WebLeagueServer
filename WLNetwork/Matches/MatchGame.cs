@@ -147,7 +147,7 @@ namespace WLNetwork.Matches
         /// <summary>
         /// Delete the game.
         /// </summary>
-        public void Destroy()
+        public void Destroy(bool preserveBot=false)
         {
             foreach (var cont in Matches.Find(m => m.Match == this))
             {
@@ -156,7 +156,7 @@ namespace WLNetwork.Matches
             if (Setup != null)
             {
                 BotDB.SetupQueue.Remove(Setup);
-                Setup.Details.Cleanup(true);
+                Setup.Details.Cleanup(true, preserveBot);
             }
             if (MatchesController.Games.Contains(this))
             {
@@ -350,7 +350,7 @@ namespace WLNetwork.Matches
             {
                 c.Result = result;
             }
-            Destroy();
+            Destroy(true);
         }
     }
 
