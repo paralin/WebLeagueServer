@@ -30,8 +30,6 @@ namespace WLNetwork.Matches
         /// </summary>
         public EMatchOutcome Result { get; set; }
 
-        public CMsgDOTAMatch Match { get; set; }
-
         /// <summary>
         /// A version of MatchPlayer minified
         /// </summary>
