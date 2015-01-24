@@ -109,7 +109,7 @@ namespace WLBotHost.Client
                     log.Error("Some issue authenticating. the host does not recognize this bot host.");
                 }
             };
-            controller.On<dynamic>("startsetup", details =>
+            controller.On<MatchSetupDetails>("startsetup", details =>
             {
                 log.Info("Starting match setup "+details.Id);
                 var bot = new LobbyBot(details, new WLBotExtension(details, this));
@@ -184,7 +184,7 @@ namespace WLBotHost.Client
                 };
                 bot.Start();
             });
-            controller.On<dynamic>("clearsetup", id =>
+            controller.On<Guid>("clearsetup", id =>
             {
                 MatchSetupDetails ldet = Bots.Keys.FirstOrDefault(m => m.Id == id);
                 if (ldet != null)
@@ -195,7 +195,7 @@ namespace WLBotHost.Client
                     bot.Destroy();
                 }
             });
-            controller.On<dynamic>("leavelobby", id =>
+            controller.On<Guid>("leavelobby", id =>
             {
                 MatchSetupDetails ldet = Bots.Keys.FirstOrDefault(m => m.Id == id);
                 if (ldet != null)
