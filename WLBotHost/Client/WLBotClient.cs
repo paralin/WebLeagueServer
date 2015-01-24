@@ -109,7 +109,7 @@ namespace WLBotHost.Client
                     log.Error("Some issue authenticating. the host does not recognize this bot host.");
                 }
             };
-            controller.On("startsetup", (MatchSetupDetails details) =>
+            controller.On<dynamic>("startsetup", details =>
             {
                 log.Info("Starting match setup "+details.Id);
                 var bot = new LobbyBot(details, new WLBotExtension(details, this));
@@ -184,7 +184,7 @@ namespace WLBotHost.Client
                 };
                 bot.Start();
             });
-            controller.On("clearsetup", (Guid id) =>
+            controller.On<dynamic>("clearsetup", id =>
             {
                 MatchSetupDetails ldet = Bots.Keys.FirstOrDefault(m => m.Id == id);
                 if (ldet != null)
@@ -195,7 +195,7 @@ namespace WLBotHost.Client
                     bot.Destroy();
                 }
             });
-            controller.On("leavelobby", (Guid id) =>
+            controller.On<dynamic>("leavelobby", id =>
             {
                 MatchSetupDetails ldet = Bots.Keys.FirstOrDefault(m => m.Id == id);
                 if (ldet != null)
@@ -204,7 +204,7 @@ namespace WLBotHost.Client
                     bot.leaveLobby();
                 }
             });
-            controller.On("fetchmatchresult", (FetchMatchResultArgs args) =>
+            controller.On<FetchMatchResultArgs>("fetchmatchresult", args =>
             {
                 MatchSetupDetails ldet = Bots.Keys.FirstOrDefault(m => m.Id == args.Id);
                 if (ldet != null)
@@ -217,7 +217,7 @@ namespace WLBotHost.Client
                     });
                 }
             });
-            controller.On("finalize", (Guid id) =>
+            controller.On<Guid>("finalize", id =>
             {
                 MatchSetupDetails ldet = Bots.Keys.FirstOrDefault(m => m.Id == id);
                 if (ldet != null)
