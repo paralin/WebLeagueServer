@@ -12,7 +12,7 @@ using SteamKit2;
 using SteamKit2.GC.Dota.Internal;
 using WLBot.DOTABot.Enums;
 using WLBot.Utils;
-using WLCommon.DOTABot.Enums;
+using WLCommon.BotEnums;
 using WLCommon.Matches;
 
 namespace WLBot.DOTABot

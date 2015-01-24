@@ -14,7 +14,7 @@ using WLBot.DOTABot;
 using WLBot.DOTABot.Enums;
 using WLBot.Utils;
 using WLCommon.Arguments;
-using WLCommon.DOTABot.Enums;
+using WLCommon.BotEnums;
 using WLCommon.Matches;
 using WLCommon.Matches.Enums;
 using WLCommon.Model;

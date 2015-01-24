@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using MongoDB.Driver;
 using SteamKit2.GC.Dota.Internal;
 using WLCommon.Arguments;
-using WLCommon.DOTABot.Enums;
+using WLCommon.BotEnums;
 using WLCommon.Matches;
 using WLCommon.Matches.Enums;
 using WLNetwork.Bots;

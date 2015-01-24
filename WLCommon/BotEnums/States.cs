@@ -1,4 +1,4 @@
-﻿namespace WLCommon.DOTABot.Enums
+﻿namespace WLCommon.BotEnums
 {
     public enum States
     {
