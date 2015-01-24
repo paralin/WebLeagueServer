@@ -111,6 +111,7 @@ namespace WLBotHost.Client
             };
             controller.On("startsetup", (MatchSetupDetails details) =>
             {
+                log.Info("Starting match setup "+details.Id);
                 var bot = new LobbyBot(details, new WLBotExtension(details, this));
                 Bots[details] = bot;
                 bot.LobbyUpdate += delegate(CSODOTALobby lobby, ComparisonResult differences)
