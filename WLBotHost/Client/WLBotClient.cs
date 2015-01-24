@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -31,10 +32,10 @@ namespace WLBotHost.Client
         private static readonly ILog log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly Dictionary<MatchSetupDetails, LobbyBot> Bots;
+        private ConcurrentDictionary<MatchSetupDetails, LobbyBot> Bots;
 
-        private readonly XSocketClient client;
-        private readonly Timer reconnectTimer;
+        private XSocketClient client;
+        private Timer reconnectTimer;
         public IController controller;
         private bool running;
         private bool shouldReconnect;
@@ -47,7 +48,7 @@ namespace WLBotHost.Client
         /// <param name="secret">Corresponding secret of the bot in the db</param>
         public WLBotClient(string url, string botid, string secret)
         {
-            Bots = new Dictionary<MatchSetupDetails, LobbyBot>();
+            Bots = new ConcurrentDictionary<MatchSetupDetails, LobbyBot>();
             reconnectTimer = new Timer(5000);
             reconnectTimer.Elapsed += (sender, args) => Start();
             client = new XSocketClient(url, "http://localhost", "dotabot");
@@ -111,7 +112,7 @@ namespace WLBotHost.Client
             controller.On("startsetup", (MatchSetupDetails details) =>
             {
                 var bot = new LobbyBot(details, new WLBotExtension(details, this));
-                Bots.Add(details, bot);
+                Bots[details] = bot;
                 bot.LobbyUpdate += delegate(CSODOTALobby lobby, ComparisonResult differences)
                 {
                     if (lobby == null)
@@ -187,10 +188,10 @@ namespace WLBotHost.Client
                 MatchSetupDetails ldet = Bots.Keys.FirstOrDefault(m => m.Id == id);
                 if (ldet != null)
                 {
-                    LobbyBot bot = Bots[ldet];
+                    LobbyBot bot;
+                    if(!Bots.TryRemove(ldet, out bot)) return;
                     bot.leaveLobby();
                     bot.Destroy();
-                    Bots.Remove(ldet);
                 }
             });
             controller.On("leavelobby", (Guid id) =>
