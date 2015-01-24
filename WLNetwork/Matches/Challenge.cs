@@ -1,36 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WLCommon.Matches.Enums;
+﻿using WLCommon.Matches.Enums;
 
 namespace WLNetwork.Matches
 {
     public class Challenge
     {
         /// <summary>
-        /// Challenger name
+        ///     Challenger name
         /// </summary>
         public string ChallengerName { get; set; }
-        
+
         /// <summary>
-        /// The steam id of the person challenging
+        ///     The steam id of the person challenging
         /// </summary>
         public string ChallengerSID { get; set; }
 
         /// <summary>
-        /// The challenged person
+        ///     The challenged person
         /// </summary>
         public string ChallengedSID { get; set; }
 
         /// <summary>
-        /// Name of the challenged
+        ///     Name of the challenged
         /// </summary>
         public string ChallengedName { get; set; }
 
         /// <summary>
-        /// Game mode
+        ///     Game mode
         /// </summary>
         public GameMode GameMode { get; set; }
     }

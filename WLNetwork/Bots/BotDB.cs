@@ -2,9 +2,11 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Timers;
+using log4net;
+using MongoDB.Driver;
 using MongoDB.Driver.Builders;
-using MongoDB.Driver.Linq;
 using WLCommon.Matches.Enums;
 using WLCommon.Model;
 using WLNetwork.Controllers;
@@ -15,18 +17,19 @@ using XSockets.Core.XSocket.Helpers;
 namespace WLNetwork.Bots
 {
     /// <summary>
-    /// Keeps track of all of the bots.
+    ///     Keeps track of all of the bots.
     /// </summary>
     public static class BotDB
     {
-        private static readonly log4net.ILog log =
-   log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public static Timer UpdateTimer;
 
         internal static readonly DotaBot BotController = new DotaBot();
 
         /// <summary>
-        /// Bot Dictionary
+        ///     Bot Dictionary
         /// </summary>
         public static ConcurrentDictionary<string, Bot> Bots = new ConcurrentDictionary<string, Bot>();
 
@@ -58,15 +61,16 @@ namespace WLNetwork.Bots
 
         public static void ProcSetupQueue()
         {
-            foreach (var setup in SetupQueue.ToArray())
+            foreach (MatchSetup setup in SetupQueue.ToArray())
             {
-                var dirty = false;
+                bool dirty = false;
                 var newStatus = MatchSetupStatus.Queue;
-                var bot = FindAvailableBot();
+                Bot bot = FindAvailableBot();
                 if (bot != null)
                 {
                     newStatus = MatchSetupStatus.QueueHost;
-                    var cont = BotController.Find(m => m.Ready).OrderByDescending(m => m.Setups.Count).FirstOrDefault();
+                    DotaBot cont =
+                        BotController.Find(m => m.Ready).OrderByDescending(m => m.Setups.Count).FirstOrDefault();
                     if (cont != null)
                     {
                         lock (setup)
@@ -95,14 +99,15 @@ namespace WLNetwork.Bots
         }
 
         /// <summary>
-        /// Check for differences in the DB
+        ///     Check for differences in the DB
         /// </summary>
         internal static void UpdateDB()
         {
-            var bots = Mongo.Bots.FindAs<Bot>(Query.Or(Query.NotExists("Invalid"), Query.EQ("Invalid", false)));
+            MongoCursor<Bot> bots =
+                Mongo.Bots.FindAs<Bot>(Query.Or(Query.NotExists("Invalid"), Query.EQ("Invalid", false)));
             try
             {
-                foreach (var bot in bots)
+                foreach (Bot bot in bots)
                 {
                     Bot exist = null;
                     if (!Bots.TryGetValue(bot.Id, out exist))
@@ -117,7 +122,7 @@ namespace WLNetwork.Bots
                         Bots[bot.Id] = bot;
                     }
                 }
-                foreach (var bot in Bots.Values.Where(bot => bots.All(m => m.Id != bot.Id)))
+                foreach (Bot bot in Bots.Values.Where(bot => bots.All(m => m.Id != bot.Id)))
                 {
                     Bot outBot;
                     Bots.TryRemove(bot.Id, out outBot);

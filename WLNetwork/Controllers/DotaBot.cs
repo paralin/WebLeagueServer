@@ -1,10 +1,9 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using MongoDB.Driver;
+using System.Reflection;
+using log4net;
 using SteamKit2.GC.Dota.Internal;
 using WLCommon.Arguments;
 using WLCommon.BotEnums;
@@ -21,28 +20,34 @@ using XSockets.Core.XSocket.Helpers;
 namespace WLNetwork.Controllers
 {
     /// <summary>
-    /// The controller for Dota BotHost
+    ///     The controller for Dota BotHost
     /// </summary>
     [Authorize(Roles = "dotaBot")]
     public class DotaBot : XSocketController
     {
-        /// <summary>
-        /// Is this bot authed?
-        /// </summary>
-        public bool Authed { get { return this.ConnectionContext.IsAuthenticated&&this.ConnectionContext.User.IsInRole("dotaBot"); } }
-
-        private bool _ready;
-        public bool Ready { get { return Authed && _ready; } }
-
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public ObservableCollection<MatchSetupDetails> Setups = new ObservableCollection<MatchSetupDetails>();
+        private bool _ready;
 
         public DotaBot()
         {
             Setups = new ObservableCollection<MatchSetupDetails>();
             Setups.CollectionChanged += SetupsOnCollectionChanged;
-            this.OnClose += HandleClosed;
+            OnClose += HandleClosed;
+        }
+
+        /// <summary>
+        ///     Is this bot authed?
+        /// </summary>
+        public bool Authed
+        {
+            get { return ConnectionContext.IsAuthenticated && ConnectionContext.User.IsInRole("dotaBot"); }
+        }
+
+        public bool Ready
+        {
+            get { return Authed && _ready; }
         }
 
         private void HandleClosed(object sender, OnClientDisconnectArgs e)
@@ -52,7 +57,7 @@ namespace WLNetwork.Controllers
 
         private void Cleanup()
         {
-            foreach (var setup in Setups.ToArray())
+            foreach (MatchSetupDetails setup in Setups.ToArray())
             {
                 setup.Cleanup();
             }
@@ -64,7 +69,7 @@ namespace WLNetwork.Controllers
 
         public void StateUpdate(StateUpdateArgs args)
         {
-            var game = Setups.FirstOrDefault(m => m.Id == args.Id);
+            MatchSetupDetails game = Setups.FirstOrDefault(m => m.Id == args.Id);
             if (game == null)
             {
                 //log.Warn("Bot state update for unknown match, "+args.Id+", commanding shutdown...");
@@ -102,18 +107,18 @@ namespace WLNetwork.Controllers
 
         public void PlayerReady(PlayerReadyArgs args)
         {
-            var game = Setups.FirstOrDefault(m => m.Id == args.Id);
+            MatchSetupDetails game = Setups.FirstOrDefault(m => m.Id == args.Id);
             if (game == null)
             {
                 this.Invoke(args.Id, "clearsetup");
             }
             else
             {
-                foreach (var plyr in game.Players)
+                foreach (MatchPlayer plyr in game.Players)
                 {
                     plyr.Ready = args.Players.Any(m => m.IsReady && m.SteamID == plyr.SID);
                 }
-                var g = game.GetGame();
+                MatchGame g = game.GetGame();
                 if (g != null)
                 {
                     g.Players = g.Players;
@@ -124,37 +129,37 @@ namespace WLNetwork.Controllers
 
         public void MatchId(MatchIdArgs args)
         {
-            var game = Setups.FirstOrDefault(m => m.Id == args.Id);
+            MatchSetupDetails game = Setups.FirstOrDefault(m => m.Id == args.Id);
             if (game == null)
             {
                 this.Invoke(args.Id, "clearsetup");
             }
             else
             {
-                log.Debug("MATCH ID FIXED "+args.Id+" "+args.match_id);
+                log.Debug("MATCH ID FIXED " + args.Id + " " + args.match_id);
                 game.MatchId = args.match_id;
             }
         }
 
         public void LeaverStatus(LeaverStatusArgs args)
         {
-            var game = Setups.FirstOrDefault(m => m.Id == args.Id);
+            MatchSetupDetails game = Setups.FirstOrDefault(m => m.Id == args.Id);
             if (game == null)
             {
                 this.Invoke(args.Id, "clearsetup");
             }
             else
             {
-                foreach (var plyr in args.Players)
+                foreach (LeaverStatusArgs.Player plyr in args.Players)
                 {
-                    var tplyr = game.Players.FirstOrDefault(m => m.SID == plyr.SteamID);
+                    MatchPlayer tplyr = game.Players.FirstOrDefault(m => m.SID == plyr.SteamID);
                     if (tplyr != null)
                     {
                         tplyr.IsLeaver = plyr.Status != DOTALeaverStatus_t.DOTA_LEAVER_NONE;
                         tplyr.LeaverReason = plyr.Status;
                     }
                 }
-                var g = game.GetGame();
+                MatchGame g = game.GetGame();
                 if (g != null)
                 {
                     g.Players = g.Players;
@@ -164,7 +169,7 @@ namespace WLNetwork.Controllers
 
         public void MatchStatus(MatchStateArgs args)
         {
-            var game = Setups.FirstOrDefault(m => m.Id == args.Id);
+            MatchSetupDetails game = Setups.FirstOrDefault(m => m.Id == args.Id);
             if (game == null)
             {
                 this.Invoke(args.Id, "clearsetup");
@@ -173,21 +178,22 @@ namespace WLNetwork.Controllers
             {
                 game.State = args.State;
                 //log.Debug(game.Bot.Username + " -> match_state => " + args.State);
-                var g = game.GetGame();
+                MatchGame g = game.GetGame();
                 if (g != null)
                 {
                     if (args.Status == CSODOTALobby.State.POSTGAME)
                     {
                         g.Info.Status = WLCommon.Matches.Enums.MatchStatus.Complete;
                         g.Info = g.Info;
-                    }else g.Setup = g.Setup;
+                    }
+                    else g.Setup = g.Setup;
                 }
             }
         }
 
         public void LobbyClear(LobbyClearArgs args)
         {
-            var game = Setups.FirstOrDefault(m => m.Id == args.Id);
+            MatchSetupDetails game = Setups.FirstOrDefault(m => m.Id == args.Id);
             if (game == null)
             {
                 this.Invoke(args.Id, "clearsetup");
@@ -196,14 +202,14 @@ namespace WLNetwork.Controllers
 
         public void MatchOutcome(MatchOutcomeArgs args)
         {
-            var game = Setups.FirstOrDefault(m => m.Id == args.Id);
+            MatchSetupDetails game = Setups.FirstOrDefault(m => m.Id == args.Id);
             if (game == null)
             {
                 this.Invoke(args.Id, "clearsetup");
             }
             else
             {
-                var g = game.GetGame();
+                MatchGame g = game.GetGame();
                 if (g != null)
                 {
                     g.ProcessMatchResult(args.match_outcome);
@@ -213,15 +219,15 @@ namespace WLNetwork.Controllers
 
         public override bool OnAuthorization(IAuthorizeAttribute authorizeAttribute)
         {
-            return this.Authed;
+            return Authed;
         }
 
         private void SetupsOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             if (e.NewItems != null)
             {
-                var newItems = e.NewItems.OfType<MatchSetupDetails>();
-                foreach (var match in newItems)
+                IEnumerable<MatchSetupDetails> newItems = e.NewItems.OfType<MatchSetupDetails>();
+                foreach (MatchSetupDetails match in newItems)
                 {
                     lock (match)
                     {
@@ -232,8 +238,8 @@ namespace WLNetwork.Controllers
             }
             if (e.OldItems != null)
             {
-                var newItems = e.OldItems.OfType<MatchSetupDetails>();
-                foreach (var match in newItems)
+                IEnumerable<MatchSetupDetails> newItems = e.OldItems.OfType<MatchSetupDetails>();
+                foreach (MatchSetupDetails match in newItems)
                 {
                     lock (match)
                     {
@@ -245,7 +251,7 @@ namespace WLNetwork.Controllers
         }
 
         /// <summary>
-        /// Add this bot to the active bot host pool.
+        ///     Add this bot to the active bot host pool.
         /// </summary>
         /// <returns></returns>
         [AllowAnonymous]
@@ -258,7 +264,7 @@ namespace WLNetwork.Controllers
 
         public void Finalize(MatchGame game)
         {
-             this.Invoke(game.Id, "finalize");
+            this.Invoke(game.Id, "finalize");
         }
     }
 }

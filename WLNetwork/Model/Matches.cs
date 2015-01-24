@@ -5,24 +5,24 @@ namespace WLNetwork.Model
 {
     public class MatchCreateOptions
     {
-		/// <summary>
-		/// What type of match?
-		/// </summary>
-		/// <value>The type of the match.</value>
-		public MatchType MatchType { get; set; }
+        /// <summary>
+        ///     What type of match?
+        /// </summary>
+        /// <value>The type of the match.</value>
+        public MatchType MatchType { get; set; }
 
         /// <summary>
-        /// What game mode?
+        ///     What game mode?
         /// </summary>
         public GameMode GameMode { get; set; }
 
         /// <summary>
-        /// What to name it?
+        ///     What to name it?
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
-        /// If captains, opponent SID
+        ///     If captains, opponent SID
         /// </summary>
         public string OpponentSID { get; set; }
     }
@@ -30,7 +30,7 @@ namespace WLNetwork.Model
     public class MatchJoinOptions
     {
         /// <summary>
-        /// Match ID
+        ///     Match ID
         /// </summary>
         public Guid Id { get; set; }
     }

@@ -10,59 +10,62 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SteamKit2;
 using SteamKit2.GC.Dota.Internal;
-using WLBot.DOTABot.Enums;
-using WLBot.Utils;
+using WLBotHost.DOTABot.Enums;
+using WLBotHost.Utils;
 using WLCommon.BotEnums;
 using WLCommon.Matches;
+using Timer = System.Timers.Timer;
 
-namespace WLBot.DOTABot
+namespace WLBotHost.DOTABot
 {
     public class LobbyBot
     {
         #region Private Variables
-        private ILog log;
+
+        private readonly SteamUser.LogOnDetails details;
+        private readonly ILog log;
+        private readonly Timer reconnectTimer = new Timer(5000);
+        private readonly MatchSetupDetails setupDetails;
+        private uint GCVersion;
         private SteamClient client;
-        private MatchSetupDetails setupDetails;
-        private SteamUser.LogOnDetails details;
+        private bool dontRecreateLobby;
         private DotaGCHandler dota;
 
-        private ulong lobbyChannelId;
         private SteamFriends friends;
         public ActiveStateMachine<States, Events> fsm;
 
         protected bool isRunning = false;
+        private ulong lobbyChannelId;
         private CallbackManager manager;
-
-        private bool dontRecreateLobby;
 
         private Thread procThread;
         private bool reconnect;
-        private System.Timers.Timer reconnectTimer = new System.Timers.Timer(5000);
         private SteamUser user;
-        private uint GCVersion;
+
         #endregion
 
         public delegate void LobbyUpdateHandler(CSODOTALobby lobby, ComparisonResult differences);
 
-        public event LobbyUpdateHandler LobbyUpdate;
+        private readonly Dictionary<ulong, Action<CMsgDOTAMatch>> Callbacks =
+            new Dictionary<ulong, Action<CMsgDOTAMatch>>();
 
-        private Dictionary<ulong, Action<CMsgDOTAMatch>> Callbacks = new Dictionary<ulong, Action<CMsgDOTAMatch>>(); 
+        private ulong MatchId;
 
         /// <summary>
-        /// Setup a new bot with some details.
+        ///     Setup a new bot with some details.
         /// </summary>
         /// <param name="details"></param>
         /// <param name="extensions">any extensions you want on the state machine.</param>
         public LobbyBot(MatchSetupDetails details, params IExtension<States, Events>[] extensions)
         {
-            this.reconnect = true;
-            this.setupDetails = details;
-            this.details = new SteamUser.LogOnDetails()
+            reconnect = true;
+            setupDetails = details;
+            this.details = new SteamUser.LogOnDetails
             {
                 Username = details.Bot.Username,
                 Password = details.Bot.Password
             };
-            this.log = LogManager.GetLogger("LobbyBot " + details.Bot.Username);
+            log = LogManager.GetLogger("LobbyBot " + details.Bot.Username);
             log.Debug("Initializing a new LobbyBot, username: " + details.Bot.Username);
             reconnectTimer.Elapsed += (sender, args) =>
             {
@@ -86,9 +89,9 @@ namespace WLBot.DOTABot
                 .WithInitialSubState(States.DisconnectNoRetry)
                 .WithSubState(States.DisconnectRetry);
             fsm.DefineHierarchyOn(States.DotaLobby)
-               .WithHistoryType(HistoryType.None)
-               .WithInitialSubState(States.DotaLobbyUI)
-               .WithSubState(States.DotaLobbyPlay);
+                .WithHistoryType(HistoryType.None)
+                .WithInitialSubState(States.DotaLobbyUI)
+                .WithSubState(States.DotaLobbyPlay);
             fsm.In(States.Connecting)
                 .ExecuteOnEntry(InitAndConnect)
                 .On(Events.Connected).Goto(States.Connected)
@@ -112,8 +115,8 @@ namespace WLBot.DOTABot
                 .ExecuteOnEntry(ConnectDota)
                 .On(Events.DotaGCReady).Goto(States.DotaMenu);
             fsm.In(States.DotaMenu)
-                 .ExecuteOnEntry(SetOnlinePresence)
-                 .ExecuteOnEntry(CreateLobby);
+                .ExecuteOnEntry(SetOnlinePresence)
+                .ExecuteOnEntry(CreateLobby);
             fsm.In(States.DotaLobby)
                 .ExecuteOnEntry(EnterLobbyChat)
                 .ExecuteOnEntry(EnterBroadcastChannel)
@@ -124,6 +127,8 @@ namespace WLBot.DOTABot
                 .On(Events.DotaEnterLobbyUI).Goto(States.DotaLobbyUI);
             fsm.Initialize(States.Connecting);
         }
+
+        public event LobbyUpdateHandler LobbyUpdate;
 
         public void CreateLobby()
         {
@@ -170,14 +175,15 @@ namespace WLBot.DOTABot
         {
             if (dota.Lobby != null)
             {
-                this.dontRecreateLobby = true;
+                dontRecreateLobby = true;
                 log.Debug("Leaving lobby.");
-                if (kickAll && dota.Lobby.leader_id == user.SteamID.ConvertToUInt64() && dota.Lobby.state == CSODOTALobby.State.UI)
+                if (kickAll && dota.Lobby.leader_id == user.SteamID.ConvertToUInt64() &&
+                    dota.Lobby.state == CSODOTALobby.State.UI)
                 {
                     log.Debug("Kicking all members while leaving");
-                    foreach (var member in dota.Lobby.members)
+                    foreach (CDOTALobbyMember member in dota.Lobby.members)
                     {
-                        dota.KickPlayerFromLobby((uint)(member.id-76561197960265728));
+                        dota.KickPlayerFromLobby((uint) (member.id - 76561197960265728));
                     }
                 }
             }
@@ -186,7 +192,6 @@ namespace WLBot.DOTABot
             LeaveChatChannel();
         }
 
-        private ulong MatchId;
         public void FetchMatchResult(ulong match_id, Action<CMsgDOTAMatch> callback)
         {
             MatchId = match_id;
@@ -196,10 +201,10 @@ namespace WLBot.DOTABot
 
         private void LeaveChatChannel()
         {
-            if (this.lobbyChannelId != 0)
+            if (lobbyChannelId != 0)
             {
                 dota.LeaveChatChannel(lobbyChannelId);
-                this.lobbyChannelId = 0;
+                lobbyChannelId = 0;
             }
         }
 
@@ -226,7 +231,7 @@ namespace WLBot.DOTABot
 
         private static void SteamThread(object state)
         {
-            LobbyBot bot = state as LobbyBot;
+            var bot = state as LobbyBot;
             if (bot == null) return;
             while (bot.isRunning && bot.manager != null)
             {
@@ -295,7 +300,7 @@ namespace WLBot.DOTABot
                 new Callback<DotaGCHandler.GCWelcomeCallback>(c =>
                 {
                     log.Debug("GC welcome, version " + c.Version);
-                    this.GCVersion = c.Version;
+                    GCVersion = c.Version;
                     fsm.Fire(Events.DotaGCReady);
                 }, manager);
                 new Callback<DotaGCHandler.UnhandledDotaGCCallback>(
@@ -338,14 +343,12 @@ namespace WLBot.DOTABot
                         log.Debug("Kicked from the lobby!");
                     }
                 }, manager);
-                new Callback<DotaGCHandler.ConnectionStatus>(c =>
-                {
-                    log.DebugFormat("GC Connection Status: {0}", JObject.FromObject(c.result));
-                }, manager);
+                new Callback<DotaGCHandler.ConnectionStatus>(
+                    c => { log.DebugFormat("GC Connection Status: {0}", JObject.FromObject(c.result)); }, manager);
                 //new Callback<DotaGCHandler.LiveLeagueGameUpdate>(c => log.DebugFormat("Tournament games: {0}", c.result.live_league_games), manager);
                 new Callback<DotaGCHandler.PracticeLobbyUpdate>(c =>
                 {
-                    var diffs = Diff.Compare(c.oldLobby, c.lobby);
+                    ComparisonResult diffs = Diff.Compare(c.oldLobby, c.lobby);
                     var dstrings = new List<string>(diffs.Differences.Count);
                     dstrings.AddRange(
                         diffs.Differences.Select(
@@ -353,7 +356,7 @@ namespace WLBot.DOTABot
                                 string.Format("{0}: {1} => {2}", diff.PropertyName, diff.Object1Value, diff.Object2Value)));
                     if (dstrings.Count > 0)
                     {
-                        var msg = "Update: " + string.Join(", ", dstrings);
+                        string msg = "Update: " + string.Join(", ", dstrings);
                         log.Debug(msg);
                         if (dota.Lobby != null)
                         {

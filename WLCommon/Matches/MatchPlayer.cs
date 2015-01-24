@@ -5,64 +5,64 @@ using WLCommon.Model;
 namespace WLCommon.Matches
 {
     /// <summary>
-    /// A player in a match
+    ///     A player in a match
     /// </summary>
     public class MatchPlayer
     {
-        public MatchPlayer(User user=null)
+        public MatchPlayer(User user = null)
         {
             if (user != null)
             {
-                this.SID = user.steam.steamid;
-                this.Name = user.profile.name;
-                this.Avatar = user.steam.avatarfull;
-                this.Team = MatchTeam.Dire;
-                this.Rating = user.profile.rating;
+                SID = user.steam.steamid;
+                Name = user.profile.name;
+                Avatar = user.steam.avatarfull;
+                Team = MatchTeam.Dire;
+                Rating = user.profile.rating;
             }
         }
 
         /// <summary>
-        /// SteamID
+        ///     SteamID
         /// </summary>
         public string SID { get; set; }
-        
+
         /// <summary>
-        /// Name
+        ///     Name
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
-        /// Avatar
+        ///     Avatar
         /// </summary>
         public string Avatar { get; set; }
 
         /// <summary>
-        /// Team
+        ///     Team
         /// </summary>
         public MatchTeam Team { get; set; }
 
         /// <summary>
-        /// Is ready in the match?
+        ///     Is ready in the match?
         /// </summary>
         public bool Ready { get; set; }
 
         /// <summary>
-        /// Is a captain?
+        ///     Is a captain?
         /// </summary>
         public bool IsCaptain { get; set; }
 
         /// <summary>
-        /// Is this person a leaver?
+        ///     Is this person a leaver?
         /// </summary>
         public bool IsLeaver { get; set; }
 
         /// <summary>
-        /// Reason they left
+        ///     Reason they left
         /// </summary>
         public DOTALeaverStatus_t LeaverReason { get; set; }
 
         /// <summary>
-        /// Rating at the start of the match
+        ///     Rating at the start of the match
         /// </summary>
         public int Rating { get; set; }
     }

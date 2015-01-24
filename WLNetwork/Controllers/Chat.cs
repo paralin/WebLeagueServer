@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Security.Principal;
-using MongoDB.Driver.Builders;
+using System.Reflection;
+using log4net;
 using MongoDB.Driver.Linq;
-using Newtonsoft.Json.Linq;
 using WLCommon.Model;
 using WLNetwork.Chat;
 using WLNetwork.Chat.Exceptions;
 using WLNetwork.Chat.Methods;
-using WLNetwork.Database;
 using WLNetwork.Model;
-using WLNetwork.Properties;
 using XSockets.Core.Common.Socket.Attributes;
 using XSockets.Core.Common.Socket.Event.Arguments;
 using XSockets.Core.XSocket;
@@ -22,32 +17,42 @@ using XSockets.Core.XSocket.Helpers;
 namespace WLNetwork.Controllers
 {
     /// <summary>
-    /// Chat controller.
+    ///     Chat controller.
     /// </summary>
     [Authorize(Roles = "chat")]
     public class Chat : XSocketController
     {
-        private static readonly log4net.ILog log =
-   log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public ObservableCollection<ChatChannel> Channels = new ObservableCollection<ChatChannel>();
+        private ChatMember member;
 
         public Chat()
         {
-            this.Channels.CollectionChanged += ChatChannelOnCollectionChanged;
-            this.OnClose += OnOnClose;
-            this.OnOpen += (sender, args) => log.Debug("CONNECTED [" + this.ConnectionContext.PersistentId + "]");
-            this.OnAuthorizationFailed +=
+            Channels.CollectionChanged += ChatChannelOnCollectionChanged;
+            OnClose += OnOnClose;
+            OnOpen += (sender, args) => log.Debug("CONNECTED [" + ConnectionContext.PersistentId + "]");
+            OnAuthorizationFailed +=
                 (sender, args) =>
-                    log.Warn("Failed authorize for " + args.MethodName + " [" + this.ConnectionContext.PersistentId +
-                             "]" + (this.ConnectionContext.IsAuthenticated ? " [" + this.User.steam.steamid + "]" : ""));
+                    log.Warn("Failed authorize for " + args.MethodName + " [" + ConnectionContext.PersistentId +
+                             "]" + (ConnectionContext.IsAuthenticated ? " [" + User.steam.steamid + "]" : ""));
+        }
+
+        public User User
+        {
+            get
+            {
+                if (!ConnectionContext.IsAuthenticated) return null;
+                return ((UserIdentity) ConnectionContext.User.Identity).User;
+            }
         }
 
         [AllowAnonymous]
         public string[] AuthInfo()
         {
-            var user = User;
-            if(user == null) return new string[0];
+            User user = User;
+            if (user == null) return new string[0];
             return user.authItems;
         }
 
@@ -56,49 +61,36 @@ namespace WLNetwork.Controllers
             if (User == null) return false;
             if (!string.IsNullOrWhiteSpace(authorizeAttribute.Roles))
             {
-                var roles = authorizeAttribute.Roles.Split(',');
+                string[] roles = authorizeAttribute.Roles.Split(',');
                 return User.authItems.ContainsAll(roles);
             }
-            else
-            {
-                return User.steam.steamid == authorizeAttribute.Users;
-            }
+            return User.steam.steamid == authorizeAttribute.Users;
         }
 
         private void OnOnClose(object sender, OnClientDisconnectArgs onClientDisconnectArgs)
         {
-            log.Debug("DISCONNECTED [" + this.ConnectionContext.PersistentId + "]"+(this.ConnectionContext.IsAuthenticated?" ["+this.User.steam.steamid+"]":""));
+            log.Debug("DISCONNECTED [" + ConnectionContext.PersistentId + "]" +
+                      (ConnectionContext.IsAuthenticated ? " [" + User.steam.steamid + "]" : ""));
             if (!ConnectionContext.IsAuthenticated) return;
-            foreach (var channel in Channels)
+            foreach (ChatChannel channel in Channels)
             {
-                channel.Members.Remove(this.ConnectionId);
+                channel.Members.Remove(ConnectionId);
             }
-            this.Channels.Clear();
+            Channels.Clear();
         }
 
         private void ChatChannelOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            if(e.NewItems != null)
+            if (e.NewItems != null)
                 this.Invoke(new ChatChannelUpd(e.NewItems.OfType<ChatChannel>().ToArray()), ChatChannelUpd.Msg);
             if (e.OldItems != null)
                 this.Invoke(new ChatChannelRm(e.OldItems.OfType<ChatChannel>().ToArray()), ChatChannelRm.Msg);
         }
 
-        public User User
-        {
-            get
-            {
-                if (!this.ConnectionContext.IsAuthenticated) return null;
-                return ((UserIdentity) this.ConnectionContext.User.Identity).User;
-            }
-        }
-
-        private ChatMember member = null;
-
         public void SendMessage(Message message)
         {
-            if (message == null || !this.ConnectionContext.IsAuthenticated || !message.Validate()) return;
-            var chan = Channels.FirstOrDefault(m => m.Id.ToString() == message.Channel);
+            if (message == null || !ConnectionContext.IsAuthenticated || !message.Validate()) return;
+            ChatChannel chan = Channels.FirstOrDefault(m => m.Id.ToString() == message.Channel);
             if (chan == null) return;
             log.DebugFormat("[{0}] {1}: \"{2}\"", chan.Name, User.profile.name, message.Text);
             chan.TransmitMessage(chan.Members.Values.FirstOrDefault(m => m.SteamID == User.steam.steamid), message.Text);
@@ -110,10 +102,10 @@ namespace WLNetwork.Controllers
             if (Channels.Any(m => m.Name.ToLower() == req.Name.ToLower())) return "You are already in that channel.";
             try
             {
-                if(member == null) ReloadUser();
-                var chan = ChatChannel.JoinOrCreate(req.Name.ToLower(), member);
+                if (member == null) ReloadUser();
+                ChatChannel chan = ChatChannel.JoinOrCreate(req.Name.ToLower(), member);
                 if (chan != null)
-                    this.Channels.Add(chan);
+                    Channels.Add(chan);
                 return null;
             }
             catch (JoinCreateException ex)
@@ -125,19 +117,19 @@ namespace WLNetwork.Controllers
         public void Leave(LeaveRequest req)
         {
             if (req == null || req.Id == null) return;
-            var chan = this.Channels.FirstOrDefault(m => m.Id.ToString() == req.Id);
+            ChatChannel chan = Channels.FirstOrDefault(m => m.Id.ToString() == req.Id);
             if (chan == null || !chan.Leavable) return;
-            chan.Members.Remove(this.ConnectionId);
-            this.Channels.Remove(chan);
+            chan.Members.Remove(ConnectionId);
+            Channels.Remove(chan);
         }
 
         public void ReloadUser()
         {
             //todo: Assuming it's already updated by Matches
             if (User == null) return;
-			var overava = User.vouch != null && !string.IsNullOrEmpty(User.vouch.avatar);
-			member = new ChatMember(this.ConnectionId, User, overava ? User.vouch.avatar : User.steam.avatarfull);
-            foreach (var chat in Channels)
+            bool overava = User.vouch != null && !string.IsNullOrEmpty(User.vouch.avatar);
+            member = new ChatMember(ConnectionId, User, overava ? User.vouch.avatar : User.steam.avatarfull);
+            foreach (ChatChannel chat in Channels)
             {
                 chat.Members[member.ID] = member;
             }
@@ -145,8 +137,8 @@ namespace WLNetwork.Controllers
 
         public void BroadcastServiceMessage(string message)
         {
-            if (message == null || !this.ConnectionContext.IsAuthenticated) return;
-            foreach (var channel in Channels)
+            if (message == null || !ConnectionContext.IsAuthenticated) return;
+            foreach (ChatChannel channel in Channels)
             {
                 channel.TransmitMessage(member, message, true);
             }

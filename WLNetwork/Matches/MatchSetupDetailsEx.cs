@@ -3,29 +3,32 @@ using System.Linq;
 using WLCommon.Matches;
 using WLCommon.Matches.Enums;
 using WLNetwork.Bots;
+using WLNetwork.Controllers;
 using XSockets.Core.XSocket.Helpers;
 
 namespace WLNetwork.Matches
 {
     public static class MatchSetupDetailsEx
     {
+        private static readonly Controllers.Matches Matches = new Controllers.Matches();
+
         public static MatchGame GetGame(this MatchSetupDetails details)
         {
             return MatchesController.Games.FirstOrDefault(m => m.Id == details.Id);
         }
 
-        public static void Cleanup(this MatchSetupDetails details, bool shutdown=false)
+        public static void Cleanup(this MatchSetupDetails details, bool shutdown = false)
         {
-            var game = details.GetGame();
+            MatchGame game = details.GetGame();
             if (details.Status >= MatchSetupStatus.Init && game != null)
             {
-                var setup = game.Setup;
+                MatchSetup setup = game.Setup;
                 if (setup != null)
                 {
-                    var cont = setup.ControllerGuid;
-                    if (Guid.Empty!=cont)
+                    Guid cont = setup.ControllerGuid;
+                    if (Guid.Empty != cont)
                     {
-                        var ccont =
+                        DotaBot ccont =
                             BotDB.BotController.Find(
                                 m => m.PersistentId == cont && m.Ready && m.Setups != null && m.Setups.Contains(details))
                                 .FirstOrDefault();
@@ -36,7 +39,7 @@ namespace WLNetwork.Matches
                     }
                     BotDB.SetupQueue.Remove(setup);
                     game.Setup = null;
-                    if(!shutdown) game.StartSetup();
+                    if (!shutdown) game.StartSetup();
                 }
             }
             lock (details)
@@ -51,22 +54,21 @@ namespace WLNetwork.Matches
 
         public static void TransmitUpdate(this MatchSetupDetails detials)
         {
-            var game = detials.GetGame();
+            MatchGame game = detials.GetGame();
             if (game != null)
             {
-                var match = MatchesController.Games.FirstOrDefault(m => m.Id == game.Id);
+                MatchGame match = MatchesController.Games.FirstOrDefault(m => m.Id == game.Id);
                 if (match != null) match.Setup = match.Setup;
             }
         }
 
-        private static readonly Controllers.Matches Matches = new Controllers.Matches();
         public static void TransmitLobbyReady(this MatchSetupDetails detials)
         {
-            var game = detials.GetGame();
+            MatchGame game = detials.GetGame();
             if (game == null) return;
-            var match = MatchesController.Games.FirstOrDefault(m => m.Id == game.Id);
+            MatchGame match = MatchesController.Games.FirstOrDefault(m => m.Id == game.Id);
             if (match == null) return;
-            Matches.InvokeTo(m=>m.Match == match, "onlobbyready");
+            Matches.InvokeTo(m => m.Match == match, "onlobbyready");
         }
     }
 }

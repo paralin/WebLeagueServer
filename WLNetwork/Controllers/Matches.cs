@@ -1,8 +1,7 @@
-﻿using System.CodeDom;
-using System.Linq;
-using System.Runtime.Serialization.Formatters;
-using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Reflection;
 using System.Timers;
+using log4net;
 using MongoDB.Driver.Builders;
 using MongoDB.Driver.Linq;
 using WLCommon.Matches;
@@ -19,20 +18,30 @@ using XSockets.Core.XSocket.Helpers;
 namespace WLNetwork.Controllers
 {
     /// <summary>
-    /// Games controller
+    ///     Games controller
     /// </summary>
     [Authorize(Roles = "matches")]
     public class Matches : XSocketController
     {
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private bool userped = false;
+        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private readonly Timer challengeTimer;
+        private Challenge activeChallenge;
+        private MatchGame activeMatch;
+        private MatchResult activeResult;
+        private bool userped;
+
         public Matches()
         {
-            this.OnAuthorizationFailed += (sender, args) => log.Warn("Failed authorize for " + args.MethodName + " [" + this.ConnectionContext.PersistentId + "]" + (this.ConnectionContext.IsAuthenticated ? " [" + this.User.steam.steamid + "]" : ""));
-            this.OnOpen += (sender, args) =>
+            OnAuthorizationFailed +=
+                (sender, args) =>
+                    log.Warn("Failed authorize for " + args.MethodName + " [" + ConnectionContext.PersistentId + "]" +
+                             (ConnectionContext.IsAuthenticated ? " [" + User.steam.steamid + "]" : ""));
+            OnOpen += (sender, args) =>
             {
-                if (this.User == null) return;
-                var other = this.Find(m => m != this && m.User != null && m.User.steam.steamid == User.steam.steamid).FirstOrDefault();
+                if (User == null) return;
+                Matches other =
+                    this.Find(m => m != this && m.User != null && m.User.steam.steamid == User.steam.steamid)
+                        .FirstOrDefault();
                 if (other != null)
                 {
                     other.userped = true;
@@ -58,23 +67,24 @@ namespace WLNetwork.Controllers
                 else
                 {
                     //See if we're in any matches already
-                    var game = MatchesController.Games.FirstOrDefault(m => m.Players.Any(x => x.SID == User.steam.steamid));
+                    MatchGame game =
+                        MatchesController.Games.FirstOrDefault(m => m.Players.Any(x => x.SID == User.steam.steamid));
                     if (game != null)
                     {
                         Match = game;
                     }
                 }
             };
-            this.OnClose += (sender, args) =>
+            OnClose += (sender, args) =>
             {
-                if (this.User == null) return;
-                if(!userped)
+                if (User == null) return;
+                if (!userped)
                     LeaveMatch();
                 challengeTimer.Stop();
                 challengeTimer.Close();
                 if (Challenge != null && !userped)
                 {
-                    var tcont =
+                    Matches tcont =
                         this.Find(m => m.User != null && m.User.steam.steamid == Challenge.ChallengedSID)
                             .FirstOrDefault();
                     if (tcont != null)
@@ -90,7 +100,7 @@ namespace WLNetwork.Controllers
             {
                 if (Challenge != null)
                 {
-                    var tcont =
+                    Matches tcont =
                         this.Find(m => m.User != null && m.User.steam.steamid == Challenge.ChallengerSID)
                             .FirstOrDefault();
                     if (tcont != null)
@@ -104,10 +114,8 @@ namespace WLNetwork.Controllers
             };
         }
 
-        private MatchGame activeMatch = null;
-
         /// <summary>
-        /// The active match the player is in.
+        ///     The active match the player is in.
         /// </summary>
         public MatchGame Match
         {
@@ -119,10 +127,8 @@ namespace WLNetwork.Controllers
             }
         }
 
-        private MatchResult activeResult = null;
-
         /// <summary>
-        /// The active match the player is in.
+        ///     The active match the player is in.
         /// </summary>
         public MatchResult Result
         {
@@ -134,17 +140,15 @@ namespace WLNetwork.Controllers
             }
         }
 
-        private Challenge activeChallenge = null;
-
         /// <summary>
-        /// The active challenge the player is in.
+        ///     The active challenge the player is in.
         /// </summary>
         public Challenge Challenge
         {
             get { return activeChallenge; }
             internal set
             {
-                if(value != null)
+                if (value != null)
                     this.Invoke(value, "challengesnapshot");
                 else
                 {
@@ -154,24 +158,22 @@ namespace WLNetwork.Controllers
             }
         }
 
-        private Timer challengeTimer;
-
         public User User
         {
             get
             {
-                if (!this.ConnectionContext.IsAuthenticated) return null;
-                return ((UserIdentity)this.ConnectionContext.User.Identity).User;
+                if (!ConnectionContext.IsAuthenticated) return null;
+                return ((UserIdentity) ConnectionContext.User.Identity).User;
             }
             private set
             {
-                if (!this.ConnectionContext.IsAuthenticated) return;
-                ((UserIdentity) this.ConnectionContext.User.Identity).User = value;
+                if (!ConnectionContext.IsAuthenticated) return;
+                ((UserIdentity) ConnectionContext.User.Identity).User = value;
             }
         }
 
         /// <summary>
-        /// Returns a snapshot of the public game list.
+        ///     Returns a snapshot of the public game list.
         /// </summary>
         /// <returns></returns>
         public MatchGameInfo[] GetPublicGameList()
@@ -180,7 +182,7 @@ namespace WLNetwork.Controllers
         }
 
         /// <summary>
-        /// Returns a snapshot of games that the player could join.
+        ///     Returns a snapshot of games that the player could join.
         /// </summary>
         /// <returns></returns>
         public MatchGame[] GetAvailableGameList()
@@ -190,7 +192,7 @@ namespace WLNetwork.Controllers
         }
 
         /// <summary>
-        /// Create a new match.
+        ///     Create a new match.
         /// </summary>
         /// <param name="options">Match options</param>
         /// <returns>Error else null</returns>
@@ -202,28 +204,31 @@ namespace WLNetwork.Controllers
             if (string.IsNullOrWhiteSpace(options.Name)) return "You didn't specify a name.";
             options.Name = options.Name.Replace('\n', ' ');
             if (Match != null) return "You are already in a match you cannot leave.";
-			options.MatchType = MatchType.StartGame;
-            var match = new MatchGame(this.User.steam.steamid, options);
-            this.Match = match;
+            options.MatchType = MatchType.StartGame;
+            var match = new MatchGame(User.steam.steamid, options);
+            Match = match;
             match.Players.Add(new MatchPlayer(User));
-            var chat = this.FindOn<Chat>(m => m.ConnectionContext.PersistentId == ConnectionContext.PersistentId).FirstOrDefault();
+            Chat chat =
+                this.FindOn<Chat>(m => m.ConnectionContext.PersistentId == ConnectionContext.PersistentId)
+                    .FirstOrDefault();
             if (chat != null) chat.BroadcastServiceMessage("created a new match.");
             return null;
         }
 
         /// <summary>
-        /// Starts the queue to find a bot for the match
+        ///     Starts the queue to find a bot for the match
         /// </summary>
         /// <returns></returns>
         public string StartMatch()
         {
             if (Match == null) return "You are not currently in a match.";
             if (User == null) return "You are not logged in for some reason.";
-            if (Match.Info.Owner != this.User.steam.steamid) return "You are not the host of this game.";
-            if (Match.Setup != null || Match.Info.Status == MatchStatus.Teams) return "The match is already being set up.";
+            if (Match.Info.Owner != User.steam.steamid) return "You are not the host of this game.";
+            if (Match.Setup != null || Match.Info.Status == MatchStatus.Teams)
+                return "The match is already being set up.";
             if (Match.Info.MatchType == MatchType.Captains)
             {
-                if (Match.Players.Count < 10) return "You need at least 10 players to start the challenge."; 
+                if (Match.Players.Count < 10) return "You need at least 10 players to start the challenge.";
                 Match.StartPicks();
             }
             else Match.StartSetup();
@@ -231,19 +236,19 @@ namespace WLNetwork.Controllers
         }
 
         /// <summary>
-        /// Pick a player in captains
+        ///     Pick a player in captains
         /// </summary>
         /// <param name="player"></param>
         public void PickPlayer(PickPlayer player)
         {
             if (Match == null || Match.Info.MatchType != MatchType.Captains) return;
-            var me = Match.Players.FirstOrDefault(m => m.IsCaptain && m.SID == User.steam.steamid);
+            MatchPlayer me = Match.Players.FirstOrDefault(m => m.IsCaptain && m.SID == User.steam.steamid);
             if (me == null) return;
             Match.PickPlayer(player.SID, me.Team);
         }
 
         /// <summary>
-        /// Dismiss a result.
+        ///     Dismiss a result.
         /// </summary>
         public void DismissResult()
         {
@@ -251,52 +256,60 @@ namespace WLNetwork.Controllers
         }
 
         /// <summary>
-        /// Starts the game in-game
+        ///     Starts the game in-game
         /// </summary>
         /// <returns></returns>
         public string FinalizeMatch()
         {
             if (Match == null) return "You are not currently in a match.";
             if (User == null) return "You are not logged in for some reason.";
-            if (Match.Info.Owner != this.User.steam.steamid) return "You are not the host of this game.";
-            if (Match.Setup == null || Match.Setup.Details.Status != MatchSetupStatus.Wait || Match.Players.Any(m =>!m.Ready)) return "The match cannot be started yet.";
+            if (Match.Info.Owner != User.steam.steamid) return "You are not the host of this game.";
+            if (Match.Setup == null || Match.Setup.Details.Status != MatchSetupStatus.Wait ||
+                Match.Players.Any(m => !m.Ready)) return "The match cannot be started yet.";
             Match.StartMatch();
             return null;
         }
 
         /// <summary>
-        /// Respond to a challenge
+        ///     Respond to a challenge
         /// </summary>
         /// <param name="resp"></param>
         public void ChallengeResponse(ChallengeResponse resp)
         {
             if (Challenge == null || Challenge.ChallengedSID != User.steam.steamid) return;
             challengeTimer.Stop();
-            var other =
+            Matches other =
                 this.Find(m => m.User != null && m.User.steam.steamid == Challenge.ChallengerSID).FirstOrDefault();
-            var chal = Challenge;
+            Challenge chal = Challenge;
             Challenge = null;
             if (other == null) return;
             other.Challenge = null;
-            var chat = this.FindOn<Chat>(m => m.ConnectionContext.PersistentId == ConnectionContext.PersistentId).FirstOrDefault();
-            if (chat != null) chat.BroadcastServiceMessage(resp.accept ? "accepted the challenge." : "declined the challenge.");
+            Chat chat =
+                this.FindOn<Chat>(m => m.ConnectionContext.PersistentId == ConnectionContext.PersistentId)
+                    .FirstOrDefault();
+            if (chat != null)
+                chat.BroadcastServiceMessage(resp.accept ? "accepted the challenge." : "declined the challenge.");
             if (!resp.accept) return;
             //Create the match
-            var match = new MatchGame(this.User.steam.steamid, new MatchCreateOptions()
+            var match = new MatchGame(User.steam.steamid, new MatchCreateOptions
             {
                 GameMode = chal.GameMode,
                 MatchType = MatchType.Captains,
                 Name =
-                    "Challenge, " + this.User.steam.personaname + " vs. " + other.User.steam.personaname + ".",
+                    "Challenge, " + User.steam.personaname + " vs. " + other.User.steam.personaname + ".",
                 OpponentSID = other.User.steam.steamid
             });
-            this.Match = match;
+            Match = match;
             other.Match = match;
-            match.Players.AddRange(new [] { new MatchPlayer(other.User) { IsCaptain = true, Team = MatchTeam.Dire }, new MatchPlayer(User) { IsCaptain = true, Team = MatchTeam.Radiant } });
+            match.Players.AddRange(new[]
+            {
+                new MatchPlayer(other.User) {IsCaptain = true, Team = MatchTeam.Dire},
+                new MatchPlayer(User) {IsCaptain = true, Team = MatchTeam.Radiant}
+            });
         }
 
         /// <summary>
-        /// Join an existing match.
+        ///     Join an existing match.
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
@@ -305,42 +318,43 @@ namespace WLNetwork.Controllers
             if (activeMatch != null && options.Id == activeMatch.Id) return "You are already in that match.";
             //LeaveMatch();
             if (activeMatch != null) return "You are already in a match, leave that one first.";
-            var match =
+            MatchGame match =
                 MatchesController.Games.FirstOrDefault(
                     m => m.Id == options.Id && m.Info.Public && m.Info.Status == MatchStatus.Players);
             if (match == null) return "That match can't be found.";
             if (match.Players.Count >= 10 && match.Info.MatchType != MatchType.Captains) return "That match is full.";
             Match = match;
-            match.Players.Add(new MatchPlayer(User){Team = MatchTeam.Unassigned});
+            match.Players.Add(new MatchPlayer(User) {Team = MatchTeam.Unassigned});
             return null;
         }
 
         /// <summary>
-        /// Leave an existing match.
-        /// <returns>Error else null</returns>
+        ///     Leave an existing match.
+        ///     <returns>Error else null</returns>
         /// </summary>
         public string LeaveMatch()
         {
             if (Match == null) return "You are not currently in a match.";
             if (User == null) return "You are not signed in and thus cannot be in a match.";
-            var me = Match.Players.FirstOrDefault(m => m.SID == User.steam.steamid);
-            var isOwner = Match.Info.Owner == User.steam.steamid || me.IsCaptain;
-            if ((Match.Info.Status > MatchStatus.Lobby && isOwner) || (Match.Info.Status > MatchStatus.Players && !isOwner)) return "You cannot leave matches in progress.";
+            MatchPlayer me = Match.Players.FirstOrDefault(m => m.SID == User.steam.steamid);
+            bool isOwner = Match.Info.Owner == User.steam.steamid || me.IsCaptain;
+            if ((Match.Info.Status > MatchStatus.Lobby && isOwner) ||
+                (Match.Info.Status > MatchStatus.Players && !isOwner)) return "You cannot leave matches in progress.";
             if (isOwner)
             {
                 Match.Destroy();
             }
             else
             {
-                var plyr = Match.Players.FirstOrDefault(m => m.SID == User.steam.steamid);
+                MatchPlayer plyr = Match.Players.FirstOrDefault(m => m.SID == User.steam.steamid);
                 if (plyr != null) Match.Players.Remove(plyr);
                 Match = null;
             }
             return null;
         }
-        
+
         /// <summary>
-        /// Create a challenge
+        ///     Create a challenge
         /// </summary>
         /// <param name="target"></param>
         /// <returns></returns>
@@ -353,7 +367,8 @@ namespace WLNetwork.Controllers
             target.ChallengerName = User.steam.personaname;
             if (target.ChallengedSID == null) return "You didn't specify a person to challenge.";
             if (target.ChallengedSID == User.steam.steamid) return "You cannot challenge yourself!";
-            var tcont = this.Find(m => m.User != null && m.User.steam.steamid == target.ChallengedSID).FirstOrDefault();
+            Matches tcont =
+                this.Find(m => m.User != null && m.User.steam.steamid == target.ChallengedSID).FirstOrDefault();
             if (tcont == null) return "That player is no longer online.";
             if (tcont.Match != null) return "That player is already in a match.";
             if (tcont.Challenge != null) return "That player is already waiting for a challenge.";
@@ -362,8 +377,12 @@ namespace WLNetwork.Controllers
             tcont.Challenge = target;
             tcont.challengeTimer.Start();
             Challenge = target;
-            var chat = this.FindOn<Chat>(m => m.ConnectionContext.PersistentId == ConnectionContext.PersistentId).FirstOrDefault();
-            if (chat != null) chat.BroadcastServiceMessage(string.Format("challenged {0} to a Captain's match!", tcont.User.profile.name));
+            Chat chat =
+                this.FindOn<Chat>(m => m.ConnectionContext.PersistentId == ConnectionContext.PersistentId)
+                    .FirstOrDefault();
+            if (chat != null)
+                chat.BroadcastServiceMessage(string.Format("challenged {0} to a Captain's match!",
+                    tcont.User.profile.name));
             return null;
         }
 
@@ -372,7 +391,7 @@ namespace WLNetwork.Controllers
             log.Debug("USERPED");
             userped = true;
             this.Invoke("userped");
-            this.Close();
+            Close();
         }
 
         public override bool OnAuthorization(IAuthorizeAttribute authorizeAttribute)
@@ -380,13 +399,10 @@ namespace WLNetwork.Controllers
             if (User == null) return false;
             if (!string.IsNullOrWhiteSpace(authorizeAttribute.Roles))
             {
-                var roles = authorizeAttribute.Roles.Split(',');
+                string[] roles = authorizeAttribute.Roles.Split(',');
                 return User.authItems.ContainsAll(roles);
             }
-            else
-            {
-                return User.steam.steamid == authorizeAttribute.Users;
-            }
+            return User.steam.steamid == authorizeAttribute.Users;
         }
 
         public void ReloadUser()

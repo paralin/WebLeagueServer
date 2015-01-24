@@ -1,15 +1,16 @@
-﻿using MongoDB.Driver;
+﻿using System.Reflection;
+using log4net;
+using MongoDB.Driver;
 using WLCommon.Model;
 using WLNetwork.Matches;
-using WLNetwork.Model;
 using WLNetwork.Properties;
 
 namespace WLNetwork.Database
 {
     public static class Mongo
     {
-        private static readonly log4net.ILog log =
-            log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public static MongoClient Client = null;
         public static MongoServer Server;
@@ -28,7 +29,7 @@ namespace WLNetwork.Database
                 return;
             }
 #if DEBUG
-            Client = new MongoClient(Settings.Default.DMongoURL+"/"+Settings.Default.DMongoDB);
+            Client = new MongoClient(Settings.Default.DMongoURL + "/" + Settings.Default.DMongoDB);
 #else
             Client = new MongoClient(Settings.Default.MongoURL+"/"+Settings.Default.MongoDB);
 #endif

@@ -1,26 +1,28 @@
 ﻿using System;
+using System.Reflection;
 using System.Security.Principal;
+using JWT;
+using log4net;
 using MongoDB.Driver.Builders;
 using Newtonsoft.Json.Linq;
 using WLCommon.Model;
 using WLNetwork.Database;
-using WLNetwork.Matches;
 using WLNetwork.Model;
 using WLNetwork.Properties;
 using XSockets.Core.Common.Protocol;
 using XSockets.Core.Common.Socket;
-using XSockets.Core.XSocket.Helpers;
 using XSockets.Plugin.Framework.Attributes;
 
 namespace WLNetwork.Controllers
 {
-    [Export(typeof(IXSocketAuthenticationPipeline))]
+    [Export(typeof (IXSocketAuthenticationPipeline))]
     public class AuthPipeline : IXSocketAuthenticationPipeline
     {
-        private static readonly Controllers.Matches Matches = new Controllers.Matches();
+        private static readonly Matches Matches = new Matches();
 
-        private static readonly log4net.ILog log =
-           log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public IPrincipal GetPrincipal(IXSocketProtocol protocol)
         {
             try
@@ -31,7 +33,7 @@ namespace WLNetwork.Controllers
                     //Decrypt the token
                     try
                     {
-                        string jsonPayload = JWT.JsonWebToken.Decode(token, Settings.Default.AuthSecret);
+                        string jsonPayload = JsonWebToken.Decode(token, Settings.Default.AuthSecret);
                         var atoken = JObject.Parse(jsonPayload).ToObject<AuthToken>();
                         //find the user
                         try
@@ -50,10 +52,7 @@ namespace WLNetwork.Controllers
                                     protocol.ConnectionContext.IsAuthenticated = true;
                                     return protocol.ConnectionContext.User;
                                 }
-                                else
-                                {
-                                    log.Warn("Unvouched user tried to connect.");
-                                }
+                                log.Warn("Unvouched user tried to connect.");
                             }
                             else
                             {
@@ -65,7 +64,7 @@ namespace WLNetwork.Controllers
                             log.Warn("Issue authenticating decrypted token " + atoken._id, ex);
                         }
                     }
-                    catch (JWT.SignatureVerificationException)
+                    catch (SignatureVerificationException)
                     {
                         log.Warn("Invalid token.");
                     }
@@ -82,12 +81,13 @@ namespace WLNetwork.Controllers
                     }
                     else
                     {
-                        var data = JWT.JsonWebToken.Decode(btoken, bot.Secret, true);
+                        string data = JsonWebToken.Decode(btoken, bot.Secret, true);
                         var atoken = JObject.Parse(data).ToObject<BotToken>();
                         if (atoken != null && atoken.Id == bid && atoken.SecretData == bdata)
                         {
-                            log.Debug("BOT AUTHED ["+bid+"]");
-                            protocol.ConnectionContext.User = new GenericPrincipal(new GenericIdentity("BOT ["+bid+"]"), new[]{"dotaBot"});
+                            log.Debug("BOT AUTHED [" + bid + "]");
+                            protocol.ConnectionContext.User =
+                                new GenericPrincipal(new GenericIdentity("BOT [" + bid + "]"), new[] {"dotaBot"});
                             protocol.ConnectionContext.IsAuthenticated = true;
                             return protocol.ConnectionContext.User;
                         }

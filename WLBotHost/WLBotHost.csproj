@@ -7,14 +7,14 @@
     <ProjectGuid>{EA6AEB7A-6C58-4EA3-B116-7A0CBEAAE81D}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>WLBot</RootNamespace>
-    <AssemblyName>WLBot</AssemblyName>
+    <RootNamespace>WLBotHost</RootNamespace>
+    <AssemblyName>WLBotHost</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
     <TargetFrameworkProfile />
-    <StartupObject>WLBot.Program</StartupObject>
+    <StartupObject>WLBotHost.Program</StartupObject>
     <ReleaseVersion>0.2</ReleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

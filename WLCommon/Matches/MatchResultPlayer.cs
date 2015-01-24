@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SteamKit2.GC.Dota.Internal;
+﻿using SteamKit2.GC.Dota.Internal;
 using WLCommon.Matches.Enums;
 
 namespace WLCommon.Matches
@@ -14,48 +9,48 @@ namespace WLCommon.Matches
         {
             if (player != null)
             {
-                this.SID = player.SID;
-                this.Name = player.Name;
-                this.Team = player.Team;
-                this.IsCaptain = player.IsCaptain;
-                this.IsLeaver = player.IsLeaver;
-                this.LeaverReason = player.LeaverReason;
-                this.RatingBefore = player.Rating;
+                SID = player.SID;
+                Name = player.Name;
+                Team = player.Team;
+                IsCaptain = player.IsCaptain;
+                IsLeaver = player.IsLeaver;
+                LeaverReason = player.LeaverReason;
+                RatingBefore = player.Rating;
             }
         }
 
         /// <summary>
-        /// SteamID
+        ///     SteamID
         /// </summary>
         public string SID { get; set; }
-        
+
         /// <summary>
-        /// Name
+        ///     Name
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
-        /// Team
+        ///     Team
         /// </summary>
         public MatchTeam Team { get; set; }
 
         /// <summary>
-        /// Is a captain?
+        ///     Is a captain?
         /// </summary>
         public bool IsCaptain { get; set; }
 
         /// <summary>
-        /// Is this person a leaver?
+        ///     Is this person a leaver?
         /// </summary>
         public bool IsLeaver { get; set; }
 
         /// <summary>
-        /// Reason they left
+        ///     Reason they left
         /// </summary>
         public DOTALeaverStatus_t LeaverReason { get; set; }
 
         /// <summary>
-        /// Rating at the start of the match
+        ///     Rating at the start of the match
         /// </summary>
         public int RatingBefore { get; set; }
     }

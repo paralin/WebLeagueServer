@@ -1,23 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace WLNetwork.Model
+﻿namespace WLNetwork.Model
 {
     public class Message
     {
         /// <summary>
-        /// Channel ID
+        ///     Channel ID
         /// </summary>
         public string Channel { get; set; }
 
         /// <summary>
-        /// Chat message
+        ///     Chat message
         /// </summary>
         public string Text { get; set; }
-          
+
         public bool Validate()
         {
             return Channel != null && Text != null;

@@ -9,6 +9,7 @@ namespace WLCommon.Arguments
         public Guid Id { get; set; }
         public States State { get; set; }
     }
+
     public class PlayerReadyArgs
     {
         public Guid Id { get; set; }

@@ -1,64 +1,55 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MongoDB.Driver.Builders;
 using SteamKit2.GC.Dota.Internal;
+using WLCommon.Matches;
 using WLCommon.Matches.Enums;
-using WLCommon.Model;
-using WLNetwork.Database;
 using WLNetwork.Matches;
 
 namespace WLNetwork.Rating
 {
     public static class RatingCalculator
     {
-        struct KFactor
-        {
-            public int MinMmr { get; set; }
-            public int MaxMmr { get; set; }
-            public int Factor { get; set; }
-        }
-
         /// <summary>
-        /// Base MMR for new players
+        ///     Base MMR for new players
         /// </summary>
         private const int BaseMmr = 1200;
 
         /// <summary>
-        /// Minimum MMR archievable by a player
+        ///     Minimum MMR archievable by a player
         /// </summary>
         private const int MmrFloor = 100;
 
         /// <summary>
-        /// Maximum MMR archievable by a player
+        ///     Maximum MMR archievable by a player
         /// </summary>
         private const int MmrRoof = 5000;
+
         public const int TEAM_PLAYERS = 3;
 
         /// <summary>
-        /// Factors to calculate MMR after match
+        ///     Factors to calculate MMR after match
         /// </summary>
-        private static readonly KFactor[] KFactors = new[]
+        private static readonly KFactor[] KFactors =
         {
-            new KFactor(){ MinMmr = MmrFloor, MaxMmr = 2099, Factor = 32 },
-            new KFactor(){ MinMmr = 2100, MaxMmr = 3399, Factor = 24 },
-            new KFactor(){ MinMmr = 3400, MaxMmr = MmrRoof, Factor = 16 }
+            new KFactor {MinMmr = MmrFloor, MaxMmr = 2099, Factor = 32},
+            new KFactor {MinMmr = 2100, MaxMmr = 3399, Factor = 24},
+            new KFactor {MinMmr = 3400, MaxMmr = MmrRoof, Factor = 16}
         };
 
         /// <summary>
-        /// Calculate the delta MMR for both teams
+        ///     Calculate the delta MMR for both teams
         /// </summary>
         /// <param name="data"></param>
         public static void CalculateRatingDelta(MatchResult data)
         {
-            foreach (var plyr in data.Players)
+            foreach (MatchResultPlayer plyr in data.Players)
             {
                 if (plyr.RatingBefore == 0) plyr.RatingBefore = BaseMmr;
             }
 
-            if (data.Result > EMatchOutcome.k_EMatchOutcome_DireVictory || data.Players.Count(m=>m.Team == MatchTeam.Dire)==0 || data.Players.Count(m=>m.Team == MatchTeam.Radiant)==0)
+            if (data.Result > EMatchOutcome.k_EMatchOutcome_DireVictory ||
+                data.Players.Count(m => m.Team == MatchTeam.Dire) == 0 ||
+                data.Players.Count(m => m.Team == MatchTeam.Radiant) == 0)
             {
                 data.RatingDire = 0;
                 data.RatingRadiant = 0;
@@ -95,6 +86,13 @@ namespace WLNetwork.Rating
 
             data.RatingDire = incDire;
             data.RatingRadiant = incRadiant;
+        }
+
+        private struct KFactor
+        {
+            public int MinMmr { get; set; }
+            public int MaxMmr { get; set; }
+            public int Factor { get; set; }
         }
     }
 }

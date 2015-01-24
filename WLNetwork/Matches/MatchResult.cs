@@ -1,47 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Timers;
+﻿using System.Linq;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Driver;
 using MongoDB.Driver.Builders;
-using Newtonsoft.Json;
 using SteamKit2.GC.Dota.Internal;
 using WLCommon.Matches;
 using WLCommon.Matches.Enums;
 using WLNetwork.Database;
-using WLNetwork.Rating;
 using XSockets.Core.XSocket.Helpers;
 
 namespace WLNetwork.Matches
 {
     public class MatchResult
     {
-        private static Controllers.Matches Matches = new Controllers.Matches();
-        private static Controllers.Chat Chats = new Controllers.Chat();
+        private static readonly Controllers.Matches Matches = new Controllers.Matches();
+        private static readonly Controllers.Chat Chats = new Controllers.Chat();
+
         /// <summary>
-        /// Match ID
+        ///     Match ID
         /// </summary>
         public ulong Id { get; set; }
 
         /// <summary>
-        /// Match outcome
+        ///     Match outcome
         /// </summary>
         public EMatchOutcome Result { get; set; }
 
         /// <summary>
-        /// A version of MatchPlayer minified
+        ///     A version of MatchPlayer minified
         /// </summary>
         public MatchResultPlayer[] Players { get; set; }
 
         /// <summary>
-        /// Rating change for dire
+        ///     Rating change for dire
         /// </summary>
         public int RatingDire { get; set; }
 
         /// <summary>
-        /// Rating change for radiant
+        ///     Rating change for radiant
         /// </summary>
         public int RatingRadiant { get; set; }
 
@@ -52,16 +46,20 @@ namespace WLNetwork.Matches
                     Query.In("steam.steamid",
                         Players.Where(m => m.Team == MatchTeam.Radiant).Select(m => new BsonString(m.SID)).ToArray()),
                     Update.Inc("profile.rating", RatingRadiant));
-            if(RatingDire != 0)
+            if (RatingDire != 0)
                 Mongo.Users.Update(
                     Query.In("steam.steamid",
                         Players.Where(m => m.Team == MatchTeam.Dire).Select(m => new BsonString(m.SID)).ToArray()),
                     Update.Inc("profile.rating", RatingDire));
-            foreach (var cont in Matches.Find(m => m.User != null && Players.Any(x => x.SID == m.User.steam.steamid)))
+            foreach (
+                Controllers.Matches cont in
+                    Matches.Find(m => m.User != null && Players.Any(x => x.SID == m.User.steam.steamid)))
             {
                 cont.ReloadUser();
             }
-            foreach (var cont in Chats.Find(m => m.User != null && Players.Any(x => x.SID == m.User.steam.steamid)))
+            foreach (
+                Controllers.Chat cont in
+                    Chats.Find(m => m.User != null && Players.Any(x => x.SID == m.User.steam.steamid)))
             {
                 cont.ReloadUser();
             }

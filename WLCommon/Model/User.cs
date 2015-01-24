@@ -1,16 +1,9 @@
-﻿using System.Dynamic;
-using System.Security.Principal;
+﻿using System.Security.Principal;
 
 namespace WLCommon.Model
 {
-
     public class UserIdentity : IIdentity
     {
-        public string Name { get; private set; }
-        public string AuthenticationType { get; private set; }
-        public bool IsAuthenticated { get; private set; }
-        public User User { get; set; }
-
         public UserIdentity(User user)
         {
             IsAuthenticated = true;
@@ -18,10 +11,16 @@ namespace WLCommon.Model
             AuthenticationType = "jwt";
             User = user;
         }
+
+        public User User { get; set; }
+
+        public string Name { get; private set; }
+        public string AuthenticationType { get; private set; }
+        public bool IsAuthenticated { get; private set; }
     }
 
     /// <summary>
-    /// A user stored in the database, auth through Meteor.
+    ///     A user stored in the database, auth through Meteor.
     /// </summary>
     public class User
     {

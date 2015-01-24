@@ -1,6 +1,6 @@
 ﻿namespace WLCommon.Matches.Enums
 {
-    public enum MatchType : int
+    public enum MatchType
     {
         StartGame = 0,
         Captains = 1

@@ -9,7 +9,7 @@ namespace WLNetwork.Utils
             const string consonants = "bdfghjklmnprstvy";
             const string wovels = "aeiou";
 
-            var password = "";
+            string password = "";
             var randomNum = new Random();
 
             while (password.Length < passwordLength)

@@ -1,6 +1,6 @@
 ﻿namespace WLCommon.Matches.Enums
 {
-    public enum GameMode : int
+    public enum GameMode
     {
         NONE = 0,
         AP = 1,
