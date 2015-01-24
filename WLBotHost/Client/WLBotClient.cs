@@ -35,10 +35,7 @@ namespace WLBotHost.Client
         private ConcurrentDictionary<MatchSetupDetails, LobbyBot> Bots;
 
         private XSocketClient client;
-        private Timer reconnectTimer;
         public IController controller;
-        private bool running;
-        private bool shouldReconnect;
 
         /// <summary>
         ///     Create a new client with an XSocket URI.
@@ -49,9 +46,9 @@ namespace WLBotHost.Client
         public WLBotClient(string url, string botid, string secret)
         {
             Bots = new ConcurrentDictionary<MatchSetupDetails, LobbyBot>();
-            reconnectTimer = new Timer(5000);
-            reconnectTimer.Elapsed += (sender, args) => Start();
             client = new XSocketClient(url, "http://localhost", "dotabot");
+            client.SetAutoReconnect();
+            client.OnAutoReconnectFailed += (sender, args) => log.Debug("Auto reconnect failed, retrying.");
             controller = client.Controller("dotabot");
             client.QueryString["bid"] = botid;
             Guid data = Guid.NewGuid();
@@ -67,21 +64,13 @@ namespace WLBotHost.Client
         /// </summary>
         public void Start()
         {
-            running = true;
-            reconnectTimer.Stop();
             try
             {
-                if (shouldReconnect) client.Reconnect();
-                else client.Open();
+                client.Open();
             }
             catch (Exception ex)
             {
                 log.Error("Issue connecting, will try again.", ex);
-                reconnectTimer.Start();
-            }
-            finally
-            {
-                shouldReconnect = true;
             }
         }
 
@@ -90,13 +79,12 @@ namespace WLBotHost.Client
         /// </summary>
         public void Stop()
         {
-            running = false;
             client.Disconnect();
         }
 
         private void InitClient()
         {
-            controller.OnOpen += async (sender, args) =>
+            controller.OnOpen += async (sender, arg) =>
             {
                 log.Debug("Connected to master.");
                 bool status = await controller.Invoke<bool>("readyup");
@@ -108,124 +96,125 @@ namespace WLBotHost.Client
                 {
                     log.Error("Some issue authenticating. the host does not recognize this bot host.");
                 }
-            };
-            controller.On<MatchSetupDetails>("startsetup", details =>
-            {
-                log.Info("Starting match setup "+details.Id);
-                var bot = new LobbyBot(details, new WLBotExtension(details, this));
-                Bots[details] = bot;
-                bot.LobbyUpdate += delegate(CSODOTALobby lobby, ComparisonResult differences)
+                controller.On<MatchSetupDetails>("startsetup", details =>
                 {
-                    if (lobby == null)
+                    log.Info("Starting match setup " + details.Id);
+                    var bot = new LobbyBot(details, new WLBotExtension(details, this));
+                    Bots[details] = bot;
+                    bot.LobbyUpdate += delegate(CSODOTALobby lobby, ComparisonResult differences)
                     {
-                        controller.Invoke("lobbyclear", new LobbyClearArgs {Id = details.Id});
-                        return;
-                    }
-                    if (lobby.state == CSODOTALobby.State.UI)
-                    {
-                        var args = new PlayerReadyArgs();
-                        IEnumerable<CDOTALobbyMember> members =
-                            lobby.members.Where(
-                                m =>
-                                    m.team == DOTA_GC_TEAM.DOTA_GC_TEAM_BAD_GUYS ||
-                                    m.team == DOTA_GC_TEAM.DOTA_GC_TEAM_GOOD_GUYS);
-                        var players = new List<PlayerReadyArgs.Player>();
-                        int i = 0;
-                        foreach (CDOTALobbyMember member in members)
+                        if (lobby == null)
                         {
-                            MatchPlayer plyr = details.Players.FirstOrDefault(m => m.SID == member.id + "");
-                            if (plyr != null)
-                                players.Add(new PlayerReadyArgs.Player
-                                {
-                                    IsReady =
-                                        (member.team == DOTA_GC_TEAM.DOTA_GC_TEAM_BAD_GUYS &&
-                                         plyr.Team == MatchTeam.Dire) ||
-                                        (member.team == DOTA_GC_TEAM.DOTA_GC_TEAM_GOOD_GUYS &&
-                                         plyr.Team == MatchTeam.Radiant),
-                                    SteamID = plyr.SID
-                                });
-                            i++;
+                            controller.Invoke("lobbyclear", new LobbyClearArgs { Id = details.Id });
+                            return;
                         }
-                        args.Players = players.ToArray();
-                        args.Id = details.Id;
-                        controller.Invoke("playerready", args);
-                    }
-                    else if (lobby.state == CSODOTALobby.State.RUN &&
-                             lobby.game_state > DOTA_GameState.DOTA_GAMERULES_STATE_WAIT_FOR_PLAYERS_TO_LOAD &&
-                             lobby.game_state < DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME)
-                    {
-                        if (differences.Differences.Any(m => m.Object1TypeName == "DOTALeaverStatus_t"))
+                        if (lobby.state == CSODOTALobby.State.UI)
                         {
-                            var args = new LeaverStatusArgs();
-                            args.Players =
-                                lobby.members.Select(
-                                    m => new LeaverStatusArgs.Player {Status = m.leaver_status, SteamID = "" + m.id})
-                                    .ToArray();
+                            var args = new PlayerReadyArgs();
+                            IEnumerable<CDOTALobbyMember> members =
+                                lobby.members.Where(
+                                    m =>
+                                        m.team == DOTA_GC_TEAM.DOTA_GC_TEAM_BAD_GUYS ||
+                                        m.team == DOTA_GC_TEAM.DOTA_GC_TEAM_GOOD_GUYS);
+                            var players = new List<PlayerReadyArgs.Player>();
+                            int i = 0;
+                            foreach (CDOTALobbyMember member in members)
+                            {
+                                MatchPlayer plyr = details.Players.FirstOrDefault(m => m.SID == member.id + "");
+                                if (plyr != null)
+                                    players.Add(new PlayerReadyArgs.Player
+                                    {
+                                        IsReady =
+                                            (member.team == DOTA_GC_TEAM.DOTA_GC_TEAM_BAD_GUYS &&
+                                             plyr.Team == MatchTeam.Dire) ||
+                                            (member.team == DOTA_GC_TEAM.DOTA_GC_TEAM_GOOD_GUYS &&
+                                             plyr.Team == MatchTeam.Radiant),
+                                        SteamID = plyr.SID
+                                    });
+                                i++;
+                            }
+                            args.Players = players.ToArray();
                             args.Id = details.Id;
-                            controller.Invoke("leaverstatus", args);
+                            controller.Invoke("playerready", args);
                         }
-                    }
-                    else if (lobby.game_state == DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME)
-                    {
-                        log.Debug(JObject.FromObject(lobby).ToString(Formatting.Indented));
-                    }
-                    controller.Invoke("matchstatus",
-                        new MatchStateArgs {Id = details.Id, State = lobby.game_state, Status = lobby.state});
-                    if (differences.Differences.Any(m => m.PropertyName == ".match_id"))
-                    {
-                        controller.Invoke("matchid", new MatchIdArgs {Id = details.Id, match_id = lobby.match_id});
-                    }
-                    if (differences.Differences.Any(m => m.PropertyName == ".match_outcome") &&
-                        lobby.match_outcome != EMatchOutcome.k_EMatchOutcome_Unknown)
-                    {
-                        controller.Invoke("matchoutcome",
-                            new MatchOutcomeArgs {Id = details.Id, match_outcome = lobby.match_outcome});
-                    }
-                };
-                bot.Start();
-            });
-            controller.On<Guid>("clearsetup", id =>
-            {
-                MatchSetupDetails ldet = Bots.Keys.FirstOrDefault(m => m.Id == id);
-                if (ldet != null)
+                        else if (lobby.state == CSODOTALobby.State.RUN &&
+                                 lobby.game_state > DOTA_GameState.DOTA_GAMERULES_STATE_WAIT_FOR_PLAYERS_TO_LOAD &&
+                                 lobby.game_state < DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME)
+                        {
+                            if (differences.Differences.Any(m => m.Object1TypeName == "DOTALeaverStatus_t"))
+                            {
+                                var args = new LeaverStatusArgs();
+                                args.Players =
+                                    lobby.members.Select(
+                                        m => new LeaverStatusArgs.Player { Status = m.leaver_status, SteamID = "" + m.id })
+                                        .ToArray();
+                                args.Id = details.Id;
+                                controller.Invoke("leaverstatus", args);
+                            }
+                        }
+                        else if (lobby.game_state == DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME)
+                        {
+                            log.Debug(JObject.FromObject(lobby).ToString(Formatting.Indented));
+                        }
+                        controller.Invoke("matchstatus",
+                            new MatchStateArgs { Id = details.Id, State = lobby.game_state, Status = lobby.state });
+                        if (differences.Differences.Any(m => m.PropertyName == ".match_id"))
+                        {
+                            controller.Invoke("matchid", new MatchIdArgs { Id = details.Id, match_id = lobby.match_id });
+                        }
+                        if (differences.Differences.Any(m => m.PropertyName == ".match_outcome") &&
+                            lobby.match_outcome != EMatchOutcome.k_EMatchOutcome_Unknown)
+                        {
+                            controller.Invoke("matchoutcome",
+                                new MatchOutcomeArgs { Id = details.Id, match_outcome = lobby.match_outcome });
+                        }
+                    };
+                    bot.Start();
+                });
+                controller.On<Guid>("clearsetup", id =>
                 {
-                    LobbyBot bot;
-                    if(!Bots.TryRemove(ldet, out bot)) return;
-                    bot.leaveLobby();
-                    bot.Destroy();
-                }
-            });
-            controller.On<Guid>("leavelobby", id =>
-            {
-                MatchSetupDetails ldet = Bots.Keys.FirstOrDefault(m => m.Id == id);
-                if (ldet != null)
-                {
-                    LobbyBot bot = Bots[ldet];
-                    bot.leaveLobby();
-                }
-            });
-            controller.On<FetchMatchResultArgs>("fetchmatchresult", args =>
-            {
-                MatchSetupDetails ldet = Bots.Keys.FirstOrDefault(m => m.Id == args.Id);
-                if (ldet != null)
-                {
-                    LobbyBot bot = Bots[ldet];
-                    bot.FetchMatchResult(args.MatchId, match =>
+                    MatchSetupDetails ldet = Bots.Keys.FirstOrDefault(m => m.Id == id);
+                    if (ldet != null)
                     {
-                        args.Match = match;
-                        controller.Invoke("matchresult", args);
-                    });
-                }
-            });
-            controller.On<Guid>("finalize", id =>
-            {
-                MatchSetupDetails ldet = Bots.Keys.FirstOrDefault(m => m.Id == id);
-                if (ldet != null)
+                        LobbyBot bot;
+                        if (!Bots.TryRemove(ldet, out bot)) return;
+                        bot.leaveLobby();
+                        bot.Destroy();
+                    }
+                });
+                controller.On<Guid>("leavelobby", id =>
                 {
-                    LobbyBot bot = Bots[ldet];
-                    bot.StartGame();
-                }
-            });
+                    MatchSetupDetails ldet = Bots.Keys.FirstOrDefault(m => m.Id == id);
+                    if (ldet != null)
+                    {
+                        LobbyBot bot = Bots[ldet];
+                        bot.leaveLobby();
+                    }
+                });
+                controller.On<FetchMatchResultArgs>("fetchmatchresult", args =>
+                {
+                    MatchSetupDetails ldet = Bots.Keys.FirstOrDefault(m => m.Id == args.Id);
+                    if (ldet != null)
+                    {
+                        LobbyBot bot = Bots[ldet];
+                        bot.FetchMatchResult(args.MatchId, match =>
+                        {
+                            args.Match = match;
+                            controller.Invoke("matchresult", args);
+                        });
+                    }
+                });
+                controller.On<Guid>("finalize", id =>
+                {
+                    MatchSetupDetails ldet = Bots.Keys.FirstOrDefault(m => m.Id == id);
+                    if (ldet != null)
+                    {
+                        LobbyBot bot = Bots[ldet];
+                        bot.StartGame();
+                    }
+                });
+            };
+           
             controller.OnClose += (sender, args) =>
             {
                 log.Debug("Disconnected, clearing all bots.");
