@@ -10,12 +10,12 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SteamKit2;
 using SteamKit2.GC.Dota.Internal;
-using WLBot.LobbyBot.Enums;
+using WLBot.DOTABot.Enums;
 using WLBot.Utils;
-using WLCommon.LobbyBot.Enums;
+using WLCommon.DOTABot.Enums;
 using WLCommon.Matches;
 
-namespace WLBot.LobbyBot
+namespace WLBot.DOTABot
 {
     public class LobbyBot
     {

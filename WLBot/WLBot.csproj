@@ -71,8 +71,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LobbyBot\Enums\Events.cs" />
-    <Compile Include="LobbyBot\LobbyBot.cs" />
+    <Compile Include="DOTABot\Enums\Events.cs" />
+    <Compile Include="DOTABot\Bot.cs" />
     <Compile Include="Client\WLBotClient.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

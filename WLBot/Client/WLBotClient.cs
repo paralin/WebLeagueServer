@@ -10,10 +10,11 @@ using log4net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SteamKit2.GC.Dota.Internal;
-using WLBot.LobbyBot.Enums;
+using WLBot.DOTABot;
+using WLBot.DOTABot.Enums;
 using WLBot.Utils;
 using WLCommon.Arguments;
-using WLCommon.LobbyBot.Enums;
+using WLCommon.DOTABot.Enums;
 using WLCommon.Matches;
 using WLCommon.Matches.Enums;
 using WLCommon.Model;
@@ -37,7 +38,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         private Timer reconnectTimer;
 
 
-        private Dictionary<MatchSetupDetails, LobbyBot.LobbyBot> Bots = new Dictionary<MatchSetupDetails, LobbyBot.LobbyBot>(); 
+        private Dictionary<MatchSetupDetails, LobbyBot> Bots = new Dictionary<MatchSetupDetails, LobbyBot>(); 
         /// <summary>
         /// Create a new client with an XSocket URI.
         /// </summary>
@@ -108,7 +109,7 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             };
             controller.On("startsetup", (MatchSetupDetails details) =>
             {
-                var bot = new LobbyBot.LobbyBot(details, new WLBotExtension(details, this));
+                var bot = new LobbyBot(details, new WLBotExtension(details, this));
                 Bots.Add(details, bot);
                 bot.LobbyUpdate += delegate(CSODOTALobby lobby, ComparisonResult differences)
                 {

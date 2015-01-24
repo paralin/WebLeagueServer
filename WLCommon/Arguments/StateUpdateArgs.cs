@@ -1,6 +1,6 @@
 ﻿using System;
 using SteamKit2.GC.Dota.Internal;
-using WLCommon.LobbyBot.Enums;
+using WLCommon.DOTABot.Enums;
 
 namespace WLCommon.Arguments
 {
