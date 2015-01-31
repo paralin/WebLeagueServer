@@ -122,10 +122,12 @@
     <Compile Include="Chat\Methods\ChatChannelUpd.cs" />
     <Compile Include="Chat\Methods\ChatMemberUpd.cs" />
     <Compile Include="Chat\Methods\ChatMessage.cs" />
+    <Compile Include="Controllers\Admin.cs" />
     <Compile Include="Controllers\AuthPipeline.cs" />
     <Compile Include="Controllers\Chat.cs" />
     <Compile Include="Controllers\DotaBot.cs" />
     <Compile Include="Controllers\Matches.cs" />
+    <Compile Include="Controllers\WebLeagueController.cs" />
     <Compile Include="Database\Mongo.cs" />
     <Compile Include="Matches\Challenge.cs" />
     <Compile Include="Matches\MatchesController.cs" />
@@ -133,6 +135,7 @@
     <Compile Include="Matches\MatchResult.cs" />
     <Compile Include="Matches\MatchSetup.cs" />
     <Compile Include="Matches\MatchSetupDetailsEx.cs" />
+    <Compile Include="Matches\Methods\AdminDestroyNot.cs" />
     <Compile Include="Matches\Methods\AvailableGameUpd.cs" />
     <Compile Include="Matches\Methods\ChallengeResponse.cs" />
     <Compile Include="Matches\Methods\MatchPlayersSnapshot.cs" />
@@ -165,7 +168,6 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <None Include="XSocketsNET\ServerExample\ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SteamKit\SteamKit2\SteamKit2\SteamKit2.csproj">

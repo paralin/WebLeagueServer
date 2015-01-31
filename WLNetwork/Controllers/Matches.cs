@@ -21,7 +21,7 @@ namespace WLNetwork.Controllers
     ///     Games controller
     /// </summary>
     [Authorize(Roles = "matches")]
-    public class Matches : XSocketController
+    public class Matches : WebLeagueController
     {
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private readonly Timer challengeTimer;
@@ -158,20 +158,6 @@ namespace WLNetwork.Controllers
             }
         }
 
-        public User User
-        {
-            get
-            {
-                if (!ConnectionContext.IsAuthenticated) return null;
-                return ((UserIdentity) ConnectionContext.User.Identity).User;
-            }
-            private set
-            {
-                if (!ConnectionContext.IsAuthenticated) return;
-                ((UserIdentity) ConnectionContext.User.Identity).User = value;
-            }
-        }
-
         /// <summary>
         ///     Returns a snapshot of the public game list.
         /// </summary>
@@ -187,7 +173,7 @@ namespace WLNetwork.Controllers
         /// <returns></returns>
         public MatchGame[] GetAvailableGameList()
         {
-            //todo: List only StartGames for now 
+            //todo: limit to non-in-progress matches
             return MatchesController.Games.ToArray();
         }
 
@@ -392,17 +378,6 @@ namespace WLNetwork.Controllers
             userped = true;
             this.Invoke("userped");
             Close();
-        }
-
-        public override bool OnAuthorization(IAuthorizeAttribute authorizeAttribute)
-        {
-            if (User == null) return false;
-            if (!string.IsNullOrWhiteSpace(authorizeAttribute.Roles))
-            {
-                string[] roles = authorizeAttribute.Roles.Split(',');
-                return User.authItems.ContainsAll(roles);
-            }
-            return User.steam.steamid == authorizeAttribute.Users;
         }
 
         public void ReloadUser()
