@@ -1,4 +1,4 @@
-﻿namespace WLCommon.Model
+﻿namespace WLNetwork.Model
 {
     public class BotHost
     {

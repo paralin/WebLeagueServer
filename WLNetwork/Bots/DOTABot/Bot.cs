@@ -10,13 +10,13 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SteamKit2;
 using SteamKit2.GC.Dota.Internal;
-using WLBotHost.DOTABot.Enums;
 using WLBotHost.Utils;
-using WLCommon.BotEnums;
-using WLCommon.Matches;
+using WLNetwork.BotEnums;
+using WLNetwork.Bots.DOTABot.Enums;
+using WLNetwork.Matches;
 using Timer = System.Timers.Timer;
 
-namespace WLBotHost.DOTABot
+namespace WLNetwork.Bots.DOTABot
 {
     public class LobbyBot
     {
@@ -344,7 +344,7 @@ namespace WLBotHost.DOTABot
                     }
                 }, manager);
                 new Callback<DotaGCHandler.ConnectionStatus>(
-                    c => { log.DebugFormat("GC Connection Status: {0}", JObject.FromObject(c.result)); }, manager);
+                    c => log.DebugFormat("GC Connection Status: {0}", JObject.FromObject(c.result)), manager);
                 //new Callback<DotaGCHandler.LiveLeagueGameUpdate>(c => log.DebugFormat("Tournament games: {0}", c.result.live_league_games), manager);
                 new Callback<DotaGCHandler.PracticeLobbyUpdate>(c =>
                 {

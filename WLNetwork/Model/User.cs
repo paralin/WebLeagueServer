@@ -1,6 +1,6 @@
 ﻿using System.Security.Principal;
 
-namespace WLCommon.Model
+namespace WLNetwork.Model
 {
     public class UserIdentity : IIdentity
     {

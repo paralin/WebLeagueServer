@@ -1,4 +1,4 @@
-﻿namespace WLBotHost.DOTABot.Enums
+﻿namespace WLNetwork.Bots.DOTABot.Enums
 {
     public enum Events
     {

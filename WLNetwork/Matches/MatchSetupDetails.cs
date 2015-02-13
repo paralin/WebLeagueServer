@@ -1,9 +1,9 @@
 ﻿using System;
 using SteamKit2.GC.Dota.Internal;
-using WLCommon.Matches.Enums;
-using WLCommon.Model;
+using WLNetwork.Matches.Enums;
+using WLNetwork.Model;
 
-namespace WLCommon.Matches
+namespace WLNetwork.Matches
 {
     /// <summary>
     ///     Details sent to host to set up a bot.

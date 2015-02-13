@@ -1,4 +1,4 @@
-﻿namespace WLCommon.Bots.Enums
+﻿namespace WLNetwork.Bots.Enums
 {
     public enum BotAssignmentStatus
     {

@@ -1,4 +1,4 @@
-﻿namespace WLCommon.Matches.Enums
+﻿namespace WLNetwork.Matches.Enums
 {
     /// <summary>
     ///     Dire or radiant pick, go

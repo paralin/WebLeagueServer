@@ -5,13 +5,11 @@ using System.Linq;
 using System.Reflection;
 using log4net;
 using SteamKit2.GC.Dota.Internal;
-using WLCommon.Arguments;
-using WLCommon.BotEnums;
-using WLCommon.Matches;
-using WLCommon.Matches.Enums;
+using WLNetwork.BotEnums;
 using WLNetwork.Bots;
 using WLNetwork.Database;
 using WLNetwork.Matches;
+using WLNetwork.Matches.Enums;
 using XSockets.Core.Common.Socket.Attributes;
 using XSockets.Core.Common.Socket.Event.Arguments;
 using XSockets.Core.XSocket;
@@ -183,7 +181,7 @@ namespace WLNetwork.Controllers
                 {
                     if (args.Status == CSODOTALobby.State.POSTGAME)
                     {
-                        g.Info.Status = WLCommon.Matches.Enums.MatchStatus.Complete;
+                        g.Info.Status = WLNetwork.Matches.Enums.MatchStatus.Complete;
                         g.Info = g.Info;
                     }
                     else g.Setup = g.Setup;

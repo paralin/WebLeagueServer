@@ -5,17 +5,15 @@ using System.Linq;
 using System.Reflection;
 using log4net;
 using SteamKit2.GC.Dota.Internal;
-using WLCommon.Matches;
-using WLCommon.Matches.Enums;
-using WLCommon.Model;
 using WLNetwork.Bots;
 using WLNetwork.Controllers;
+using WLNetwork.Matches.Enums;
 using WLNetwork.Matches.Methods;
 using WLNetwork.Model;
 using WLNetwork.Rating;
 using WLNetwork.Utils;
 using XSockets.Core.XSocket.Helpers;
-using MatchType = WLCommon.Matches.Enums.MatchType;
+using MatchType = WLNetwork.Matches.Enums.MatchType;
 
 namespace WLNetwork.Matches
 {

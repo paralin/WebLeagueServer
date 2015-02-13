@@ -1,4 +1,4 @@
-﻿namespace WLCommon.BotEnums
+﻿namespace WLNetwork.BotEnums
 {
     public enum States
     {

@@ -1,4 +1,4 @@
-﻿namespace WLCommon.Matches.Enums
+﻿namespace WLNetwork.Matches.Enums
 {
     /// <summary>
     ///     Status of the bot

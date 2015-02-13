@@ -1,8 +1,8 @@
 ﻿using System;
 using SteamKit2.GC.Dota.Internal;
-using WLCommon.BotEnums;
+using WLNetwork.BotEnums;
 
-namespace WLCommon.Arguments
+namespace WLNetwork
 {
     public class StateUpdateArgs
     {

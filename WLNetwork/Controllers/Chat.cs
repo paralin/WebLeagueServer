@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using log4net;
 using MongoDB.Driver.Linq;
-using WLCommon.Model;
 using WLNetwork.Chat;
 using WLNetwork.Chat.Exceptions;
 using WLNetwork.Chat.Methods;

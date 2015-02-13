@@ -1,4 +1,4 @@
-﻿namespace WLCommon.Model
+﻿namespace WLNetwork.Model
 {
     /// <summary>
     ///     An individual bot account with state.
