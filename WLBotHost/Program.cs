@@ -21,7 +21,14 @@ namespace WLBotHost
             log.Info("Web League bot slave starting up!");
             Console.CancelKeyPress += delegate { shutdown = true; };
 
-            var client = new WLBotClient("ws://wln.paral.in:4502", Settings.Default["BotID"] as string,
+            var MASTER_URL = Environment.GetEnvironmentVariable("MASTER_URL");
+            if (MASTER_URL == null)
+            {
+                log.Fatal("Unable to set MASTER_URL");
+                return;
+            }
+
+            var client = new WLBotClient(MASTER_URL, Settings.Default["BotID"] as string,
                 Settings.Default["BotSecret"] as string);
             client.Start();
             while (!shutdown && !(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter))
