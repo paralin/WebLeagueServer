@@ -24,6 +24,7 @@ namespace WLNetwork.Matches
     /// </summary>
     public class MatchGame
     {
+        private static readonly Controllers.Admin Admins = new Controllers.Admin();
         private static readonly Controllers.Matches Matches = new Controllers.Matches();
         private static readonly DotaBot Bot = new DotaBot();
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -98,6 +99,10 @@ namespace WLNetwork.Matches
                         m =>
                             m.User != null &&
                             ((Info.Public && Info.Status == MatchStatus.Players) || (m.Match == this)),
+                        new MatchPlayersSnapshot(this), MatchPlayersSnapshot.Msg);
+                    Admins.InvokeTo(
+                        m =>
+                            m.User != null,
                         new MatchPlayersSnapshot(this), MatchPlayersSnapshot.Msg);
                 }
             }
@@ -236,6 +241,7 @@ namespace WLNetwork.Matches
                 {
                     cont.Invoke("clearsetup");
                 }
+                Admins.InvokeTo(m=>m.User != null, new ClearSetupMatch(){Id=Id}, "clearsetupmatch");
             }
             else
             {
@@ -247,6 +253,7 @@ namespace WLNetwork.Matches
                     {
                         cont.Invoke(_setup, "setupsnapshot");
                     }
+                    Admins.InvokeTo(m=>m.User != null, _setup, "setupsnapshot");
                     _setup.Details.Bot = bot;
                 }
             }
@@ -260,6 +267,7 @@ namespace WLNetwork.Matches
                 {
                     cont.Invoke(_info, "infosnapshot");
                 }
+                Admins.InvokeTo(m=>m.User != null, _info, "infosnapshot");
             }
         }
 
@@ -363,6 +371,13 @@ namespace WLNetwork.Matches
                 c.Result = result;
             }
             Destroy();
+        }
+
+        public void AdminDestroy()
+        {
+            log.Debug("ADMIN DESTROY "+Id);
+            Matches.InvokeTo(m=>m.Match == this, new SystemMsg("Admin Closed Match", "An admin has destroyed the match you were in."), SystemMsg.Msg);
+            this.Destroy();
         }
     }
 

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using log4net;
 using WLCommon.Matches.Enums;
+using WLNetwork.Controllers;
 using WLNetwork.Matches.Methods;
 using XSockets.Core.XSocket.Helpers;
 
@@ -17,6 +18,7 @@ namespace WLNetwork.Matches
     {
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly Controllers.Matches Matches = new Controllers.Matches();
+        private static readonly Controllers.Admin Admins = new Controllers.Admin();
 
         /// <summary>
         ///     All games in the system.
@@ -52,11 +54,17 @@ namespace WLNetwork.Matches
             {
                 IEnumerable<MatchGame> newAvailable =
                     args.NewItems.OfType<MatchGame>().Where(m => m.Info.Status == MatchStatus.Players);
-                Matches.InvokeTo(m => m.User != null, new AvailableGameUpd(newAvailable.ToArray()), AvailableGameUpd.Msg);
+                var matchGames = newAvailable as MatchGame[] ?? newAvailable.ToArray();
+                Matches.InvokeTo(m => m.User != null, new AvailableGameUpd(matchGames.ToArray()), AvailableGameUpd.Msg);
+                Admins.InvokeTo (m=>m.User != null, new AvailableGameUpd(matchGames.ToArray()), AvailableGameUpd.Msg);
             }
             if (args.OldItems != null)
+            {
                 Matches.InvokeTo(m => m.User != null, new AvailableGameRm(args.OldItems.OfType<MatchGame>().ToArray()),
                     AvailableGameRm.Msg);
+                Admins.InvokeTo(m => m.User != null, new AvailableGameRm(args.OldItems.OfType<MatchGame>().ToArray()),
+                   AvailableGameRm.Msg);
+            }
         }
     }
 }

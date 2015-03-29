@@ -20,7 +20,7 @@ namespace WLNetwork.Controllers
     ///     Chat controller.
     /// </summary>
     [Authorize(Roles = "chat")]
-    public class Chat : XSocketController
+    public class Chat : WebLeagueController
     {
         private static readonly ILog log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -37,15 +37,6 @@ namespace WLNetwork.Controllers
                 (sender, args) =>
                     log.Warn("Failed authorize for " + args.MethodName + " [" + ConnectionContext.PersistentId +
                              "]" + (ConnectionContext.IsAuthenticated ? " [" + User.steam.steamid + "]" : ""));
-        }
-
-        public User User
-        {
-            get
-            {
-                if (!ConnectionContext.IsAuthenticated) return null;
-                return ((UserIdentity) ConnectionContext.User.Identity).User;
-            }
         }
 
         [AllowAnonymous]

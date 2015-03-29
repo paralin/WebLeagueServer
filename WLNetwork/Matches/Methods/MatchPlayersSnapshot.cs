@@ -12,7 +12,7 @@ namespace WLNetwork.Matches.Methods
         public const string Msg = "matchplayerssnapshot";
 
         /// <summary>
-        ///     Add/update some channels.
+        ///     Update players object
         /// </summary>
         /// <param name="members"></param>
         public MatchPlayersSnapshot(MatchGame game)
@@ -24,7 +24,7 @@ namespace WLNetwork.Matches.Methods
         public Guid Id { get; set; }
 
         /// <summary>
-        ///     Matches to add/update
+        ///     Players
         /// </summary>
         public MatchPlayer[] Players { get; set; }
     }

@@ -8,7 +8,7 @@
         public const string Msg = "availablegameupd";
 
         /// <summary>
-        ///     Add/update some channels.
+        ///     Add/update some games.
         /// </summary>
         /// <param name="members"></param>
         public AvailableGameUpd(params MatchGame[] matches)
@@ -17,7 +17,7 @@
         }
 
         /// <summary>
-        ///     Players to add/update
+        ///     Games to add/update
         /// </summary>
         public MatchGame[] matches { get; set; }
     }

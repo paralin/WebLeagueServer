@@ -144,9 +144,9 @@ namespace WLBotHost.DOTABot
                 dota_tv_delay = LobbyDotaTVDelay.LobbyDotaTV_10,
                 fill_with_bots = false,
                 game_mode = (uint) (DOTA_GameMode) setupDetails.GameMode,
-                game_name = "Subscriber Game",
-                game_version = DOTAGameVersion.GAME_VERSION_CURRENT,
-                server_region = 1
+                game_name = "WebLeague Game",
+                game_version = DOTAGameVersion.GAME_VERSION_CURRENT//,
+                //server_region = 1
             };
             dota.CreateLobby(setupDetails.Password, ldetails);
         }
@@ -247,7 +247,7 @@ namespace WLBotHost.DOTABot
         private void SetOnlinePresence()
         {
             friends.SetPersonaState(EPersonaState.Online);
-            friends.SetPersonaName("SubGames Bot");
+            friends.SetPersonaName("WebLeague Bot");
         }
 
         private void InitAndConnect()
