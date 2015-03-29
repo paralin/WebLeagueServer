@@ -302,6 +302,8 @@ namespace WLNetwork.Matches
         /// <param name="sid"></param>
         public void PickPlayer(string sid, MatchTeam team)
         {
+			if (!(team == MatchTeam.Dire && Info.CaptainStatus == CaptainsStatus.DirePick || team == MatchTeam.Radiant && Info.CaptainStatus == CaptainsStatus.RadiantPick))
+				return;
             MatchPlayer player = Players.FirstOrDefault(m => m.SID == sid);
             if (player == null || player.Team != MatchTeam.Unassigned) return;
             player.Team = team;
