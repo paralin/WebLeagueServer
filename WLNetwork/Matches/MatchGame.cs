@@ -3,6 +3,8 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using log4net;
 using SteamKit2.GC.Dota.Internal;
 using WLNetwork.Bots;
@@ -304,12 +306,12 @@ namespace WLNetwork.Matches
         /// <param name="sid"></param>
         public void PickPlayer(string sid, MatchTeam team)
         {
+            //NOTE! The players list only rerenders when the player object is updated. As a result, we need to send the player team update AFTER the info update.
 			if (!(team == MatchTeam.Dire && Info.CaptainStatus == CaptainsStatus.DirePick || team == MatchTeam.Radiant && Info.CaptainStatus == CaptainsStatus.RadiantPick))
 				return;
             MatchPlayer player = Players.FirstOrDefault(m => m.SID == sid);
             if (player == null || player.Team != MatchTeam.Unassigned) return;
             player.Team = team;
-            Players = Players;
             if (Players.Count(m => m.Team != MatchTeam.Unassigned && m.Team != MatchTeam.Spectate) >= 10)
             {
                 Info.CaptainStatus = CaptainsStatus.DirePick;
@@ -332,6 +334,11 @@ namespace WLNetwork.Matches
                     pickedAlready = true;
                 }
             }
+            Task.Factory.StartNew(() =>
+            {
+                Thread.Sleep(100);
+                Players = Players;
+            });
         }
 
 
