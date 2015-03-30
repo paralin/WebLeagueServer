@@ -2,14 +2,8 @@
 using System.Reflection;
 using log4net;
 using MongoDB.Driver;
-<<<<<<< HEAD
-=======
-using SteamKit2.GC.Internal;
-using WLCommon.Model;
->>>>>>> master
 using WLNetwork.Matches;
 using WLNetwork.Model;
-using WLNetwork.Properties;
 
 namespace WLNetwork.Database
 {
