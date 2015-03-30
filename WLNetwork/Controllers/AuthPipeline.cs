@@ -68,30 +68,6 @@ namespace WLNetwork.Controllers
                         log.Warn("Invalid token.");
                     }
                 }
-                string bid = protocol.ConnectionContext.QueryString["bid"];
-                string btoken = protocol.ConnectionContext.QueryString["btoken"];
-                string bdata = protocol.ConnectionContext.QueryString["bdata"];
-                if (btoken != null && bdata != null && bid != null)
-                {
-                    var bot = Mongo.BotHosts.FindOneAs<BotHost>(Query.EQ("_id", bid));
-                    if (bot == null)
-                    {
-                        log.Warn("BotHost has ID " + bid + " but can't be found in the database.");
-                    }
-                    else
-                    {
-                        string data = JsonWebToken.Decode(btoken, bot.Secret, true);
-                        var atoken = JObject.Parse(data).ToObject<BotToken>();
-                        if (atoken != null && atoken.Id == bid && atoken.SecretData == bdata)
-                        {
-                            log.Debug("BOT AUTHED [" + bid + "]");
-                            protocol.ConnectionContext.User =
-                                new GenericPrincipal(new GenericIdentity("BOT [" + bid + "]"), new[] {"dotaBot"});
-                            protocol.ConnectionContext.IsAuthenticated = true;
-                            return protocol.ConnectionContext.User;
-                        }
-                    }
-                }
             }
             catch (Exception ex)
             {

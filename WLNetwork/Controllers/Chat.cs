@@ -37,6 +37,7 @@ namespace WLNetwork.Controllers
             {
                 log.Debug("CONNECTED [" + ConnectionContext.PersistentId + "]");
                 StartPingTimer();
+                JoinOrCreate(new JoinCreateRequest() {Name = "main"});
             };
             OnAuthorizationFailed +=
                 (sender, args) =>
