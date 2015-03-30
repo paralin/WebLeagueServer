@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using MongoDB.Bson;
+using MongoDB.Driver;
 using MongoDB.Driver.Builders;
 using SteamKit2.GC.Dota.Internal;
 using WLNetwork.Database;
@@ -44,12 +45,12 @@ namespace WLNetwork.Matches
                 Mongo.Users.Update(
                     Query.In("steam.steamid",
                         Players.Where(m => m.Team == MatchTeam.Radiant).Select(m => new BsonString(m.SID)).ToArray()),
-                    Update.Inc("profile.rating", RatingRadiant));
+                    Update.Inc("profile.rating", RatingRadiant), UpdateFlags.Multi);
             if (RatingDire != 0)
                 Mongo.Users.Update(
                     Query.In("steam.steamid",
                         Players.Where(m => m.Team == MatchTeam.Dire).Select(m => new BsonString(m.SID)).ToArray()),
-                    Update.Inc("profile.rating", RatingDire));
+                    Update.Inc("profile.rating", RatingDire), UpdateFlags.Multi);
             foreach (
                 Controllers.Matches cont in
                     Matches.Find(m => m.User != null && Players.Any(x => x.SID == m.User.steam.steamid)))
