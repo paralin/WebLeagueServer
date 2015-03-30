@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
+using System.Timers;
 using log4net;
 using MongoDB.Driver.Linq;
 using WLNetwork.Chat;
@@ -26,16 +27,29 @@ namespace WLNetwork.Controllers
 
         public ObservableCollection<ChatChannel> Channels = new ObservableCollection<ChatChannel>();
         private ChatMember member;
+        private Timer pingTimer = null;
 
         public Chat()
         {
             Channels.CollectionChanged += ChatChannelOnCollectionChanged;
             OnClose += OnOnClose;
-            OnOpen += (sender, args) => log.Debug("CONNECTED [" + ConnectionContext.PersistentId + "]");
+            OnOpen += (sender, args) =>
+            {
+                log.Debug("CONNECTED [" + ConnectionContext.PersistentId + "]");
+                StartPingTimer();
+            };
             OnAuthorizationFailed +=
                 (sender, args) =>
                     log.Warn("Failed authorize for " + args.MethodName + " [" + ConnectionContext.PersistentId +
                              "]" + (ConnectionContext.IsAuthenticated ? " [" + User.steam.steamid + "]" : ""));
+        }
+
+        private void StartPingTimer()
+        {
+            if (pingTimer != null) return;
+            pingTimer = new Timer(5000);
+            pingTimer.Elapsed += (sender, args) => this.Invoke("ping");
+            pingTimer.Start();
         }
 
         [AllowAnonymous]
@@ -61,6 +75,12 @@ namespace WLNetwork.Controllers
         {
             log.Debug("DISCONNECTED [" + ConnectionContext.PersistentId + "]" +
                       (ConnectionContext.IsAuthenticated ? " [" + User.steam.steamid + "]" : ""));
+            if (pingTimer != null)
+            {
+                pingTimer.Stop();
+                pingTimer.Dispose();
+                pingTimer = null;
+            }
             if (!ConnectionContext.IsAuthenticated) return;
             foreach (ChatChannel channel in Channels)
             {
