@@ -58,29 +58,5 @@ namespace WLNetwork.Properties {
                 this["AuthSecret"] = value;
             }
         }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("mongodb://sg:putamadrecyka@wln.paral.in")]
-        public string MongoURL {
-            get {
-                return ((string)(this["MongoURL"]));
-            }
-            set {
-                this["MongoURL"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("webleague")]
-        public string MongoDB {
-            get {
-                return ((string)(this["MongoDB"]));
-            }
-            set {
-                this["MongoDB"] = value;
-            }
-        }
     }
 }

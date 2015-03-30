@@ -1,6 +1,12 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using log4net;
 using MongoDB.Driver;
+<<<<<<< HEAD
+=======
+using SteamKit2.GC.Internal;
+using WLCommon.Model;
+>>>>>>> master
 using WLNetwork.Matches;
 using WLNetwork.Model;
 using WLNetwork.Properties;
@@ -31,13 +37,22 @@ namespace WLNetwork.Database
 #if DEBUG
             Client = new MongoClient(Settings.Default.DMongoURL + "/" + Settings.Default.DMongoDB);
 #else
-            Client = new MongoClient(Settings.Default.MongoURL+"/"+Settings.Default.MongoDB);
+            var mongoUrl = System.Environment.GetEnvironmentVariable("MONGODB_URL");
+            if (mongoUrl == null)
+            {
+                log.Fatal("MONGODB_URL environment variable missing.");
+                Environment.Exit(126);
+                return;
+            }
+
+            Client = new MongoClient(mongoUrl);
 #endif
             Server = Client.GetServer();
 #if DEBUG
             Database = Server.GetDatabase(Settings.Default.DMongoDB);
 #else
-            Database = Server.GetDatabase(Settings.Default.MongoDB);
+            var uri = new Uri(mongoUrl);
+            Database = Server.GetDatabase(uri.AbsolutePath.Replace("/", ""));
 #endif
 
             Users = Database.GetCollection<User>("users");
