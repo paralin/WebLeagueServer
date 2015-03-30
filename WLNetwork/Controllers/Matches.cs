@@ -4,6 +4,7 @@ using System.Timers;
 using log4net;
 using MongoDB.Driver.Builders;
 using MongoDB.Driver.Linq;
+using WLNetwork.Chat;
 using WLNetwork.Database;
 using WLNetwork.Matches;
 using WLNetwork.Matches.Enums;
@@ -196,6 +197,38 @@ namespace WLNetwork.Controllers
                 this.FindOn<Chat>(m => m.ConnectionContext.PersistentId == ConnectionContext.PersistentId)
                     .FirstOrDefault();
             if (chat != null) chat.BroadcastServiceMessage("created a new match.");
+            return null;
+        }
+
+        /// <summary>
+        ///     Admin command to fill the current match with players from a chat
+        /// </summary>
+        /// <param name="options">Match options</param>
+        /// <returns>Error else null</returns>
+        [Authorize("admin")]
+        public string FillChatPlayers(FillChatPlayersOptions options)
+        {
+            if (options == null) return "You didn't give any options for the fill.";
+            if (string.IsNullOrWhiteSpace(options.ChatName)) return "You didn't specify a chat name.";
+            options.ChatName = options.ChatName.ToLower().Replace('\n', ' ');
+            if (Match == null) return "You must be in a match.";
+            int playersNeeded = 10-Match.Players.Count;
+            if (playersNeeded <= 0) return "Your match is already full.";
+            var channel = ChatChannel.Channels.Values.FirstOrDefault(m => m.Name.ToLower() == options.ChatName);
+            if(channel == null) return "Can't find chat \""+options.ChatName+"\"...";
+            foreach(var player in channel.Members.Values.Where(m=>Match.Players.All(x => x.SID != m.SteamID)))
+            {
+                ChatMember player1 = player;
+                var cont = this.Find(m => m.User != null && m.User.steam.steamid == player1.SteamID).FirstOrDefault();
+                if (cont == null) continue;
+                cont.JoinMatch(new MatchJoinOptions() {Id = Match.Id});
+                playersNeeded--;
+                if (playersNeeded <= 0) break;
+            }
+            Chat chat =
+                this.FindOn<Chat>(m => m.ConnectionContext.PersistentId == ConnectionContext.PersistentId)
+                    .FirstOrDefault();
+            if (chat != null) chat.BroadcastServiceMessage("pulled "+playersNeeded+" players into their match.");
             return null;
         }
 

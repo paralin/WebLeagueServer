@@ -34,4 +34,9 @@ namespace WLNetwork.Model
         /// </summary>
         public Guid Id { get; set; }
     }
+
+    public class FillChatPlayersOptions
+    {
+        public string ChatName { get; set; }
+    }
 }
