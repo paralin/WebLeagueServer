@@ -213,6 +213,7 @@ namespace WLNetwork.Controllers
             options.ChatName = options.ChatName.ToLower().Replace('\n', ' ');
             if (Match == null) return "You must be in a match.";
             int playersNeeded = 10-Match.Players.Count;
+            int origPlayersNeeded = playersNeeded;
             if (playersNeeded <= 0) return "Your match is already full.";
             var channel = ChatChannel.Channels.Values.FirstOrDefault(m => m.Name.ToLower() == options.ChatName);
             if(channel == null) return "Can't find chat \""+options.ChatName+"\"...";
@@ -228,7 +229,7 @@ namespace WLNetwork.Controllers
             Chat chat =
                 this.FindOn<Chat>(m => m.ConnectionContext.PersistentId == ConnectionContext.PersistentId)
                     .FirstOrDefault();
-            if (chat != null) chat.BroadcastServiceMessage("pulled "+playersNeeded+" players into their match.");
+            if (chat != null) chat.BroadcastServiceMessage("pulled "+origPlayersNeeded+" players into their match.");
             return null;
         }
 
