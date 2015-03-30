@@ -14,6 +14,7 @@
         LogonFailBadCreds,
         AttemptReconnect,
         DotaEnterLobbyUI,
-        DotaEnterLobbyRun
+        DotaEnterLobbyRun,
+        LogonFailSteamDown
     }
 }

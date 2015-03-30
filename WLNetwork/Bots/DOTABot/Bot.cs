@@ -96,6 +96,7 @@ namespace WLNetwork.Bots.DOTABot
                 .ExecuteOnEntry(InitAndConnect)
                 .On(Events.Connected).Goto(States.Connected)
                 .On(Events.Disconnected).Goto(States.DisconnectRetry)
+                .On(Events.LogonFailSteamDown).Execute(SteamIsDown)
                 .On(Events.LogonFailSteamGuard).Goto(States.DisconnectNoRetry) //.Execute(() => reconnect = false)
                 .On(Events.LogonFailBadCreds).Goto(States.DisconnectNoRetry);
             fsm.In(States.Connected)
@@ -126,6 +127,13 @@ namespace WLNetwork.Bots.DOTABot
             fsm.In(States.DotaLobbyPlay)
                 .On(Events.DotaEnterLobbyUI).Goto(States.DotaLobbyUI);
             fsm.Initialize(States.Connecting);
+        }
+
+        private void SteamIsDown()
+        {
+            // To force the retry
+            fsm.Fire(Events.Disconnected);
+            log.Debug("Steam is down, retrying connection...");
         }
 
         public event LobbyUpdateHandler LobbyUpdate;
@@ -276,9 +284,15 @@ namespace WLNetwork.Bots.DOTABot
                 {
                     if (c.Result != EResult.OK)
                     {
+                        log.Error("Logon failure, result: "+c.Result);
                         if (c.Result == EResult.AccountLogonDenied)
                         {
                             fsm.Fire(Events.LogonFailSteamGuard);
+                            return;
+                        }
+                        if (c.Result == EResult.ServiceUnavailable)
+                        {
+                            fsm.Fire(Events.LogonFailSteamDown);
                             return;
                         }
                         fsm.Fire(Events.LogonFailBadCreds);
