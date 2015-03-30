@@ -194,7 +194,7 @@ namespace WLNetwork.Chat
         {
             ChatChannel chan = null;
             if (!Channels.TryGetValue(id, out chan)) return null;
-            if (chan.ChannelType != ChannelType.Public)
+            if (chan.ChannelType != ChannelType.Public && chan.Name != "main")
                 throw new JoinCreateException("That channel is not joinable this way.");
             chan.Members.Add(member.ID, member);
             return chan;
