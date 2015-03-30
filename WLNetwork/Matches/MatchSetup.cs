@@ -12,7 +12,6 @@ namespace WLNetwork.Matches
         public MatchSetup(Guid id, MatchSetupDetails details)
         {
             Id = id;
-            ControllerGuid = Guid.Empty;
             Details = details;
         }
 
@@ -21,11 +20,6 @@ namespace WLNetwork.Matches
         /// </summary>
         public Guid Id { get; private set; }
 
-        /// <summary>
-        ///     Guid of the assigned controller
-        /// </summary>
-        [JsonIgnore]
-        public Guid ControllerGuid { get; set; }
 
         /// <summary>
         ///     Details for the setup

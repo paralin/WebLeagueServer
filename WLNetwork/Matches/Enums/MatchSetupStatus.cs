@@ -11,23 +11,18 @@
         Queue = 0,
 
         /// <summary>
-        ///     Waiting for an available host to setup the bot
-        /// </summary>
-        QueueHost,
-
-        /// <summary>
         ///     BotHost is setting up Dota 2
         /// </summary>
-        Init,
+        Init = 2,
 
         /// <summary>
         ///     Waiting for players to get in correct slots
         /// </summary>
-        Wait,
+        Wait = 3,
 
         /// <summary>
         ///     Ready to start the game
         /// </summary>
-        Done
+        Done = 4
     }
 }

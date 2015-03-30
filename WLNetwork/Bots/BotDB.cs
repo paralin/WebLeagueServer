@@ -26,8 +26,6 @@ namespace WLNetwork.Bots
 
         public static Timer UpdateTimer;
 
-        internal static readonly DotaBot BotController = new DotaBot();
-
         /// <summary>
         ///     Bot Dictionary
         /// </summary>
@@ -68,23 +66,18 @@ namespace WLNetwork.Bots
                 Bot bot = FindAvailableBot();
                 if (bot != null)
                 {
-                    newStatus = MatchSetupStatus.QueueHost;
-                    DotaBot cont =
-                        BotController.Find(m => m.Ready).OrderByDescending(m => m.Setups.Count).FirstOrDefault();
-                    if (cont != null)
+                    setup.Details.Status = MatchSetupStatus.Init;
+                    setup.Details.TransmitUpdate();
+                    setup.Details.Bot = bot;
+                    setup.Details.Bot.InUse = true;
+                    SetupQueue.Remove(setup);
+                    var game = setup.Details.GetGame();
+                    if (game != null)
                     {
-                        lock (setup)
-                        {
-                            setup.ControllerGuid = cont.PersistentId;
-                            setup.Details.Status = MatchSetupStatus.Init;
-                            setup.Details.TransmitUpdate();
-                            setup.Details.Bot = bot;
-                            setup.Details.Bot.InUse = true;
-                            SetupQueue.Remove(setup);
-                            cont.Setups.Add(setup.Details);
-                            return;
-                        }
+                        game.controller = new BotController(setup.Details);
+                        game.controller.instance.Start();
                     }
+                    return;
                 }
                 if (newStatus != setup.Details.Status)
                 {

@@ -4,6 +4,7 @@ using log4net;
 using MongoDB.Driver;
 using WLNetwork.Matches;
 using WLNetwork.Model;
+using WLNetwork.Properties;
 
 namespace WLNetwork.Database
 {

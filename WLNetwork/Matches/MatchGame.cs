@@ -22,14 +22,14 @@ namespace WLNetwork.Matches
     /// </summary>
     public class MatchGame
     {
-        private static readonly Controllers.Admin Admins = new Controllers.Admin();
+        private static readonly Admin Admins = new Admin();
         private static readonly Controllers.Matches Matches = new Controllers.Matches();
-        private static readonly DotaBot Bot = new DotaBot();
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private bool _balancing;
         private MatchGameInfo _info;
         private ObservableRangeCollection<MatchPlayer> _players;
         private MatchSetup _setup;
+        public BotController controller = null;
 
         /// <summary>
         ///     This is for two picks in captains, set to true at start so first pick is just 1
@@ -60,8 +60,7 @@ namespace WLNetwork.Matches
             Players.CollectionChanged += PlayersOnCollectionChanged;
             MatchesController.Games.Add(this);
             //note: Don't add to public games as it's not started yet
-            log.Info("MATCH CREATE [" + Id + "] [" + options.Name + "] [" + options.GameMode + "] [" + options.MatchType +
-                     "]");
+            log.Info("MATCH CREATE [" + Id + "] [" + options.Name + "] [" + options.GameMode + "] [" + options.MatchType + "]");
         }
 
         /// <summary>
@@ -122,11 +121,9 @@ namespace WLNetwork.Matches
         /// <param name="options"></param>
         public void Update(MatchCreateOptions options)
         {
-            bool dirty = false;
             if (!string.IsNullOrEmpty(options.Name) && options.Name != Info.Name)
             {
                 Info.Name = options.Name;
-                dirty = true;
             }
             Info.GameMode = options.GameMode;
             Info.MatchType = options.MatchType;
@@ -275,10 +272,9 @@ namespace WLNetwork.Matches
         public void StartMatch()
         {
             if (Info.Status == MatchStatus.Play) return;
-            DotaBot controller = Bot.Find(m => m.PersistentId == Setup.ControllerGuid).FirstOrDefault();
             if (controller != null)
             {
-                controller.Finalize(this);
+                controller.instance.bot.StartGame();
             }
             Setup.Details.Status = MatchSetupStatus.Done;
             Setup = Setup;

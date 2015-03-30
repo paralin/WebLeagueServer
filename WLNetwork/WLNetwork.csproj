@@ -126,6 +126,7 @@
   <ItemGroup>
     <Compile Include="BotEnums\States.cs" />
     <Compile Include="Bots\BotDB.cs" />
+    <Compile Include="Bots\BotInstance.cs" />
     <Compile Include="Bots\Enums\BotStatus.cs" />
     <Compile Include="Chat\ChatChannel.cs" />
     <Compile Include="Chat\ChatMember.cs" />
@@ -136,7 +137,7 @@
     <Compile Include="Controllers\Admin.cs" />
     <Compile Include="Controllers\AuthPipeline.cs" />
     <Compile Include="Controllers\Chat.cs" />
-    <Compile Include="Controllers\DotaBot.cs" />
+    <Compile Include="Bots\BotController.cs" />
     <Compile Include="Controllers\Matches.cs" />
     <Compile Include="Controllers\WebLeagueController.cs" />
     <Compile Include="Database\Mongo.cs" />
