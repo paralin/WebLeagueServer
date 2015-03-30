@@ -1,5 +1,5 @@
 ﻿using System;
-using WLCommon.Model;
+using WLNetwork.Model;
 
 namespace WLNetwork.Chat
 {

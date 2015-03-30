@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Linq;
 using SteamKit2.GC.Dota.Internal;
-using WLCommon.Matches;
-using WLCommon.Matches.Enums;
 using WLNetwork.Matches;
+using WLNetwork.Matches.Enums;
 
 namespace WLNetwork.Rating
 {

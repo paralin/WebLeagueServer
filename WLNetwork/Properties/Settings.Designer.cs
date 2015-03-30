@@ -25,7 +25,7 @@ namespace WLNetwork.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("mongodb://10.0.1.2:27017")]
+        [global::System.Configuration.DefaultSettingValueAttribute("mongodb://192.168.1.46:27017")]
         public string DMongoURL {
             get {
                 return ((string)(this["DMongoURL"]));

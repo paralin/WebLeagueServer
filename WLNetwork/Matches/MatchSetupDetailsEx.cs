@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Linq;
-using WLCommon.Matches;
-using WLCommon.Matches.Enums;
 using WLNetwork.Bots;
 using WLNetwork.Controllers;
+using WLNetwork.Matches.Enums;
 using XSockets.Core.XSocket.Helpers;
 
 namespace WLNetwork.Matches
@@ -25,17 +24,10 @@ namespace WLNetwork.Matches
                 MatchSetup setup = game.Setup;
                 if (setup != null)
                 {
-                    Guid cont = setup.ControllerGuid;
-                    if (Guid.Empty != cont)
+                    if (game.controller != null)
                     {
-                        DotaBot ccont =
-                            BotDB.BotController.Find(
-                                m => m.PersistentId == cont && m.Ready && m.Setups != null && m.Setups.Contains(details))
-                                .FirstOrDefault();
-                        if (ccont != null)
-                        {
-                            ccont.Setups.Remove(details);
-                        }
+                        game.controller.instance.Stop();
+                        game.controller = null;
                     }
                     BotDB.SetupQueue.Remove(setup);
                     game.Setup = null;

@@ -36,8 +36,17 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Appccelerate.Fundamentals">
+      <HintPath>..\packages\Appccelerate.Fundamentals.2.8.0\lib\portable-windows8+net45\Appccelerate.Fundamentals.dll</HintPath>
+    </Reference>
+    <Reference Include="Appccelerate.StateMachine">
+      <HintPath>..\packages\Appccelerate.StateMachine.2.12.0\lib\portable-windows8+net45\Appccelerate.StateMachine.dll</HintPath>
+    </Reference>
     <Reference Include="JWT">
       <HintPath>..\packages\JWT.1.3.2\lib\3.5\JWT.dll</HintPath>
+    </Reference>
+    <Reference Include="KellermanSoftware.Compare-NET-Objects">
+      <HintPath>..\packages\CompareNETObjects.3.01.0.0\lib\net45\KellermanSoftware.Compare-NET-Objects.dll</HintPath>
     </Reference>
     <Reference Include="MongoDB.Bson, Version=1.9.2.235, Culture=neutral, PublicKeyToken=f686731cfb9cc103, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -115,7 +124,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BotEnums\States.cs" />
     <Compile Include="Bots\BotDB.cs" />
+    <Compile Include="Bots\BotInstance.cs" />
+    <Compile Include="Bots\Enums\BotStatus.cs" />
     <Compile Include="Chat\ChatChannel.cs" />
     <Compile Include="Chat\ChatMember.cs" />
     <Compile Include="Chat\Exceptions\JoinCreateException.cs" />
@@ -125,15 +137,26 @@
     <Compile Include="Controllers\Admin.cs" />
     <Compile Include="Controllers\AuthPipeline.cs" />
     <Compile Include="Controllers\Chat.cs" />
-    <Compile Include="Controllers\DotaBot.cs" />
+    <Compile Include="Bots\BotController.cs" />
     <Compile Include="Controllers\Matches.cs" />
     <Compile Include="Controllers\WebLeagueController.cs" />
     <Compile Include="Database\Mongo.cs" />
+    <Compile Include="Bots\DOTABot\Bot.cs" />
+    <Compile Include="Bots\DOTABot\Enums\Events.cs" />
     <Compile Include="Matches\Challenge.cs" />
+    <Compile Include="Matches\Enums\CaptainsStatus.cs" />
+    <Compile Include="Matches\Enums\GameMode.cs" />
+    <Compile Include="Matches\Enums\MatchSetupStatus.cs" />
+    <Compile Include="Matches\Enums\MatchStatus.cs" />
+    <Compile Include="Matches\Enums\MatchTeam.cs" />
+    <Compile Include="Matches\Enums\MatchType.cs" />
     <Compile Include="Matches\MatchesController.cs" />
     <Compile Include="Matches\MatchGame.cs" />
+    <Compile Include="Matches\MatchPlayer.cs" />
     <Compile Include="Matches\MatchResult.cs" />
+    <Compile Include="Matches\MatchResultPlayer.cs" />
     <Compile Include="Matches\MatchSetup.cs" />
+    <Compile Include="Matches\MatchSetupDetails.cs" />
     <Compile Include="Matches\MatchSetupDetailsEx.cs" />
     <Compile Include="Matches\Methods\AdminDestroyNot.cs" />
     <Compile Include="Matches\Methods\AvailableGameUpd.cs" />
@@ -143,8 +166,11 @@
     <Compile Include="Matches\Methods\PickPlayer.cs" />
     <Compile Include="Matches\Methods\PublicMatchUpd.cs" />
     <Compile Include="Model\AuthToken.cs" />
+    <Compile Include="Model\Bot.cs" />
+    <Compile Include="Model\BotHost.cs" />
     <Compile Include="Model\Chat.cs" />
     <Compile Include="Model\Matches.cs" />
+    <Compile Include="Model\User.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
@@ -153,6 +179,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="Rating\RatingCalculator.cs" />
+    <Compile Include="StateUpdateArgs.cs" />
+    <Compile Include="Utils\Diff.cs" />
     <Compile Include="Utils\ObservableDictionary.cs" />
     <Compile Include="Utils\ObservableRangeCollection.cs" />
     <Compile Include="Utils\PublicIP.cs" />
@@ -173,10 +201,6 @@
     <ProjectReference Include="..\SteamKit\SteamKit2\SteamKit2\SteamKit2.csproj">
       <Project>{BEB5BF07-BB56-402A-97A3-A41C6444C6A5}</Project>
       <Name>SteamKit2</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\WLCommon\WLCommon.csproj">
-      <Project>{E5EDDDE6-0687-4870-90BC-183B1F5A8856}</Project>
-      <Name>WLCommon</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

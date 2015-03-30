@@ -1,5 +1,5 @@
 ﻿using MongoDB.Driver.Linq;
-using WLCommon.Model;
+using WLNetwork.Model;
 using XSockets.Core.Common.Socket.Attributes;
 using XSockets.Core.XSocket;
 

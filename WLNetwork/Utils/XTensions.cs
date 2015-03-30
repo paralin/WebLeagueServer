@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
-using WLCommon.Model;
+using WLNetwork.Model;
 using XSockets.Core.Common.Protocol;
 using XSockets.Core.Common.Socket;
 
@@ -8,6 +8,10 @@ namespace WLNetwork.Utils
 {
     public static class XTensions
     {
+        public static string ToSteamID64(this int accountid)
+        {
+            return (accountid + 76561197960265728) + "";
+        }
         public static User GetUser(this IXSocketController cont)
         {
             Func<IXSocketController, IConnectionContext> accessor =

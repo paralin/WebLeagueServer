@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Reflection;
 using log4net;
-using WLCommon.Model;
 using WLNetwork.Matches;
 using WLNetwork.Matches.Methods;
 using XSockets.Core.Common.Socket.Attributes;
