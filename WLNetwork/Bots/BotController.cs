@@ -33,7 +33,8 @@ namespace WLNetwork.Bots
         {
             lock (game)
             {
-                log.Debug(game.Bot.Username + " -> state => " + states);
+                if(game.Bot != null)
+                    log.Debug(game.Bot.Username + " -> state => " + states);
                 switch (states)
                 {
                     case States.DisconnectNoRetry:
