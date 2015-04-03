@@ -83,10 +83,10 @@ namespace WLNetwork.Controllers
                 pingTimer.Dispose();
                 pingTimer = null;
             }
-            if (!ConnectionContext.IsAuthenticated) return;
+            if (!ConnectionContext.IsAuthenticated || User == null) return;
             foreach (ChatChannel channel in Channels)
             {
-                channel.Members.Remove(ConnectionId);
+                channel.Members.Remove(User.steam.steamid);
             }
             Channels.Clear();
         }
@@ -130,10 +130,10 @@ namespace WLNetwork.Controllers
 
         public void Leave(LeaveRequest req)
         {
-            if (req == null || req.Id == null) return;
+            if (req == null || req.Id == null || User == null) return;
             ChatChannel chan = Channels.FirstOrDefault(m => m.Id.ToString() == req.Id);
             if (chan == null || !chan.Leavable) return;
-            chan.Members.Remove(ConnectionId);
+            chan.Members.Remove(User.steam.steamid);
             Channels.Remove(chan);
         }
 
@@ -141,13 +141,9 @@ namespace WLNetwork.Controllers
         {
             if (User == null) return;
             bool overava = User.vouch != null && !string.IsNullOrEmpty(User.vouch.avatar);
-            member = new ChatMember(PersistentId, User, overava ? User.vouch.avatar : User.steam.avatarfull);
+            member = new ChatMember(User.steam.steamid, User, overava ? User.vouch.avatar : User.steam.avatarfull);
             foreach (ChatChannel chat in Channels)
             {
-                foreach (var omember in chat.Members.Where(m => m.Value.SteamID == User.steam.steamid).ToList())
-                {
-                    chat.Members.Remove(omember.Key);
-                }
                 chat.Members[member.ID] = member;
             }
         }

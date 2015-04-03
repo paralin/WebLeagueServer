@@ -12,7 +12,7 @@ namespace WLNetwork.Chat
         ///     Create a chat member.
         /// </summary>
         /// <param name="user">user</param>
-        public ChatMember(Guid id, User user, string avatar = null)
+        public ChatMember(string id, User user, string avatar = null)
         {
             ID = id;
             SteamID = user.steam.steamid;
@@ -22,7 +22,7 @@ namespace WLNetwork.Chat
             Avatar = avatar;
         }
 
-        public Guid ID { get; set; }
+        public string ID { get; set; }
 
         /// <summary>
         ///     Steam ID

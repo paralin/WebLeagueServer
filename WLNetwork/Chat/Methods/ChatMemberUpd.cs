@@ -41,7 +41,7 @@ namespace WLNetwork.Chat.Methods
         public ChatMemberRm(string id, params ChatMember[] mems)
         {
             this.id = id;
-            members = new Guid[mems.Length];
+            members = new string[mems.Length];
             int i = 0;
             foreach (ChatMember mem in mems)
             {
@@ -58,6 +58,6 @@ namespace WLNetwork.Chat.Methods
         /// <summary>
         ///     Member steamids
         /// </summary>
-        public Guid[] members { get; set; }
+        public string[] members { get; set; }
     }
 }

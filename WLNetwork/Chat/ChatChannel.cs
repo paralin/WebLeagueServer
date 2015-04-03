@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
 using log4net;
+using SteamKit2.GC.Dota.Internal;
 using WLNetwork.Chat.Exceptions;
 using WLNetwork.Chat.Methods;
 using WLNetwork.Utils;
@@ -36,7 +37,7 @@ namespace WLNetwork.Chat
             Permanent = perm;
             Name = name;
             Leavable = leavable;
-            Members = new ObservableDictionary<Guid, ChatMember>();
+            Members = new ObservableDictionary<string, ChatMember>();
             Members.CollectionChanged += MembersOnCollectionChanged;
             Channels[Id] = this;
             log.DebugFormat("CREATED [{0}] ({1})", Name, Id);
@@ -70,7 +71,7 @@ namespace WLNetwork.Chat
         /// <summary>
         ///     Online members of the channel.
         /// </summary>
-        public ObservableDictionary<Guid, ChatMember> Members { get; set; }
+        public ObservableDictionary<string, ChatMember> Members { get; set; }
 
         /// <summary>
         ///     Handle the collection update event.
@@ -89,10 +90,10 @@ namespace WLNetwork.Chat
                     {
                         log.DebugFormat("PARTED [{0}] ({1}) {{{2}}}", Name, Id, nm.Value.Name);
                     }
-                foreach (Guid mm in Members.Keys)
+                foreach (var mm in Members.Keys)
                 {
                     ChatController.InvokeTo(
-                        m => m.ConnectionContext.IsAuthenticated && m.ConnectionId == mm,
+                        m => m.ConnectionContext.IsAuthenticated && m.User != null && m.User.steam.steamid == mm,
                         msg, ChatMemberRm.Msg);
                 }
             }
@@ -106,9 +107,9 @@ namespace WLNetwork.Chat
                     {
                         log.DebugFormat("JOINED [{0}] ({1}) {{{2}}}", Name, Id, nm.Value.Name);
                     }
-                foreach (Guid mm in Members.Keys.ToArray())
+                foreach (var mm in Members.Keys.ToArray())
                 {
-                    ChatController.InvokeTo(m => m.ConnectionContext.IsAuthenticated && m.ConnectionId == mm, msg,
+                    ChatController.InvokeTo(m => m.ConnectionContext.IsAuthenticated && m.User != null && m.User.steam.steamid == mm, msg,
                         ChatMemberUpd.Msg);
                 }
             }
@@ -163,10 +164,11 @@ namespace WLNetwork.Chat
                 return;
             }
             var msg = new ChatMessage {Text = text, Member = member, Id = Id.ToString(), Auto = service};
-            foreach (ChatMember mm in Members.Values)
+            foreach (var mm in Members.Values)
             {
+                var mm1 = mm;
                 ChatController.InvokeTo(
-                    m => m.ConnectionContext.IsAuthenticated && m.ConnectionId == mm.ID,
+                    m => m.ConnectionContext.IsAuthenticated && m.User != null && m.User.steam.steamid == mm1.ID,
                     msg, ChatMessage.Msg);
             }
         }
