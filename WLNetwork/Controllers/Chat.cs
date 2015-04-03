@@ -112,6 +112,7 @@ namespace WLNetwork.Controllers
         {
             if (req == null || string.IsNullOrEmpty(req.Name)) return "You didn't provide any channels to join.";
             req.Name = Regex.Replace(req.Name, @"[^\w\s]", string.Empty).Trim();
+            if (string.IsNullOrEmpty(req.Name)) return "That chat name is completely invalid.";
             if (Channels.Any(m => m.Name.ToLower() == req.Name.ToLower())) return "You are already in that channel.";
             try
             {
