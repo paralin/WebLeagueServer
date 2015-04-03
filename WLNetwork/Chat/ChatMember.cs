@@ -48,5 +48,17 @@ namespace WLNetwork.Chat
         ///     Rating
         /// </summary>
         public int Rating { get; set; }
+
+        /// <summary>
+        ///     Member type for visibility in the player list
+        /// </summary>
+        public ChatMemberType MemberType { get; set; }
+
+        public enum ChatMemberType : int
+        {
+            Normal = 0,
+            Moderator = 1,
+            Admin = 2
+        }
     }
 }

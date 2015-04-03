@@ -136,12 +136,15 @@ namespace WLNetwork.Controllers
 
         public void ReloadUser()
         {
-            //todo: Assuming it's already updated by Matches
             if (User == null) return;
             bool overava = User.vouch != null && !string.IsNullOrEmpty(User.vouch.avatar);
-            member = new ChatMember(ConnectionId, User, overava ? User.vouch.avatar : User.steam.avatarfull);
+            member = new ChatMember(PersistentId, User, overava ? User.vouch.avatar : User.steam.avatarfull);
             foreach (ChatChannel chat in Channels)
             {
+                foreach (var omember in chat.Members.Where(m => m.Value.SteamID == User.steam.steamid).ToList())
+                {
+                    chat.Members.Remove(omember.Key);
+                }
                 chat.Members[member.ID] = member;
             }
         }
