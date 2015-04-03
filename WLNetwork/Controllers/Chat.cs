@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Timers;
 using log4net;
 using MongoDB.Driver.Linq;
@@ -109,7 +110,8 @@ namespace WLNetwork.Controllers
 
         public string JoinOrCreate(JoinCreateRequest req)
         {
-            if (req == null) return "You didn't provide any channels to join.";
+            if (req == null || string.IsNullOrEmpty(req.Name)) return "You didn't provide any channels to join.";
+            req.Name = Regex.Replace(req.Name, @"[^\w\s]", string.Empty).Trim();
             if (Channels.Any(m => m.Name.ToLower() == req.Name.ToLower())) return "You are already in that channel.";
             try
             {
