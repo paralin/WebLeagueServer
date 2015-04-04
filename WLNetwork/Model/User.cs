@@ -1,4 +1,5 @@
 ﻿using System.Security.Principal;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace WLNetwork.Model
 {
@@ -20,8 +21,9 @@ namespace WLNetwork.Model
     }
 
     /// <summary>
-    ///     A user stored in the database, auth through Meteor.
+    ///     A user stored in the database, auth through passport.
     /// </summary>
+    [BsonIgnoreExtraElements]
     public class User
     {
         public int __v { get; set; }
