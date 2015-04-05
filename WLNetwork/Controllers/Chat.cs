@@ -88,7 +88,8 @@ namespace WLNetwork.Controllers
             SaveChatChannels();
             foreach (ChatChannel channel in Channels)
             {
-                channel.Members.Remove(User.steam.steamid);
+                if(channel.Leavable) Leave(new LeaveRequest(){Id = channel.Id.ToString()});
+                else channel.Members.Remove(User.steam.steamid);
             }
             Channels.Clear();
         }
@@ -127,20 +128,41 @@ namespace WLNetwork.Controllers
         public string JoinOrCreate(JoinCreateRequest req)
         {
             if (req == null || string.IsNullOrEmpty(req.Name)) return "You didn't provide any channels to join.";
-            req.Name = Regex.Replace(req.Name, @"[^\w\s]", string.Empty).Trim();
-            if (string.IsNullOrEmpty(req.Name)) return "That chat name is completely invalid.";
-            if (Channels.Any(m => m.Name.ToLower() == req.Name.ToLower())) return "You are already in that channel.";
-            try
+            if (member == null) ReloadUser();
+            if (member == null) return "Unable to create chat member";
+            if (req.OneToOne)
             {
-                if (member == null) ReloadUser();
-                ChatChannel chan = ChatChannel.JoinOrCreate(req.Name.ToLower(), member);
-                if (chan != null)
-                    Channels.Add(chan);
+                if (Channels.Any(m => m.ChannelType == ChannelType.OneToOne && m.Members.Values.Any(x => x.SteamID == req.Name)))
+                    return "You already are in a private chat with that person.";
+                if (req.Name == this.User.steam.steamid) return "You can't have a private chat with yourself.";
+                var user = this.Find(m => m.User != null && m.User.steam.steamid == req.Name).FirstOrDefault();
+                if (user == null) return "Can't find that person.";
+                if (user.member == null) user.ReloadUser();
+                if (user.member == null) return "That user is not available to chat.";
+                var chan = new ChatChannel(User.profile.name.Substring(0, 5)+" + "+user.User.profile.name.Substring(0,5), ChannelType.OneToOne);
+                chan.Members.Add(member.ID, member);
+                chan.Members.Add(user.member.ID, user.member);
+                Channels.Add(chan);
+                user.Channels.Add(chan);
                 return null;
             }
-            catch (JoinCreateException ex)
+            else
             {
-                return ex.Message;
+                req.Name = Regex.Replace(req.Name, @"[^\w\s]", string.Empty).Trim();
+                if (string.IsNullOrEmpty(req.Name)) return "That chat name is completely invalid.";
+                if (Channels.Any(m => m.Name.ToLower() == req.Name.ToLower()))
+                    return "You are already in that channel.";
+                try
+                {
+                    ChatChannel chan = ChatChannel.JoinOrCreate(req.Name.ToLower(), member);
+                    if (chan != null)
+                        Channels.Add(chan);
+                    return null;
+                }
+                catch (JoinCreateException ex)
+                {
+                    return ex.Message;
+                }
             }
         }
 
@@ -149,8 +171,12 @@ namespace WLNetwork.Controllers
             if (req == null || req.Id == null || User == null) return;
             ChatChannel chan = Channels.FirstOrDefault(m => m.Id.ToString() == req.Id);
             if (chan == null || !chan.Leavable) return;
-            chan.Members.Remove(User.steam.steamid);
-            Channels.Remove(chan);
+            if (chan.ChannelType == ChannelType.Public)
+            {
+                chan.Members.Remove(User.steam.steamid);
+                Channels.Remove(chan);
+            }
+            else if(chan.ChannelType == ChannelType.OneToOne) chan.Close();
         }
 
         public void ReloadUser()

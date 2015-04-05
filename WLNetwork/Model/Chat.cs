@@ -20,7 +20,15 @@
 
     public class JoinCreateRequest
     {
+        /// <summary>
+        /// Name of the channel or steam id of the person
+        /// </summary>
         public string Name { get; set; }
+        
+        /// <summary>
+        /// Direct message?
+        /// </summary>
+        public bool OneToOne { get; set; }
     }
 
     public class LeaveRequest

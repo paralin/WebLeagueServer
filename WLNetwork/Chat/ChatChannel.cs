@@ -90,7 +90,7 @@ namespace WLNetwork.Chat
                     {
                         log.DebugFormat("PARTED [{0}] ({1}) {{{2}}}", Name, Id, nm.Value.Name);
                     }
-                foreach (var mm in Members.Keys)
+                foreach (var mm in Members.Keys.ToArray())
                 {
                     ChatController.InvokeTo(
                         m => m.ConnectionContext.IsAuthenticated && m.User != null && m.User.steam.steamid == mm,
@@ -181,7 +181,7 @@ namespace WLNetwork.Chat
         /// <returns></returns>
         public static ChatChannel Join(string name, ChatMember member)
         {
-            ChatChannel chan = Channels.Values.FirstOrDefault(m => m.Name.ToLower() == name.ToLower());
+            ChatChannel chan = Channels.Values.FirstOrDefault(m => m.ChannelType == ChannelType.Public && m.Name.ToLower() == name.ToLower());
             if (chan == null) return null;
             return Join(chan.Id, member);
         }
@@ -227,8 +227,6 @@ namespace WLNetwork.Chat
     public enum ChannelType
     {
         Public,
-        OneToOne,
-        PlayerPool,
-        Lobby
+        OneToOne
     }
 }
