@@ -82,8 +82,8 @@ namespace WLNetwork.Chat
         {
             if (e.OldItems != null)
             {
-                IEnumerable<KeyValuePair<Guid, ChatMember>> memb = e.OldItems.OfType<KeyValuePair<Guid, ChatMember>>();
-                KeyValuePair<Guid, ChatMember>[] chatMembers = memb.ToArray();
+                IEnumerable<KeyValuePair<string, ChatMember>> memb = e.OldItems.OfType<KeyValuePair<string, ChatMember>>();
+                KeyValuePair<string, ChatMember>[] chatMembers = memb.ToArray();
                 var msg = new ChatMemberRm(Id.ToString(), chatMembers.Select(m => m.Value).ToArray());
                 if (e.Action != NotifyCollectionChangedAction.Replace)
                     foreach (var nm in chatMembers)
@@ -99,8 +99,8 @@ namespace WLNetwork.Chat
             }
             if (e.NewItems != null)
             {
-                IEnumerable<KeyValuePair<Guid, ChatMember>> memb = e.NewItems.OfType<KeyValuePair<Guid, ChatMember>>();
-                KeyValuePair<Guid, ChatMember>[] chatMembers = memb.ToArray();
+                IEnumerable<KeyValuePair<string, ChatMember>> memb = e.NewItems.OfType<KeyValuePair<string, ChatMember>>();
+                KeyValuePair<string, ChatMember>[] chatMembers = memb.ToArray();
                 var msg = new ChatMemberUpd(Id.ToString(), chatMembers.Select(m => m.Value).ToArray());
                 if (e.Action != NotifyCollectionChangedAction.Replace)
                     foreach (var nm in chatMembers)
@@ -181,7 +181,7 @@ namespace WLNetwork.Chat
         /// <returns></returns>
         public static ChatChannel Join(string name, ChatMember member)
         {
-            ChatChannel chan = Channels.Values.FirstOrDefault(m => m.ChannelType == ChannelType.Public && m.Name.ToLower() == name.ToLower());
+            ChatChannel chan = Channels.Values.FirstOrDefault(m => m.Name.ToLower() == name.ToLower());
             if (chan == null) return null;
             return Join(chan.Id, member);
         }

@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
@@ -88,7 +89,7 @@ namespace WLNetwork.Controllers
             SaveChatChannels();
             foreach (ChatChannel channel in Channels)
             {
-                if(channel.Leavable) Leave(new LeaveRequest(){Id = channel.Id.ToString()});
+                if (channel.Leavable) Leave(new LeaveRequest() {Id = channel.Id.ToString()});
                 else channel.Members.Remove(User.steam.steamid);
             }
             Channels.Clear();
