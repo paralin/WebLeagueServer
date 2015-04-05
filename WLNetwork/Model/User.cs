@@ -32,6 +32,7 @@ namespace WLNetwork.Model
         public Profile profile { get; set; }
         public SteamService steam { get; set; }
         public Vouch vouch { get; set; }
+        public string[] channels { get; set; }
     }
 
     public class Vouch

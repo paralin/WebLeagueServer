@@ -39,6 +39,7 @@ namespace WLNetwork.Controllers
                 log.Debug("CONNECTED [" + ConnectionContext.PersistentId + "]");
                 StartPingTimer();
                 JoinOrCreate(new JoinCreateRequest() {Name = "main"});
+                LoadChatChannels();
             };
             OnAuthorizationFailed +=
                 (sender, args) =>
@@ -84,11 +85,26 @@ namespace WLNetwork.Controllers
                 pingTimer = null;
             }
             if (!ConnectionContext.IsAuthenticated || User == null) return;
+            SaveChatChannels();
             foreach (ChatChannel channel in Channels)
             {
                 channel.Members.Remove(User.steam.steamid);
             }
             Channels.Clear();
+        }
+
+        private void SaveChatChannels()
+        {
+            User.channels = Channels.Where(m=>m.Leavable && m.ChannelType == ChannelType.Public).Select(m => m.Name).ToArray();
+            Database.Mongo.Users.Save(User);
+        }
+
+        private void LoadChatChannels()
+        {
+            if (User == null) return;
+            if (User.channels == null) User.channels = new string[0];
+            foreach (var chan in User.channels)
+                JoinOrCreate(new JoinCreateRequest() {Name = chan.ToLower()});
         }
 
         private void ChatChannelOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
