@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using WLNetwork.Model;
 
 namespace WLNetwork.Chat
@@ -20,6 +21,13 @@ namespace WLNetwork.Chat
             Name = user.profile.name;
             Rating = user.profile.rating;
             Avatar = avatar;
+
+            if (user.authItems.Contains("admin"))
+                MemberType = ChatMemberType.Admin;
+            else if (user.authItems.Contains("vouch"))
+                MemberType = ChatMemberType.Moderator;
+            else
+                MemberType = ChatMemberType.Normal;
         }
 
         public string ID { get; set; }
