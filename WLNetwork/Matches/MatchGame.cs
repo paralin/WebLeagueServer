@@ -48,7 +48,6 @@ namespace WLNetwork.Matches
             Info = new MatchGameInfo
             {
                 Id = Id,
-                Name = options.Name,
                 Public = true,
                 Status = MatchStatus.Players,
                 MatchType = options.MatchType,
@@ -62,7 +61,7 @@ namespace WLNetwork.Matches
             Players.CollectionChanged += PlayersOnCollectionChanged;
             MatchesController.Games.Add(this);
             //note: Don't add to public games as it's not started yet
-            log.Info("MATCH CREATE [" + Id + "] [" + options.Name + "] [" + options.GameMode + "] [" + options.MatchType + "]");
+            log.Info("MATCH CREATE [" + Id + "] [" + owner + "] [" + options.GameMode + "] [" + options.MatchType + "]");
         }
 
         /// <summary>
@@ -123,10 +122,6 @@ namespace WLNetwork.Matches
         /// <param name="options"></param>
         public void Update(MatchCreateOptions options)
         {
-            if (!string.IsNullOrEmpty(options.Name) && options.Name != Info.Name)
-            {
-                Info.Name = options.Name;
-            }
             Info.GameMode = options.GameMode;
             Info.MatchType = options.MatchType;
         }
@@ -388,7 +383,6 @@ namespace WLNetwork.Matches
     public class MatchGameInfo
     {
         public Guid Id { get; set; }
-        public string Name { get; set; }
         public MatchType MatchType { get; set; }
         public bool Public { get; set; }
         public MatchStatus Status { get; set; }

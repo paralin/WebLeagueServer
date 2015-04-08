@@ -186,8 +186,6 @@ namespace WLNetwork.Controllers
         {
             LeaveMatch();
             if (options == null) return "You didn't give any options for the match.";
-            if (string.IsNullOrWhiteSpace(options.Name)) return "You didn't specify a name.";
-            options.Name = options.Name.Replace('\n', ' ');
             if (Match != null) return "You are already in a match you cannot leave.";
             options.MatchType = MatchType.StartGame;
             var match = new MatchGame(User.steam.steamid, options);
@@ -313,8 +311,6 @@ namespace WLNetwork.Controllers
             {
                 GameMode = chal.GameMode,
                 MatchType = MatchType.Captains,
-                Name =
-                    "Challenge, " + User.steam.personaname + " vs. " + other.User.steam.personaname + ".",
                 OpponentSID = other.User.steam.steamid
             });
             Match = match;

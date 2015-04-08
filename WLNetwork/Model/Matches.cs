@@ -17,11 +17,6 @@ namespace WLNetwork.Model
         public GameMode GameMode { get; set; }
 
         /// <summary>
-        ///     What to name it?
-        /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
         ///     If captains, opponent SID
         /// </summary>
         public string OpponentSID { get; set; }
