@@ -148,7 +148,7 @@ namespace WLNetwork.Matches
             Info.Status = MatchStatus.Teams;
             pickedAlready = true;
             Info.CaptainStatus = CaptainsStatus.DirePick;
-            foreach (MatchPlayer player in Players.Where(m => !m.IsCaptain))
+            foreach (MatchPlayer player in Players.Where(m => !m.IsCaptain && m.Team != MatchTeam.Spectate))
             {
                 player.Team = MatchTeam.Unassigned;
             }
@@ -187,9 +187,8 @@ namespace WLNetwork.Matches
             //MMR algorithm
             int direCount = 0;
             int radiCount = 0;
-            foreach (MatchPlayer plyr in Players.OrderByDescending(m => m.Rating))
+            foreach (MatchPlayer plyr in Players.Where(m=>m.Team != MatchTeam.Spectate).OrderByDescending(m => m.Rating))
             {
-                if (plyr.Team == MatchTeam.Spectate) continue;
                 if (direCount < radiCount && direCount < 5)
                 {
                     plyr.Team = MatchTeam.Dire;
@@ -221,7 +220,9 @@ namespace WLNetwork.Matches
             if (MatchesController.Games.Contains(this))
             {
                 MatchesController.Games.Remove(this);
+#if !SEND_DATA_TO_EVERYONE
                 MatchesController.PublicGames.Remove(Info);
+#endif
                 log.Info("MATCH DESTROY [" + Id + "]");
             }
         }
@@ -290,22 +291,25 @@ namespace WLNetwork.Matches
             Setup = Setup;
             Info.Status = MatchStatus.Play;
             Info = Info;
+#if !SEND_DATA_TO_EVERYONE
             MatchesController.PublicGames.Add(Info);
+#endif
         }
 
         public void KickUnassigned()
         {
             MatchPlayer[] toRemove = Players.Where(m => m.Team == MatchTeam.Unassigned).ToArray();
             Players.RemoveRange(toRemove);
-            foreach (
-                Controllers.Matches cont in
-                    toRemove.Select(
-                        player =>
-                            Matches.Find(m => m.User != null && m.User.steam.steamid == player.SID).FirstOrDefault())
-                        .Where(cont => cont != null))
-            {
+            foreach (Controllers.Matches cont in toRemove.Select(player => Matches.Find(m => m.User != null && m.User.steam.steamid == player.SID).FirstOrDefault()).Where(cont => cont != null))
                 cont.Match = null;
-            }
+        }
+
+        public void KickSpectators()
+        {
+            MatchPlayer[] toRemove = Players.Where(m => m.Team == MatchTeam.Spectate).ToArray();
+            Players.RemoveRange(toRemove);
+            foreach (Controllers.Matches cont in toRemove.Select(player => Matches.Find(m => m.User != null && m.User.steam.steamid == player.SID).FirstOrDefault()).Where(cont => cont != null))
+                cont.Match = null;
         }
 
         /// <summary>
@@ -317,10 +321,10 @@ namespace WLNetwork.Matches
             //NOTE! The players list only rerenders when the player object is updated. As a result, we need to send the player team update AFTER the info update.
 			if (!(team == MatchTeam.Dire && Info.CaptainStatus == CaptainsStatus.DirePick || team == MatchTeam.Radiant && Info.CaptainStatus == CaptainsStatus.RadiantPick))
 				return;
-            MatchPlayer player = Players.FirstOrDefault(m => m.SID == sid);
+            MatchPlayer player = Players.FirstOrDefault(m => m.SID == sid && m.Team != MatchTeam.Spectate);
             if (player == null || player.Team != MatchTeam.Unassigned) return;
             player.Team = team;
-            if (Players.Count(m => m.Team != MatchTeam.Unassigned && m.Team != MatchTeam.Spectate) >= 10)
+            if (Players.Count(m => m.Team == MatchTeam.Radiant || m.Team == MatchTeam.Dire) >= 10)
             {
                 Info.CaptainStatus = CaptainsStatus.DirePick;
                 KickUnassigned();

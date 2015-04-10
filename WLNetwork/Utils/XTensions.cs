@@ -8,10 +8,16 @@ namespace WLNetwork.Utils
 {
     public static class XTensions
     {
-        public static string ToSteamID64(this int accountid)
+        public static ulong ToSteamID64(this uint accountid)
         {
-            return (accountid + 76561197960265728) + "";
+            return (76561197960265728L+(ulong)accountid);
         }
+
+        public static uint ToAccountID(this ulong steamId)
+        {
+            return (uint)(steamId - 76561197960265728L);
+        }
+
         public static User GetUser(this IXSocketController cont)
         {
             Func<IXSocketController, IConnectionContext> accessor =

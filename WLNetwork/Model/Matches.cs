@@ -28,6 +28,11 @@ namespace WLNetwork.Model
         ///     Match ID
         /// </summary>
         public Guid Id { get; set; }
+
+        /// <summary>
+        /// Spectator?
+        /// </summary>
+        public bool Spec { get; set; }
     }
 
     public class FillChatPlayersOptions

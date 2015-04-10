@@ -28,6 +28,8 @@ namespace WLNetwork.Bots
         public event EventHandler<LeaverStatusArgs> LeaverStatus;
         public event EventHandler<PlayerReadyArgs> PlayerReady;
         public event EventHandler<States> StateUpdate;
+        public event EventHandler<ulong> UnknownPlayer;
+        public event EventHandler GameStarted;
 
         public LobbyBot bot;
 
@@ -50,7 +52,6 @@ namespace WLNetwork.Bots
                                 m.team == DOTA_GC_TEAM.DOTA_GC_TEAM_BAD_GUYS ||
                                 m.team == DOTA_GC_TEAM.DOTA_GC_TEAM_GOOD_GUYS);
                     var players = new List<PlayerReadyArgs.Player>();
-                    int i = 0;
                     foreach (CDOTALobbyMember member in members)
                     {
                         MatchPlayer plyr = details.Players.FirstOrDefault(m => m.SID == member.id + "");
@@ -64,7 +65,11 @@ namespace WLNetwork.Bots
                                      plyr.Team == MatchTeam.Radiant),
                                 SteamID = plyr.SID
                             });
-                        i++;
+                        else
+                        {
+                            if (UnknownPlayer != null)
+                                UnknownPlayer(this, member.id);
+                        }
                     }
                     args.Players = players.ToArray();
                     if (PlayerReady != null) PlayerReady(this, args);
@@ -91,6 +96,8 @@ namespace WLNetwork.Bots
                     if (MatchId != null) MatchId(this, lobby.match_id);
                 if (differences.Differences.Any(m => m.PropertyName == ".match_outcome") && lobby.match_outcome != EMatchOutcome.k_EMatchOutcome_Unknown)
                     if (MatchOutcome != null) MatchOutcome(this, lobby.match_outcome);
+                if (differences.Differences.Any(m=>m.PropertyName == ".game_state") && lobby.game_state == DOTA_GameState.DOTA_GAMERULES_STATE_HERO_SELECTION)
+                    if (GameStarted != null) GameStarted(this, EventArgs.Empty);
             };
         }
 

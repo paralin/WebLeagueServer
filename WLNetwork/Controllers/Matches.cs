@@ -4,6 +4,7 @@ using System.Timers;
 using log4net;
 using MongoDB.Driver.Builders;
 using MongoDB.Driver.Linq;
+using SteamKit2.GC.Internal;
 using WLNetwork.Chat;
 using WLNetwork.Database;
 using WLNetwork.Matches;
@@ -243,8 +244,10 @@ namespace WLNetwork.Controllers
             }
             else if (Match.Info.MatchType == MatchType.StartGame)
             {
+#if !DEBUG
                 if (Match.Players.Count < 10 && !User.authItems.Contains("admin"))
                     return "Non admins must have 10 players for start games.";
+#endif
                 Match.StartSetup();
             }
             return null;
@@ -280,7 +283,7 @@ namespace WLNetwork.Controllers
             if (User == null) return "You are not logged in for some reason.";
             if (Match.Info.Owner != User.steam.steamid) return "You are not the host of this game.";
             if (Match.Setup == null || Match.Setup.Details.Status != MatchSetupStatus.Wait ||
-                Match.Players.Any(m => !m.Ready)) return "The match cannot be started yet.";
+                Match.Players.Any(m => !m.Ready && m.Team < MatchTeam.Spectate)) return "The match cannot be started yet.";
             Match.StartMatch();
             return null;
         }
@@ -327,13 +330,16 @@ namespace WLNetwork.Controllers
             if (activeMatch != null && options.Id == activeMatch.Id) return "You are already in that match.";
             //LeaveMatch();
             if (activeMatch != null) return "You are already in a match, leave that one first.";
-            MatchGame match =
-                MatchesController.Games.FirstOrDefault(
-                    m => m.Id == options.Id && m.Info.Public && m.Info.Status == MatchStatus.Players);
+            MatchGame match = MatchesController.Games.FirstOrDefault( m => m.Id == options.Id && m.Info.Public);
             if (match == null) return "That match can't be found.";
-            if (match.Players.Count >= 10 && match.Info.MatchType != MatchType.Captains) return "That match is full.";
+            if (match.Info.Status != MatchStatus.Players && !options.Spec)
+                return "Can't join a match that has started.";
+            if (match.Info.Status > MatchStatus.Lobby && options.Spec)
+                return "Can't spectate a match already past the lobby stage.";
+            if (!options.Spec && match.Players.Count(m => m.Team != MatchTeam.Spectate) >= 10 && match.Info.MatchType != MatchType.Captains) 
+                return "That match is full.";
             Match = match;
-            match.Players.Add(new MatchPlayer(User) {Team = MatchTeam.Unassigned});
+            match.Players.Add(new MatchPlayer(User) {Team = options.Spec ? MatchTeam.Spectate : MatchTeam.Unassigned});
             return null;
         }
 
@@ -347,8 +353,7 @@ namespace WLNetwork.Controllers
             if (User == null) return "You are not signed in and thus cannot be in a match.";
             MatchPlayer me = Match.Players.FirstOrDefault(m => m.SID == User.steam.steamid);
             bool isOwner = Match.Info.Owner == User.steam.steamid || me.IsCaptain;
-            if ((Match.Info.Status > MatchStatus.Lobby && isOwner) ||
-                (Match.Info.Status > MatchStatus.Players && !isOwner)) return "You cannot leave matches in progress.";
+            if (me.Team < MatchTeam.Spectate && ((Match.Info.Status > MatchStatus.Lobby && isOwner) || (Match.Info.Status > MatchStatus.Players && !isOwner))) return "You cannot leave matches in progress.";
             if (isOwner)
             {
                 Match.Destroy();

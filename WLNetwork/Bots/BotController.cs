@@ -7,6 +7,7 @@ using WLNetwork.BotEnums;
 using WLNetwork.Database;
 using WLNetwork.Matches;
 using WLNetwork.Matches.Enums;
+using WLNetwork.Utils;
 
 namespace WLNetwork.Bots
 {
@@ -27,6 +28,21 @@ namespace WLNetwork.Bots
             instance.MatchStatus += MatchStatus;
             instance.LobbyCleared += LobbyClear;
             instance.MatchOutcome += MatchOutcome;
+            instance.UnknownPlayer += UnknownPlayer;
+            instance.GameStarted += GameStarted;
+        }
+
+        private void GameStarted(object sender, EventArgs eventArgs)
+        {
+            var g =game.GetGame();
+            if (g != null)
+                g.KickSpectators();
+        }
+
+        private void UnknownPlayer(object sender, ulong player)
+        {
+            log.Warn("Kicking unknown player "+player);
+            instance.bot.dota.KickPlayerFromLobby(player.ToAccountID());
         }
 
         public void StateUpdate(object sender, States states)
