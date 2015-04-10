@@ -41,6 +41,7 @@ namespace WLNetwork.Bots
 
         private void UnknownPlayer(object sender, ulong player)
         {
+            if (game.Bot == null) return;
             log.Warn("Kicking unknown player "+player);
             instance.bot.dota.KickPlayerFromLobby(player.ToAccountID());
         }
@@ -83,6 +84,7 @@ namespace WLNetwork.Bots
 
         public void PlayerReady(object sender, PlayerReadyArgs playerReadyArgs)
         {
+            if (game.Bot == null) return;
             foreach (MatchPlayer plyr in game.Players)
             {
                 plyr.Ready = playerReadyArgs.Players.Any(m => m.IsReady && m.SteamID == plyr.SID);
@@ -103,25 +105,35 @@ namespace WLNetwork.Bots
 
         public void LeaverStatus(object sender, LeaverStatusArgs args)
         {
+            if (game.Bot == null) return;
+            var someoneAbandoned = false;
             foreach (LeaverStatusArgs.Player plyr in args.Players)
             {
                 MatchPlayer tplyr = game.Players.FirstOrDefault(m => m.SID == plyr.SteamID);
-                if (tplyr != null)
+                if (tplyr != null && tplyr.Team < MatchTeam.Spectate)
                 {
-                    tplyr.IsLeaver = plyr.Status != DOTALeaverStatus_t.DOTA_LEAVER_NONE || args.Lobby.left_members.Any(m=>""+m.id == plyr.SteamID);
+                    var plyrLeft = args.Lobby.left_members.Any(m => "" + m.id == plyr.SteamID);
+                    tplyr.IsLeaver = plyr.Status != DOTALeaverStatus_t.DOTA_LEAVER_NONE || plyrLeft;
                     tplyr.LeaverReason = plyr.Status;
+                    if (plyrLeft) someoneAbandoned = true;
                 }
             }
             MatchGame g = game.GetGame();
             if (g != null)
             {
                 g.Players = g.Players;
+                if (someoneAbandoned)
+                {
+                    log.Warn("ABANDON FOR "+g.Id+", CLOSING GAME");
+                    g.ProcessMatchResult(EMatchOutcome.k_EMatchOutcome_NotScored_Leaver);
+                }
             }
         }
 
         public void MatchStatus(object sender, MatchStateArgs args)
         {
             game.State = args.State;
+            if (game.Bot == null) return;
             log.Debug(game.Bot.Username + " -> match_state => " + args.State);
             MatchGame g = game.GetGame();
             if (g != null)
@@ -142,6 +154,7 @@ namespace WLNetwork.Bots
 
         public void MatchOutcome(object sender, EMatchOutcome args)
         {
+            if (game.Bot == null) return;
             MatchGame g = game.GetGame();
             if (g != null)
             {

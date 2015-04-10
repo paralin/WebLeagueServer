@@ -365,7 +365,7 @@ namespace WLNetwork.Matches
             ulong matchId = Setup.Details.MatchId;
             var countMatch = (outcome == EMatchOutcome.k_EMatchOutcome_DireVictory || outcome == EMatchOutcome.k_EMatchOutcome_RadVictory);
             var punishLeavers = false;
-            if (countMatch && Setup.Details.Players.Any(m => m.IsLeaver))
+            if ((countMatch && Setup.Details.Players.Any(m => m.IsLeaver)) || outcome == EMatchOutcome.k_EMatchOutcome_NotScored_Leaver)
             {
                 log.Debug(matchId+" HAS LEAVERS, FORCING TO LEAVERS PENALTY STATE");
                 countMatch = false;
