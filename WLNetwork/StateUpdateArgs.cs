@@ -38,6 +38,7 @@ namespace WLNetwork
     public class LeaverStatusArgs
     {
         public Player[] Players { get; set; }
+        public CSODOTALobby Lobby { get; set; }
 
         public class Player
         {

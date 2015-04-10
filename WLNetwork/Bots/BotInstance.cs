@@ -72,13 +72,14 @@ namespace WLNetwork.Bots
                 else if (lobby.state == CSODOTALobby.State.RUN &&
                          lobby.game_state > DOTA_GameState.DOTA_GAMERULES_STATE_WAIT_FOR_PLAYERS_TO_LOAD &&
                          lobby.game_state < DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME)
-                    if (differences.Differences.Any(m => m.Object1TypeName == "DOTALeaverStatus_t"))
+                    if (differences.Differences.Any(m => m.Object1TypeName == "DOTALeaverStatus_t" || m.PropertyName == ".left_members"))
                     {
                         var args = new LeaverStatusArgs
                         {
-                            Players = lobby.members.Select(
+                            Players = lobby.members.Concat(lobby.left_members).Select(
                                 m => new LeaverStatusArgs.Player {Status = m.leaver_status, SteamID = "" + m.id})
-                                .ToArray()
+                                .ToArray(),
+                            Lobby = lobby
                         };
                         if (LeaverStatus != null) LeaverStatus(this, args);
                     }
@@ -88,8 +89,7 @@ namespace WLNetwork.Bots
                     MatchStatus(this, new MatchStateArgs {State = lobby.game_state, Status = lobby.state});
                 if (differences.Differences.Any(m => m.PropertyName == ".match_id"))
                     if (MatchId != null) MatchId(this, lobby.match_id);
-                if (differences.Differences.Any(m => m.PropertyName == ".match_outcome") &&
-                    lobby.match_outcome != EMatchOutcome.k_EMatchOutcome_Unknown)
+                if (differences.Differences.Any(m => m.PropertyName == ".match_outcome") && lobby.match_outcome != EMatchOutcome.k_EMatchOutcome_Unknown)
                     if (MatchOutcome != null) MatchOutcome(this, lobby.match_outcome);
             };
         }

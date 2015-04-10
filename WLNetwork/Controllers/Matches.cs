@@ -191,10 +191,7 @@ namespace WLNetwork.Controllers
             var match = new MatchGame(User.steam.steamid, options);
             Match = match;
             match.Players.Add(new MatchPlayer(User));
-            Chat chat =
-                this.FindOn<Chat>(m => m.ConnectionContext.PersistentId == ConnectionContext.PersistentId)
-                    .FirstOrDefault();
-            if (chat != null) chat.BroadcastServiceMessage("created a new match.");
+            ChatChannel.GlobalSystemMessage(User.profile.name+" created a new match.");
             return null;
         }
 
@@ -224,10 +221,7 @@ namespace WLNetwork.Controllers
                 playersNeeded--;
                 if (playersNeeded <= 0) break;
             }
-            Chat chat =
-                this.FindOn<Chat>(m => m.ConnectionContext.PersistentId == ConnectionContext.PersistentId)
-                    .FirstOrDefault();
-            if (chat != null) chat.BroadcastServiceMessage("pulled "+origPlayersNeeded+" players into their match.");
+            ChatChannel.GlobalSystemMessage(User.profile.name+" pulled "+origPlayersNeeded+" players into their match.");
             return null;
         }
 
@@ -305,11 +299,7 @@ namespace WLNetwork.Controllers
             Challenge = null;
             if (other == null) return;
             other.Challenge = null;
-            Chat chat =
-                this.FindOn<Chat>(m => m.ConnectionContext.PersistentId == ConnectionContext.PersistentId)
-                    .FirstOrDefault();
-            if (chat != null)
-                chat.BroadcastServiceMessage(resp.accept ? "accepted the challenge." : "declined the challenge.");
+            ChatChannel.GlobalSystemMessage(User.profile.name+(resp.accept ? " accepted the challenge." : " declined the challenge."));
             if (!resp.accept) return;
             //Create the match
             var match = new MatchGame(User.steam.steamid, new MatchCreateOptions
@@ -396,12 +386,7 @@ namespace WLNetwork.Controllers
             tcont.Challenge = target;
             tcont.challengeTimer.Start();
             Challenge = target;
-            Chat chat =
-                this.FindOn<Chat>(m => m.ConnectionContext.PersistentId == ConnectionContext.PersistentId)
-                    .FirstOrDefault();
-            if (chat != null)
-                chat.BroadcastServiceMessage(string.Format("challenged {0} to a Captain's match!",
-                    tcont.User.profile.name));
+            ChatChannel.GlobalSystemMessage(string.Format("{0} challenged {1} to a Captain's match!", User.profile.name, tcont.User.profile.name));
             return null;
         }
 

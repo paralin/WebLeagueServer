@@ -75,5 +75,6 @@ namespace WLNetwork.Model
         public int rating { get; set; }
         public int wins { get; set; }
         public int losses { get; set; }
+        public int abandons { get; set; }
     }
 }

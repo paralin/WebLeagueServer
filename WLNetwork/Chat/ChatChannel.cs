@@ -153,17 +153,17 @@ namespace WLNetwork.Chat
         /// <param name="text">message</param>
         public void TransmitMessage(ChatMember member, string text, bool service = false)
         {
-            if (member == null)
+            if (member == null && !service)
             {
                 log.ErrorFormat("Message transmit request with no member! Ignoring...");
                 return;
             }
-            if (Members.Values.All(m => m.SteamID != member.SteamID))
+            if (member != null && Members.Values.All(m => m.SteamID != member.SteamID))
             {
                 log.ErrorFormat("Message transmit with member not in the channel! Ignoring....");
                 return;
             }
-            var msg = new ChatMessage {Text = text, Member = member, Id = Id.ToString(), Auto = service};
+            var msg = new ChatMessage {Text = text, Member = member != null ? member.ID : "system", Id = Id.ToString(), Auto = service};
             foreach (var mm in Members.Values)
             {
                 var mm1 = mm;
@@ -200,6 +200,16 @@ namespace WLNetwork.Chat
                 throw new JoinCreateException("That channel is not joinable this way.");
             chan.Members.Add(member.ID, member);
             return chan;
+        }
+
+        /// <summary>
+        /// Send a global system message.
+        /// </summary>
+        /// <param name="message"></param>
+        public static void GlobalSystemMessage(string message)
+        {
+            log.Debug("[GLOBAL MESSAGE] "+message);
+            Channels.Values.First(m=>m.Name == "main").TransmitMessage(null, message, true);
         }
 
         /// <summary>

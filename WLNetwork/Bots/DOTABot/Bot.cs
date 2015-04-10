@@ -29,7 +29,6 @@ namespace WLNetwork.Bots.DOTABot
         private uint GCVersion;
         private SteamClient client;
         private bool dontRecreateLobby;
-        private DotaGCHandler dota;
 
         private SteamFriends friends;
         public ActiveStateMachine<States, Events> fsm;
@@ -43,6 +42,8 @@ namespace WLNetwork.Bots.DOTABot
         private SteamUser user;
 
         #endregion
+
+        public DotaGCHandler dota;
 
         public delegate void LobbyUpdateHandler(CSODOTALobby lobby, ComparisonResult differences);
 
@@ -147,7 +148,11 @@ namespace WLNetwork.Bots.DOTABot
             var ldetails = new CMsgPracticeLobbySetDetails
             {
                 allchat = false,
+#if DEBUG
+                allow_cheats = true,
+#else
                 allow_cheats = false,
+#endif
                 allow_spectating = true,
                 dota_tv_delay = LobbyDotaTVDelay.LobbyDotaTV_10,
                 fill_with_bots = false,
@@ -378,7 +383,7 @@ namespace WLNetwork.Bots.DOTABot
                             else if (dota.Lobby.state == CSODOTALobby.State.RUN)
                                 fsm.FirePriority(Events.DotaEnterLobbyRun);
                         }
-                        if (LobbyUpdate != null) LobbyUpdate(dota.Lobby, diffs);
+                        if (LobbyUpdate != null) LobbyUpdate(c.lobby, diffs);
                     }
                 }, manager);
             }

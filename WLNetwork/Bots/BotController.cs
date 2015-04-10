@@ -92,7 +92,7 @@ namespace WLNetwork.Bots
                 MatchPlayer tplyr = game.Players.FirstOrDefault(m => m.SID == plyr.SteamID);
                 if (tplyr != null)
                 {
-                    tplyr.IsLeaver = plyr.Status != DOTALeaverStatus_t.DOTA_LEAVER_NONE;
+                    tplyr.IsLeaver = plyr.Status != DOTALeaverStatus_t.DOTA_LEAVER_NONE || args.Lobby.left_members.Any(m=>""+m.id == plyr.SteamID);
                     tplyr.LeaverReason = plyr.Status;
                 }
             }

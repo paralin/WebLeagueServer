@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define SEND_DATA_TO_EVERYONE
+
+using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
@@ -8,6 +10,7 @@ using System.Threading.Tasks;
 using log4net;
 using SteamKit2.GC.Dota.Internal;
 using WLNetwork.Bots;
+using WLNetwork.Chat;
 using WLNetwork.Controllers;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Matches.Methods;
@@ -93,11 +96,15 @@ namespace WLNetwork.Matches
                 lock (value)
                 {
                     _players = value;
+#if SEND_DATA_TO_EVERYONE
+                    Matches.InvokeTo(m => m.User != null, new MatchPlayersSnapshot(this), MatchPlayersSnapshot.Msg);
+#else
                     Matches.InvokeTo(
                         m =>
                             m.User != null &&
                             ((Info.Public && Info.Status == MatchStatus.Players) || (m.Match == this)),
                         new MatchPlayersSnapshot(this), MatchPlayersSnapshot.Msg);
+#endif
                     Admins.InvokeTo(
                         m =>
                             m.User != null,
@@ -229,11 +236,12 @@ namespace WLNetwork.Matches
         {
             if (_setup == null)
             {
+                var arg = new ClearSetupMatch() {Id = Id};
                 foreach (Controllers.Matches cont in Matches.Find(m => m.Match == this))
                 {
-                    cont.Invoke("clearsetup");
+                    cont.Invoke(arg, "clearsetupmatch");
                 }
-                Admins.InvokeTo(m=>m.User != null, new ClearSetupMatch(){Id=Id}, "clearsetupmatch");
+                Admins.InvokeTo(m=>m.User != null, arg, "clearsetupmatch");
             }
             else
             {
@@ -241,10 +249,14 @@ namespace WLNetwork.Matches
                 {
                     Bot bot = _setup.Details.Bot;
                     _setup.Details.Bot = null;
+#if SEND_DATA_TO_EVERYONE
+                    Matches.InvokeToAll(_setup, "setupsnapshot");
+#else
                     foreach (Controllers.Matches cont in Matches.Find(m => m.Match == this))
                     {
                         cont.Invoke(_setup, "setupsnapshot");
                     }
+#endif
                     Admins.InvokeTo(m=>m.User != null, _setup, "setupsnapshot");
                     _setup.Details.Bot = bot;
                 }
@@ -271,6 +283,7 @@ namespace WLNetwork.Matches
             if (Info.Status == MatchStatus.Play) return;
             if (controller != null)
             {
+                controller.instance.bot.dota.JoinBroadcastChannel();
                 controller.instance.bot.StartGame();
             }
             Setup.Details.Status = MatchSetupStatus.Done;
@@ -346,6 +359,15 @@ namespace WLNetwork.Matches
         {
             if (!MatchesController.Games.Contains(this)) return;
             ulong matchId = Setup.Details.MatchId;
+            var countMatch = (outcome == EMatchOutcome.k_EMatchOutcome_DireVictory || outcome == EMatchOutcome.k_EMatchOutcome_RadVictory);
+            var punishLeavers = false;
+            if (countMatch && Setup.Details.Players.Any(m => m.IsLeaver))
+            {
+                log.Debug(matchId+" HAS LEAVERS, FORCING TO LEAVERS PENALTY STATE");
+                countMatch = false;
+                punishLeavers = true;
+            }
+
             log.Debug("PROCESSING RESULT " + matchId + " WITH OUTCOME " + outcome);
             var result = new MatchResult
             {
@@ -354,17 +376,54 @@ namespace WLNetwork.Matches
                     Players.Where(m => m.Team == MatchTeam.Dire || m.Team == MatchTeam.Radiant)
                         .Select(x => new MatchResultPlayer(x))
                         .ToArray(),
-                Result = outcome
+                Result = outcome,
+                MatchCounted = countMatch,
+                RatingDire = 0,
+                RatingRadiant = 0
             };
-            RatingCalculator.CalculateRatingDelta(result);
+
+            if(countMatch)
+                RatingCalculator.CalculateRatingDelta(result);
+
             result.ApplyRating();
             result.Save();
-            foreach (
-                Controllers.Matches c in
-                    Players.Select(player => Matches.Find(m => m.User != null && m.User.steam.steamid == player.SID))
-                        .SelectMany(cont => cont))
+
+            if(countMatch)
+                foreach (
+                    Controllers.Matches c in
+                        Players.Select(player => Matches.Find(m => m.User != null && m.User.steam.steamid == player.SID))
+                            .SelectMany(cont => cont))
+                {
+                    c.Result = result;
+                }
+            else
             {
-                c.Result = result;
+                var reason = "some unknown reason";
+                switch (outcome)
+                {
+                    case EMatchOutcome.k_EMatchOutcome_RadVictory:
+                    case EMatchOutcome.k_EMatchOutcome_DireVictory:
+                    case EMatchOutcome.k_EMatchOutcome_NotScored_Leaver:
+                        reason = "leavers";
+                        break;
+                    case EMatchOutcome.k_EMatchOutcome_NotScored_NeverStarted:
+                        reason = "the match never starting";
+                        break;
+                    case EMatchOutcome.k_EMatchOutcome_NotScored_ServerCrash:
+                        reason = "the server crashing";
+                        break;
+                    case EMatchOutcome.k_EMatchOutcome_NotScored_PoorNetworkConditions:
+                        reason = "poor network conditions";
+                        break;
+                }
+                var sysMsg = "Match not counted due to " + reason + ".";
+                if (punishLeavers)
+                {
+                    sysMsg += " Punishing leaver(s) " +
+                              string.Join(", ", Setup.Details.Players.Where(m => m.IsLeaver).Select(m => m.Name)) +
+                              " with an abandon and -30 rating.";
+                }
+                ChatChannel.GlobalSystemMessage(sysMsg);
             }
             Destroy();
         }
