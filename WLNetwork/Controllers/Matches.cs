@@ -247,7 +247,12 @@ namespace WLNetwork.Controllers
                 if (Match.Players.Count < 10) return "You need at least 10 players to start the challenge.";
                 Match.StartPicks();
             }
-            else Match.StartSetup();
+            else if (Match.Info.MatchType == MatchType.StartGame)
+            {
+                if (Match.Players.Count < 10 && !User.authItems.Contains("admin"))
+                    return "Non admins must have 10 players for start games.";
+                Match.StartSetup();
+            }
             return null;
         }
 

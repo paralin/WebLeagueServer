@@ -87,7 +87,7 @@ namespace WLNetwork.Controllers
             }
             if (!ConnectionContext.IsAuthenticated || User == null) return;
             SaveChatChannels();
-            foreach (ChatChannel channel in Channels)
+            foreach (var channel in Channels.ToArray())
             {
                 if (channel.Leavable) Leave(new LeaveRequest() {Id = channel.Id.ToString()});
                 else channel.Members.Remove(User.steam.steamid);

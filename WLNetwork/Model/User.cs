@@ -73,5 +73,7 @@ namespace WLNetwork.Model
     {
         public string name { get; set; }
         public int rating { get; set; }
+        public int wins { get; set; }
+        public int losses { get; set; }
     }
 }

@@ -5,6 +5,7 @@ using MongoDB.Driver.Builders;
 using SteamKit2.GC.Dota.Internal;
 using WLNetwork.Database;
 using WLNetwork.Matches.Enums;
+using WLNetwork.Model;
 using XSockets.Core.XSocket.Helpers;
 
 namespace WLNetwork.Matches
@@ -41,28 +42,22 @@ namespace WLNetwork.Matches
 
         public void ApplyRating()
         {
-            if (RatingRadiant != 0)
-                Mongo.Users.Update(
-                    Query.In("steam.steamid",
-                        Players.Where(m => m.Team == MatchTeam.Radiant).Select(m => new BsonString(m.SID)).ToArray()),
-                    Update.Inc("profile.rating", RatingRadiant), UpdateFlags.Multi);
-            if (RatingDire != 0)
-                Mongo.Users.Update(
-                    Query.In("steam.steamid",
-                        Players.Where(m => m.Team == MatchTeam.Dire).Select(m => new BsonString(m.SID)).ToArray()),
-                    Update.Inc("profile.rating", RatingDire), UpdateFlags.Multi);
-            foreach (
-                Controllers.Matches cont in
-                    Matches.Find(m => m.User != null && Players.Any(x => x.SID == m.User.steam.steamid)))
-            {
+            var radUpdate = Update<User>.Inc(p => p.profile.rating, RatingRadiant);
+            if (Result == EMatchOutcome.k_EMatchOutcome_RadVictory) radUpdate.Inc(p => p.profile.wins, 1);
+            else if (Result == EMatchOutcome.k_EMatchOutcome_DireVictory) radUpdate.Inc(p => p.profile.losses, 1);
+
+            var direUpdate = Update<User>.Inc(p => p.profile.rating, RatingDire);
+            if (Result == EMatchOutcome.k_EMatchOutcome_RadVictory) direUpdate.Inc(p => p.profile.losses, 1);
+            else if (Result == EMatchOutcome.k_EMatchOutcome_DireVictory) direUpdate.Inc(p => p.profile.wins, 1);
+
+            Mongo.Users.Update(Query.In("steam.steamid", Players.Where(m => m.Team == MatchTeam.Radiant).Select(m => new BsonString(m.SID)).ToArray()), radUpdate, UpdateFlags.Multi);
+            Mongo.Users.Update(Query.In("steam.steamid", Players.Where(m => m.Team == MatchTeam.Dire).Select(m => new BsonString(m.SID)).ToArray()), direUpdate, UpdateFlags.Multi);
+
+            foreach (var cont in Matches.Find(m => m.User != null && Players.Any(x => x.SID == m.User.steam.steamid)))
                 cont.ReloadUser();
-            }
-            foreach (
-                Controllers.Chat cont in
-                    Chats.Find(m => m.User != null && Players.Any(x => x.SID == m.User.steam.steamid)))
-            {
-                cont.ReloadUser();
-            }
+
+            foreach (var cont in Chats.Find(m => m.User != null && Players.Any(x => x.SID == m.User.steam.steamid)))
+                cont.ReloadUser();        
         }
 
         public void Save()
