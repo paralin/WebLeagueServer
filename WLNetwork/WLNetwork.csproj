@@ -165,11 +165,11 @@
     <Compile Include="Matches\Methods\MatchVoteArgs.cs" />
     <Compile Include="Matches\Methods\PickPlayer.cs" />
     <Compile Include="Matches\Methods\PublicMatchUpd.cs" />
+    <Compile Include="Model\ActiveMatch.cs" />
     <Compile Include="Model\AuthToken.cs" />
     <Compile Include="Model\Bot.cs" />
-    <Compile Include="Model\BotHost.cs" />
     <Compile Include="Model\Chat.cs" />
-    <Compile Include="Model\Matches.cs" />
+    <Compile Include="Matches\Methods\MatchMethodOptions.cs" />
     <Compile Include="Model\User.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

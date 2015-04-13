@@ -8,10 +8,14 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using log4net;
+using MongoDB.Driver.Builders;
+using MongoDB.Driver.Linq;
+using SteamKit2.GC.CSGO.Internal;
 using SteamKit2.GC.Dota.Internal;
 using WLNetwork.Bots;
 using WLNetwork.Chat;
 using WLNetwork.Controllers;
+using WLNetwork.Database;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Matches.Methods;
 using WLNetwork.Model;
@@ -34,12 +38,60 @@ namespace WLNetwork.Matches
         private MatchGameInfo _info;
         private ObservableRangeCollection<MatchPlayer> _players;
         private MatchSetup _setup;
+        private ActiveMatch _activeMatch = null;
+
         public BotController controller = null;
 
         /// <summary>
         ///     This is for two picks in captains, set to true at start so first pick is just 1
         /// </summary>
         private bool pickedAlready;
+
+        /// <summary>
+        /// Try to recover a match from a stored active match.
+        /// </summary>
+        /// <param name="match"></param>
+        private MatchGame(ActiveMatch match)
+        {
+            Id = match.Id;
+            Info = match.Info;
+            Setup = new MatchSetup(match.Id, match.Details);
+            pickedAlready = true;
+            Players = new ObservableRangeCollection<MatchPlayer>(match.Players);
+            Players.CollectionChanged += PlayersOnCollectionChanged;
+            
+            var ebot = BotDB.Bots.Values.FirstOrDefault(m => m.Id == match.Details.Bot.Id);
+            if (ebot != null)
+            {
+                ebot.InUse = true;
+                Setup.Details.Bot = ebot;
+            }
+            else
+            {
+                ebot = Mongo.Bots.FindOneAs<Bot>(Query<Bot>.EQ(m => m.Id, match.Details.Bot.Id));
+                if (ebot != null)
+                {
+                    ebot.InUse = true;
+                    BotDB.Bots[ebot.Id] = ebot;
+                }
+                else
+                {
+                    log.Warn("Can't find bot for "+match.Id+"! Dropping match...");
+                    return;
+                }
+            }
+
+            controller = new BotController(Setup.Details);
+            controller.instance.Start();
+            controller.instance.bot.LobbyNotRecovered += (sender, args) =>
+            {
+                ChatChannel.GlobalSystemMessage("Unable to restore match "+Info.Id+" after system restart. Please report result to admins for manual rating update.");
+                Destroy();
+            };
+
+            MatchesController.Games.Add(this);
+            log.Info("MATCH RESTORE [" + match.Id + "] [" + Info.Owner + "] [" + Info.GameMode + "] [" + Info.MatchType + "]");
+        }
 
         /// <summary>
         ///     Create a new game with options
@@ -124,16 +176,6 @@ namespace WLNetwork.Matches
         }
 
         /// <summary>
-        ///     Update with some options
-        /// </summary>
-        /// <param name="options"></param>
-        public void Update(MatchCreateOptions options)
-        {
-            Info.GameMode = options.GameMode;
-            Info.MatchType = options.MatchType;
-        }
-
-        /// <summary>
         ///     Transmit an update for a player.
         /// </summary>
         /// <param name="player"></param>
@@ -208,6 +250,11 @@ namespace WLNetwork.Matches
         /// </summary>
         public void Destroy()
         {
+            if (_activeMatch != null)
+            {
+                Mongo.ActiveMatches.Remove(Query<ActiveMatch>.EQ(m => m.Id, Id));
+                _activeMatch = null;
+            }
             foreach (Controllers.Matches cont in Matches.Find(m => m.Match == this))
             {
                 cont.Match = null;
@@ -260,6 +307,7 @@ namespace WLNetwork.Matches
 #endif
                     Admins.InvokeTo(m=>m.User != null, _setup, "setupsnapshot");
                     _setup.Details.Bot = bot;
+                    if (_activeMatch != null) SaveActiveGame();
                 }
             }
         }
@@ -273,6 +321,7 @@ namespace WLNetwork.Matches
                     cont.Invoke(_info, "infosnapshot");
                 }
                 Admins.InvokeTo(m=>m.User != null, _info, "infosnapshot");
+                if(_activeMatch != null) SaveActiveGame();
             }
         }
 
@@ -310,6 +359,19 @@ namespace WLNetwork.Matches
             Players.RemoveRange(toRemove);
             foreach (Controllers.Matches cont in toRemove.Select(player => Matches.Find(m => m.User != null && m.User.steam.steamid == player.SID).FirstOrDefault()).Where(cont => cont != null))
                 cont.Match = null;
+        }
+
+        /// <summary>
+        /// Updates/saves active game info
+        /// </summary>
+        public void SaveActiveGame()
+        {
+            if(_activeMatch == null) _activeMatch = new ActiveMatch();
+            _activeMatch.Id = Id;
+            _activeMatch.Details = Setup.Details;
+            _activeMatch.Players = Players.ToArray();
+            _activeMatch.Info = Info;
+            Mongo.ActiveMatches.Save(_activeMatch);
         }
 
         /// <summary>
@@ -437,6 +499,16 @@ namespace WLNetwork.Matches
             log.Debug("ADMIN DESTROY "+Id);
             Matches.InvokeTo(m=>m.Match == this, new SystemMsg("Admin Closed Match", "An admin has destroyed the match you were in."), SystemMsg.Msg);
             this.Destroy();
+        }
+
+        public static void RecoverActiveMatches()
+        {
+            foreach (var match in Mongo.ActiveMatches.FindAllAs<ActiveMatch>())
+            {
+                log.Debug("RECOVERING MATCH "+match.Id+"...");
+// ReSharper disable once ObjectCreationAsStatement
+                new MatchGame(match).SaveActiveGame();
+            }
         }
     }
 

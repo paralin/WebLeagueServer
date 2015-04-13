@@ -17,10 +17,10 @@ namespace WLNetwork.Database
         public static MongoServer Server;
         public static MongoDatabase Database;
 
-        public static MongoCollection Users;
-        public static MongoCollection BotHosts;
-        public static MongoCollection Bots;
-        public static MongoCollection Results;
+        public static MongoCollection<User> Users;
+        public static MongoCollection<Bot> Bots;
+        public static MongoCollection<MatchResult> Results;
+        public static MongoCollection<ActiveMatch> ActiveMatches;
 
         static Mongo()
         {
@@ -51,9 +51,9 @@ namespace WLNetwork.Database
 #endif
 
             Users = Database.GetCollection<User>("users");
-            BotHosts = Database.GetCollection<BotHost>("botHosts");
             Bots = Database.GetCollection<Bot>("bots");
             Results = Database.GetCollection<MatchResult>("matchResults");
+            ActiveMatches = Database.GetCollection<ActiveMatch>("activeMatches");
         }
     }
 }

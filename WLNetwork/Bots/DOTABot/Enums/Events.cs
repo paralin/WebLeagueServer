@@ -15,6 +15,7 @@
         AttemptReconnect,
         DotaEnterLobbyUI,
         DotaEnterLobbyRun,
-        LogonFailSteamDown
+        LogonFailSteamDown,
+        DotaEnteredRunningLobby
     }
 }

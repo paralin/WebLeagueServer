@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Appccelerate.StateMachine;
 using Appccelerate.StateMachine.Machine;
 using KellermanSoftware.CompareNetObjects;
@@ -10,6 +11,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SteamKit2;
 using SteamKit2.GC.Dota.Internal;
+using SteamKit2.GC.TF2.Internal;
 using WLBotHost.Utils;
 using WLNetwork.BotEnums;
 using WLNetwork.Bots.DOTABot.Enums;
@@ -46,6 +48,8 @@ namespace WLNetwork.Bots.DOTABot
         public DotaGCHandler dota;
 
         public delegate void LobbyUpdateHandler(CSODOTALobby lobby, ComparisonResult differences);
+
+        public event EventHandler LobbyNotRecovered;
 
         private readonly Dictionary<ulong, Action<CMsgDOTAMatch>> Callbacks =
             new Dictionary<ulong, Action<CMsgDOTAMatch>>();
@@ -111,14 +115,16 @@ namespace WLNetwork.Bots.DOTABot
             fsm.In(States.DisconnectRetry)
                 .ExecuteOnEntry(StartReconnectTimer);
             fsm.In(States.Dota)
-                .ExecuteOnExit(DisconnectDota)
-                .On(Events.DotaJoinedLobby).Goto(States.DotaLobby);
+                .ExecuteOnExit(DisconnectDota);
             fsm.In(States.DotaConnect)
                 .ExecuteOnEntry(ConnectDota)
                 .On(Events.DotaGCReady).Goto(States.DotaMenu);
             fsm.In(States.DotaMenu)
                 .ExecuteOnEntry(SetOnlinePresence)
-                .ExecuteOnEntry(CreateLobby);
+                .ExecuteOnEntry(CreateLobby)
+                .On(Events.DotaJoinedLobby).Goto(States.DotaLobby)
+                .On(Events.DotaEnteredRunningLobby).Goto(States.DotaLobbyPlay)
+                .On(Events.DotaCreatedLobby).Goto(States.DotaLobby);
             fsm.In(States.DotaLobby)
                 .ExecuteOnEntry(EnterLobbyChat)
                 .ExecuteOnEntry(EnterBroadcastChannel)
@@ -141,6 +147,17 @@ namespace WLNetwork.Bots.DOTABot
 
         public void CreateLobby()
         {
+            if (setupDetails.State >= DOTA_GameState.DOTA_GAMERULES_STATE_WAIT_FOR_PLAYERS_TO_LOAD)
+            {
+                Task.Factory.StartNew(() =>
+                {
+                    Thread.Sleep(2000);
+                    if (dota.Lobby != null) return;
+                    log.Debug("Lobby not created after 2 seconds, assuming match ended.");
+                    if (LobbyNotRecovered != null) LobbyNotRecovered(this, EventArgs.Empty);
+                });
+                return;
+            }
             if (dontRecreateLobby) return;
             dontRecreateLobby = true;
             leaveLobby();
@@ -329,7 +346,14 @@ namespace WLNetwork.Bots.DOTABot
                 {
                     log.DebugFormat("Lobby snapshot received with state: {0}", c.lobby.state);
                     log.Debug(JsonConvert.SerializeObject(c.lobby));
-                    fsm.Fire(Events.DotaJoinedLobby);
+                    fsm.Fire(c.lobby.state == CSODOTALobby.State.RUN
+                        ? Events.DotaEnteredRunningLobby
+                        : Events.DotaJoinedLobby);
+
+                    ComparisonResult diffs = Diff.Compare(null, c.lobby);
+                    if (c.lobby.state == CSODOTALobby.State.UI) fsm.FirePriority(Events.DotaEnterLobbyUI);
+                    else if (c.lobby.state == CSODOTALobby.State.RUN) fsm.FirePriority(Events.DotaEnterLobbyRun);
+                    if (LobbyUpdate != null) LobbyUpdate(c.lobby, diffs);
                 }, manager);
                 new Callback<DotaGCHandler.PingRequest>(c =>
                 {
@@ -367,6 +391,7 @@ namespace WLNetwork.Bots.DOTABot
                 //new Callback<DotaGCHandler.LiveLeagueGameUpdate>(c => log.DebugFormat("Tournament games: {0}", c.result.live_league_games), manager);
                 new Callback<DotaGCHandler.PracticeLobbyUpdate>(c =>
                 {
+                    fsm.Fire(Events.DotaJoinedLobby);
                     ComparisonResult diffs = Diff.Compare(c.oldLobby, c.lobby);
                     var dstrings = new List<string>(diffs.Differences.Count);
                     dstrings.AddRange(
@@ -375,13 +400,11 @@ namespace WLNetwork.Bots.DOTABot
                                 string.Format("{0}: {1} => {2}", diff.PropertyName, diff.Object1Value, diff.Object2Value)));
                     if (dstrings.Count > 0)
                     {
-                        string msg = "Update: " + string.Join(", ", dstrings);
-                        log.Debug(msg);
-                        if (dota.Lobby != null)
+                        log.Debug("Update: " + string.Join(", ", dstrings));
+                        if (c.lobby != null)
                         {
-                            if (dota.Lobby.state == CSODOTALobby.State.UI) fsm.FirePriority(Events.DotaEnterLobbyUI);
-                            else if (dota.Lobby.state == CSODOTALobby.State.RUN)
-                                fsm.FirePriority(Events.DotaEnterLobbyRun);
+                            if (c.lobby.state == CSODOTALobby.State.UI) fsm.FirePriority(Events.DotaEnterLobbyUI);
+                            else if (c.lobby.state == CSODOTALobby.State.RUN) fsm.FirePriority(Events.DotaEnterLobbyRun);
                         }
                         if (LobbyUpdate != null) LobbyUpdate(c.lobby, diffs);
                     }
@@ -405,10 +428,10 @@ namespace WLNetwork.Bots.DOTABot
             {
                 if (user != null)
                 {
-                    if (dota != null)
-                    {
-                        leaveLobby();
-                    }
+                    //if (dota != null)
+                    //{
+                    //    leaveLobby();
+                    //}
                     user.LogOff();
                     user = null;
                 }
@@ -435,7 +458,7 @@ namespace WLNetwork.Bots.DOTABot
             friends = null;
             dota = null;
             manager = null;
-            log.Debug("Bot destroyed due to remote command.");
+            log.Debug("Bot destroyed.");
         }
 
         public void StartGameAndLeave()

@@ -108,7 +108,7 @@ namespace WLNetwork.Bots
 
         public void Stop()
         {
-            bot.leaveLobby();
+            //bot.leaveLobby();
             bot.Destroy();
         }
 

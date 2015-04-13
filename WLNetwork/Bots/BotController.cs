@@ -36,7 +36,10 @@ namespace WLNetwork.Bots
         {
             var g =game.GetGame();
             if (g != null)
+            {
                 g.KickSpectators();
+                g.SaveActiveGame();
+            }
         }
 
         private void UnknownPlayer(object sender, ulong player)
@@ -76,6 +79,22 @@ namespace WLNetwork.Bots
                         }
                         game.TransmitUpdate();
                         game.TransmitLobbyReady();
+                        break;
+                    }
+                    case States.DotaLobbyPlay:
+                    {
+                        log.Debug("Bot entered Play state "+game.Bot.Username);
+                        game.Status = MatchSetupStatus.Done;
+                        var match = game.GetGame();
+                        if (match != null)
+                        {
+                            if (match.Info.Status == Matches.Enums.MatchStatus.Lobby)
+                            {
+                                match.Info.Status = Matches.Enums.MatchStatus.Play;
+                                match.Info = match.Info;
+                            }
+                        }
+                        game.TransmitUpdate();
                         break;
                     }
                 }
