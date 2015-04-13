@@ -32,21 +32,13 @@ namespace WLNetwork.Database
 #if DEBUG
             Client = new MongoClient(Settings.Default.DMongoURL + "/" + Settings.Default.DMongoDB);
 #else
-            var mongoUrl = System.Environment.GetEnvironmentVariable("MONGODB_URL");
-            if (mongoUrl == null)
-            {
-                log.Fatal("MONGODB_URL environment variable missing.");
-                Environment.Exit(126);
-                return;
-            }
-
-            Client = new MongoClient(mongoUrl);
+            Client = new MongoClient(Env.MONGODB_URL);
 #endif
             Server = Client.GetServer();
 #if DEBUG
             Database = Server.GetDatabase(Settings.Default.DMongoDB);
 #else
-            var uri = new Uri(mongoUrl);
+            var uri = new Uri(Env.MONGODB_URL);
             Database = Server.GetDatabase(uri.AbsolutePath.Replace("/", ""));
 #endif
 

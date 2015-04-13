@@ -11,5 +11,14 @@
     <Setting Name="AuthSecret" Type="System.String" Scope="User">
       <Value Profile="(Default)">webleague-secret</Value>
     </Setting>
+    <Setting Name="TEAMSPEAK_URL" Type="System.String" Scope="User">
+      <Value Profile="(Default)">192.168.1.46:10011</Value>
+    </Setting>
+    <Setting Name="TEAMSPEAK_AUTH" Type="System.String" Scope="User">
+      <Value Profile="(Default)">serveradmin:qGDP0jay</Value>
+    </Setting>
+    <Setting Name="TEAMSPEAK_PORT" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">9987</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
