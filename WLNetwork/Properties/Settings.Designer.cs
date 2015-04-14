@@ -73,7 +73,7 @@ namespace WLNetwork.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("serveradmin:qGDP0jay")]
+        [global::System.Configuration.DefaultSettingValueAttribute("serveradmin:EvVFycUi")]
         public string TEAMSPEAK_AUTH {
             get {
                 return ((string)(this["TEAMSPEAK_AUTH"]));

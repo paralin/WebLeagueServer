@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -21,7 +22,7 @@ namespace WLNetwork.Voice
             (MethodBase.GetCurrentMethod().DeclaringType);
         public static Teamspeak Instance = null;
 
-        public ObservableDictionary<string, ChannelInfoResult> Channels;
+        public Dictionary<string, ChannelInfoResult> Channels;
 
         ServerQueryClient client;
 
@@ -30,7 +31,7 @@ namespace WLNetwork.Voice
         public Teamspeak()
         {
             Instance = this;
-            Channels = new ObservableDictionary<string, ChannelInfoResult>();
+            Channels = new Dictionary<string, ChannelInfoResult>();
             RegisterDefaultChannels();
         }
 
@@ -73,7 +74,22 @@ namespace WLNetwork.Voice
             }
 
             parts = Env.TEAMSPEAK_AUTH.Split(':');
-            ServerQueryBaseResult login = client.Login(parts[0], parts[1]).Result;
+            ServerQueryBaseResult login;
+            try
+            {
+                login = client.Login(parts[0], parts[1]).Result;
+            }
+            catch (Exception ex)
+            {
+                log.Error("Error authenticating with teamspeak! Trying again in 1 minute...", ex);
+                Shutdown();
+                Task.Factory.StartNew(() =>
+                {
+                    Thread.Sleep(TimeSpan.FromMinutes(1));
+                    Startup();
+                });
+                return;
+            }
             if (login.Success)
             {
                 log.Debug("Successfully authed to Teamspeak.");
@@ -100,6 +116,12 @@ namespace WLNetwork.Voice
                     Startup();
                 });
                 return;
+            }
+
+            var res = client.SendCommandAsync("instanceedit serverinstance_serverquery_flood_commands=50").Result;
+            if (!res.Success)
+            {
+                log.Warn("Unable to change query flood params, we could max out the server. "+res.ErrorMessage);
             }
 
             client.KeepAlive(TimeSpan.FromMinutes(1));
@@ -188,6 +210,23 @@ namespace WLNetwork.Voice
                 ChannelForcedSilence = "1",
                 ChannelNeededTalkPower = "99999"
             };
+            Channels["Unknown"] = new ChannelInfoResult()
+            {
+                ChannelCodecQuality = "1",
+                ChannelName = "Unknown",
+                ChannelDescription = "Channel for clients that have not verified their identity yet.",
+                ChannelFlagPermanent = "1",
+                ChannelForcedSilence = "1",
+                ChannelNeededTalkPower = "99999"
+            };
+            Channels["[spacer0]"] = new ChannelInfoResult()
+            {
+                ChannelName = "[spacer0]",
+                ChannelFlagPermanent = "1",
+                //ChannelNeededTalkPower = "9999",
+                ChannelMaxclients = "0",
+                ChannelFlagMaxclientsUnlimited = "0"
+            };
         }
 
         private string[] ObjectToArgs(object obj, string[] props=null)
@@ -203,12 +242,7 @@ namespace WLNetwork.Voice
                     @t =>
                         new
                         {
-                            @t,
-                            name =
-                                string.Concat(
-                                    @t.prop.Name.Select(
-                                        (x, i) => i > 0 && char.IsUpper(x) ? "_" + x.ToString() : x.ToString()))
-                                    .ToLower()
+                            @t, name = string.Concat( @t.prop.Name.Select( (x, i) => i > 0 && char.IsUpper(x) ? "_" + x.ToString() : x.ToString())).ToLower().Replace("pid", "cpid")
                         })
                 .Select(@t => @t.name + "=" + @t.@t.val.ToString().Escape()).ToArray();
         }
@@ -243,7 +277,8 @@ namespace WLNetwork.Voice
 
                     // Compare the two
                     var comp = compare.Compare(lookupr, channel);
-                    if (comp.Differences.Any(m => m.PropertyName != ".Cid" && (m.PropertyName != ".ChannelPassword" || ((string)m.Object1Value != "OtycbMEkSzZZvqMxSSZuWKscxUY="))))
+                    if (channel.ChannelFlagPassword == null) channel.ChannelFlagPassword = "0";
+                    if (comp.Differences.Any(m => m.PropertyName != ".Cid" && (m.PropertyName != ".ChannelPassword" || (lookupr.ChannelFlagPassword != channel.ChannelFlagPassword))))
                     {
                         string[] props = comp.Differences.Select(m => m.PropertyName.Substring(1)).ToArray();
                         var eres = await SendCommandAsync("channeledit cid="+exist.Cid+" " + string.Join(" ", ObjectToArgs(channel, props)));

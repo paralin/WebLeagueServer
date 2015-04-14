@@ -15,7 +15,7 @@
       <Value Profile="(Default)">192.168.1.46:10011</Value>
     </Setting>
     <Setting Name="TEAMSPEAK_AUTH" Type="System.String" Scope="User">
-      <Value Profile="(Default)">serveradmin:qGDP0jay</Value>
+      <Value Profile="(Default)">serveradmin:EvVFycUi</Value>
     </Setting>
     <Setting Name="TEAMSPEAK_PORT" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">9987</Value>

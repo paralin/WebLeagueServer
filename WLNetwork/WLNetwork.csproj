@@ -198,6 +198,7 @@
     <Compile Include="Utils\RandomPassword.cs" />
     <Compile Include="Utils\XSLogger.cs" />
     <Compile Include="Utils\XTensions.cs" />
+    <Compile Include="Voice\TS3\ServerGroupListResult.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

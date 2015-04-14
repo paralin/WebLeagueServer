@@ -277,58 +277,66 @@ namespace WLNetwork.Matches
 
         public void CreateTeamspeakChannels()
         {
-            //Top level match channel
-            string name;
-            if (Info.MatchType == MatchType.StartGame)
-                name = Players.First(m => m.IsCaptain || m.SID == Info.Owner).Name + "'s Startgame";
-            else
+            Task.Factory.StartNew(async () =>
             {
-                var plyrs = Players.Where(m => m.IsCaptain).ToArray();
-                name = plyrs[0].Name + " vs. " + plyrs[1].Name;
-            }
-            ChannelNames.Add(name);
-            var topLevel = Teamspeak.Instance.Channels[name] = new ChannelInfoResult()
-            {
-                ChannelName = name,
-                ChannelCodecQuality = "10",
-                ChannelDescription = "Top level channel for this match.",
-                ChannelFlagPermanent = "1"
-            };
-            Teamspeak.Instance.SetupChannels();
-            var uid = Id.ToString().Substring(0, 2);
-            name = uid + " Radiant";
-            ChannelNames.Add(name);
-            var radiant = Teamspeak.Instance.Channels[name] = new ChannelInfoResult()
-            {
-                ChannelName = name,
-                ChannelCodecQuality = "10",
-                ChannelDescription = "Channel for the radiant team.",
-                ChannelFlagPassword = "1",
-                ChannelPassword = Id.ToString(),
-                ChannelFlagPermanent = "1",
-                Pid = topLevel.Cid
-            };
-            name = uid + " Dire";
-            ChannelNames.Add(name);
-            var dire = Teamspeak.Instance.Channels[name] = new ChannelInfoResult()
-            {
-                ChannelName = name,
-                ChannelCodecQuality = "10",
-                ChannelDescription = "Channel for the dire team.",
-                ChannelFlagPassword = "1",
-                ChannelPassword = Id.ToString(),
-                ChannelFlagPermanent = "1",
-                Pid = topLevel.Cid
-            };
-            Teamspeak.Instance.SetupChannels();
+
+                //Top level match channel
+                string name;
+                if (Info.MatchType == MatchType.StartGame)
+                    name = Players.First(m => m.IsCaptain || m.SID == Info.Owner).Name + "'s Startgame";
+                else
+                {
+                    var plyrs = Players.Where(m => m.IsCaptain).ToArray();
+                    name = plyrs[0].Name + " vs. " + plyrs[1].Name;
+                }
+                ChannelNames.Add(name);
+                var topLevel = Teamspeak.Instance.Channels[name] = new ChannelInfoResult()
+                {
+                    ChannelName = name,
+                    ChannelCodecQuality = "10",
+                    ChannelDescription = "Top level channel for this match. Match ID is "+Id+".",
+                    ChannelFlagPermanent = "1"
+                };
+                await Teamspeak.Instance.SetupChannels();
+                var uid = Id.ToString().Substring(0, 4);
+                name = "Radiant "+uid;
+                ChannelNames.Add(name);
+                var radiant = Teamspeak.Instance.Channels[name] = new ChannelInfoResult()
+                {
+                    ChannelName = name,
+                    ChannelCodecQuality = "10",
+                    ChannelDescription = "Channel for the radiant team.",
+                    ChannelFlagPassword = "1",
+                    ChannelPassword = Id.ToString()+"p",
+                    ChannelFlagPermanent = "1",
+                    Pid = topLevel.Cid
+                };
+                name = "Dire "+uid;
+                ChannelNames.Add(name);
+                var dire = Teamspeak.Instance.Channels[name] = new ChannelInfoResult()
+                {
+                    ChannelName = name,
+                    ChannelCodecQuality = "10",
+                    ChannelDescription = "Channel for the dire team. Match ID is "+Id+".",
+                    ChannelFlagPassword = "1",
+                    ChannelPassword = Id+"p",
+                    ChannelFlagPermanent = "1",
+                    Pid = topLevel.Cid
+                };
+                await Teamspeak.Instance.SetupChannels();
+
+            });
         }
 
         public void DeleteTeamspeakChannels()
         {
-            foreach (var chan in ChannelNames)
-                Teamspeak.Instance.Channels.Remove(chan);
-            Teamspeak.Instance.SetupChannels();
-            ChannelNames.Clear();
+            Task.Factory.StartNew(async () =>
+            {
+                foreach (var chan in ChannelNames)
+                    Teamspeak.Instance.Channels.Remove(chan);
+                await Teamspeak.Instance.SetupChannels();
+                ChannelNames.Clear();
+            });
         }
 
         ~MatchGame()
