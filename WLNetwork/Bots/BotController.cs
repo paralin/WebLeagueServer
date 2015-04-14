@@ -119,6 +119,7 @@ namespace WLNetwork.Bots
                         game.Cleanup();
                         break;
                     }
+					case States.DotaLobby:
                     case States.DotaLobbyUI:
                     {
                         log.Debug("Bot entered LobbyUI " + game.Bot.Username);
