@@ -15,6 +15,12 @@ namespace WLNetwork
         }
     }
 
+    public class PlayerHeroArgs
+    {
+        public ulong steam_id { get; set; }
+        public uint hero_id { get; set; }
+    }
+
     public class MatchStateArgs
     {
         public DOTA_GameState State { get; set; }

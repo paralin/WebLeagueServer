@@ -10,8 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using log4net;
 using MongoDB.Driver.Builders;
-using MongoDB.Driver.Linq;
-using SteamKit2.GC.CSGO.Internal;
 using SteamKit2.GC.Dota.Internal;
 using TentacleSoftware.TeamSpeakQuery.ServerQueryResult;
 using WLNetwork.Bots;
@@ -88,11 +86,7 @@ namespace WLNetwork.Matches
 
             controller = new BotController(Setup.Details);
             controller.instance.Start();
-            controller.instance.bot.LobbyNotRecovered += (sender, args) =>
-            {
-                ChatChannel.GlobalSystemMessage("Unable to restore match "+Info.Id+" after system restart. Please report result to admins for manual rating update.");
-                Destroy();
-            };
+            controller.instance.bot.LobbyNotRecovered += (sender, args) => ProcessMatchResult(EMatchOutcome.k_EMatchOutcome_Unknown);
 
             MatchesController.Games.Add(this);
             log.Info("MATCH RESTORE [" + match.Id + "] [" + Info.Owner + "] [" + Info.GameMode + "] [" + Info.MatchType + "]");
@@ -543,6 +537,9 @@ namespace WLNetwork.Matches
                         break;
                     case EMatchOutcome.k_EMatchOutcome_NotScored_PoorNetworkConditions:
                         reason = "poor network conditions";
+                        break;
+                    case EMatchOutcome.k_EMatchOutcome_Unknown:
+                        reason = "unknown match result, admin will confirm result and apply rating";
                         break;
                 }
                 var sysMsg = "Match not counted due to " + reason + ".";

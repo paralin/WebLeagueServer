@@ -2,11 +2,14 @@
 using System.Linq;
 using System.Reflection;
 using log4net;
+using SteamKit2.GC.CSGO.Internal;
 using SteamKit2.GC.Dota.Internal;
 using WLNetwork.BotEnums;
+using WLNetwork.Chat;
 using WLNetwork.Database;
 using WLNetwork.Matches;
 using WLNetwork.Matches.Enums;
+using WLNetwork.Model;
 using WLNetwork.Utils;
 
 namespace WLNetwork.Bots
@@ -30,6 +33,54 @@ namespace WLNetwork.Bots
             instance.MatchOutcome += MatchOutcome;
             instance.UnknownPlayer += UnknownPlayer;
             instance.GameStarted += GameStarted;
+            instance.FirstBloodHappened += FirstBloodHappened;
+            instance.SpectatorCountUpdate += SpectatorCountUpdate;
+            instance.HeroId += HeroId;
+        }
+
+        private void HeroId(object sender, PlayerHeroArgs playerHeroArgs)
+        {
+            //Find the player
+            var player = game.Players.FirstOrDefault(m => m.SID == playerHeroArgs.steam_id + "");
+            if (player == null)
+            {
+                log.Warn("Unable to find player for hero ID update! Steam ID: "+playerHeroArgs.steam_id);
+                return;
+            }
+
+            //Find the hero
+            HeroInfo hero;
+            if (!HeroCache.Heros.TryGetValue(playerHeroArgs.hero_id, out hero))
+            {
+                log.Warn("Unable to find hero ID "+playerHeroArgs.hero_id+"!");
+                return;
+            }
+
+            //And we're done!
+            player.Hero = hero;
+
+            log.Debug("Hero ID "+hero.Id+" resolved to "+hero.fullName);
+            
+            //Let's not transmit this yet as when the match state updates it will be transmitted
+        }
+
+        private void SpectatorCountUpdate(object sender, uint u)
+        {
+            game.SpectatorCount = u;
+            game.TransmitUpdate();
+        }
+
+        private void FirstBloodHappened(object sender, EventArgs eventArgs)
+        {
+            var g = game.GetGame();
+            if (g != null)
+            {
+                if (game.FirstBloodHappened) return;
+                game.FirstBloodHappened = true;
+                game.TransmitUpdate();
+                g.SaveActiveGame();
+                ChatChannel.GlobalSystemMessage("First blood was just spilled in match "+game.Id.ToString().Substring(0, 4)+"!");
+            }
         }
 
         private void GameStarted(object sender, EventArgs eventArgs)
@@ -37,6 +88,8 @@ namespace WLNetwork.Bots
             var g =game.GetGame();
             if (g != null)
             {
+                game.GameStartTime = DateTime.UtcNow;
+                game.TransmitUpdate();
                 g.KickSpectators();
                 g.SaveActiveGame();
             }

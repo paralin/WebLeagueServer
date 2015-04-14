@@ -49,5 +49,20 @@ namespace WLNetwork.Matches
         ///     Match ID
         /// </summary>
         public ulong MatchId { get; set; }
+
+        /// <summary>
+        ///     Live match spectator count.
+        /// </summary>
+        public uint SpectatorCount { get; set; }
+
+        /// <summary>
+        ///     First blood happened?
+        /// </summary>
+        public bool FirstBloodHappened { get; set; }
+
+        /// <summary>
+        ///     Time game started
+        /// </summary>
+        public DateTime GameStartTime { get; set; }
     }
 }

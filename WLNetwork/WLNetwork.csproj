@@ -147,6 +147,7 @@
     <Compile Include="Bots\BotController.cs" />
     <Compile Include="Controllers\Matches.cs" />
     <Compile Include="Controllers\WebLeagueController.cs" />
+    <Compile Include="Database\HeroCache.cs" />
     <Compile Include="Database\Mongo.cs" />
     <Compile Include="Bots\DOTABot\Bot.cs" />
     <Compile Include="Bots\DOTABot\Enums\Events.cs" />
@@ -178,6 +179,7 @@
     <Compile Include="Model\Bot.cs" />
     <Compile Include="Model\Chat.cs" />
     <Compile Include="Matches\Methods\MatchMethodOptions.cs" />
+    <Compile Include="Model\HeroInfo.cs" />
     <Compile Include="Model\User.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -216,10 +218,4 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-  </Target>
 </Project>

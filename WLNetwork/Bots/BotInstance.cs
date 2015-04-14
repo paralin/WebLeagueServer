@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Appccelerate.StateMachine;
 using Appccelerate.StateMachine.Machine;
 using log4net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SteamKit2.GC.Dota.Internal;
+using WLBotHost.Utils;
 using WLNetwork.BotEnums;
 using WLNetwork.Bots.DOTABot;
 using WLNetwork.Bots.DOTABot.Enums;
@@ -30,6 +32,9 @@ namespace WLNetwork.Bots
         public event EventHandler<States> StateUpdate;
         public event EventHandler<ulong> UnknownPlayer;
         public event EventHandler GameStarted;
+        public event EventHandler FirstBloodHappened;
+        public event EventHandler<uint> SpectatorCountUpdate;
+        public event EventHandler<PlayerHeroArgs> HeroId;
 
         public LobbyBot bot;
 
@@ -90,6 +95,19 @@ namespace WLNetwork.Bots
                     }
                 else if (lobby.game_state == DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME)
                     log.Debug(JObject.FromObject(lobby).ToString(Formatting.Indented));
+
+                var membRegex = new Regex("(members[)([0-9]+)(])");
+                foreach (var diff in differences.Differences.Where(m => m.PropertyName.Contains("hero_id")))
+                {
+                    var match = membRegex.Match(diff.PropertyName);
+                    if (match.Success)
+                    {
+                        int idx = int.Parse(match.Groups[1].Value.Split('[')[1]);
+                        var memb = lobby.members[idx];
+                        if (HeroId != null) HeroId(this, new PlayerHeroArgs() { hero_id = memb.hero_id, steam_id = memb.id });
+                    }
+                }
+
                 if (MatchStatus != null)
                     MatchStatus(this, new MatchStateArgs {State = lobby.game_state, Status = lobby.state});
                 if (differences.Differences.Any(m => m.PropertyName == ".match_id"))
@@ -98,6 +116,10 @@ namespace WLNetwork.Bots
                     if (MatchOutcome != null) MatchOutcome(this, lobby.match_outcome);
                 if (differences.Differences.Any(m=>m.PropertyName == ".game_state") && lobby.game_state == DOTA_GameState.DOTA_GAMERULES_STATE_HERO_SELECTION)
                     if (GameStarted != null) GameStarted(this, EventArgs.Empty);
+                if(differences.Differences.Any(m=>m.PropertyName == ".first_blood_happened") && lobby.first_blood_happened)
+                    if (FirstBloodHappened != null) FirstBloodHappened(this, EventArgs.Empty);
+                if(differences.Differences.Any(m=>m.PropertyName == ".num_spectators"))
+                    if (SpectatorCountUpdate != null) SpectatorCountUpdate(this, lobby.num_spectators);
             };
         }
 
