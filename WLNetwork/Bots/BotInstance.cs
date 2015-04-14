@@ -24,6 +24,8 @@ namespace WLNetwork.Bots
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public event EventHandler LobbyCleared;
+		public event EventHandler LobbyReady;
+		public event EventHandler LobbyPlaying;
         public event EventHandler<EMatchOutcome> MatchOutcome;
         public event EventHandler<ulong> MatchId;
         public event EventHandler<MatchStateArgs> MatchStatus;
@@ -47,9 +49,10 @@ namespace WLNetwork.Bots
                 {
                     if (LobbyCleared != null) LobbyCleared(this, EventArgs.Empty);
                     return;
-                }
+				}
                 if (lobby.state == CSODOTALobby.State.UI)
                 {
+					if(LobbyReady != null) LobbyReady(this, EventArgs.Empty);
                     var args = new PlayerReadyArgs();
                     IEnumerable<CDOTALobbyMember> members =
                         lobby.members.Where(
@@ -95,6 +98,8 @@ namespace WLNetwork.Bots
                     }
                 else if (lobby.game_state == DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME)
                     log.Debug(JObject.FromObject(lobby).ToString(Formatting.Indented));
+
+				if(lobby.state == CSODOTALobby.State.RUN) if(LobbyPlaying != null) LobbyPlaying(this, EventArgs.Empty);
 
                 var membRegex = new Regex("(members[)([0-9]+)(])");
                 foreach (var diff in differences.Differences.Where(m => m.PropertyName.Contains("hero_id")))

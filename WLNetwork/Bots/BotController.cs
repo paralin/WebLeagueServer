@@ -36,6 +36,43 @@ namespace WLNetwork.Bots
             instance.FirstBloodHappened += FirstBloodHappened;
             instance.SpectatorCountUpdate += SpectatorCountUpdate;
             instance.HeroId += HeroId;
+			instance.LobbyReady += LobbyReady;
+			instance.LobbyPlaying += LobbyPlaying;
+        }
+
+        void LobbyPlaying (object sender, EventArgs e)
+        {
+			if (game.Status == MatchSetupStatus.Done)
+				return;
+			log.Debug("Bot entered Play state "+game.Bot.Username);
+			game.Status = MatchSetupStatus.Done;
+			var match = game.GetGame();
+			if (match != null)
+			{
+				if (match.Info.Status == Matches.Enums.MatchStatus.Lobby)
+				{
+					match.Info.Status = Matches.Enums.MatchStatus.Play;
+					match.Info = match.Info;
+				}
+			}
+			game.TransmitUpdate();
+        }
+
+        void LobbyReady (object sender, EventArgs e)
+        {
+			if (game.Status == MatchSetupStatus.Wait)
+				return;
+			log.Debug("Bot entered LobbyUI " + game.Bot.Username);
+			game.Status = MatchSetupStatus.Wait;
+			game.State = DOTA_GameState.DOTA_GAMERULES_STATE_INIT;
+			var match = game.GetGame();
+			if (match != null)
+			{
+				match.Info.Status = Matches.Enums.MatchStatus.Lobby;
+				match.Info = match.Info;
+			}
+			game.TransmitUpdate();
+			game.TransmitLobbyReady();
         }
 
         private void HeroId(object sender, PlayerHeroArgs playerHeroArgs)
@@ -117,38 +154,6 @@ namespace WLNetwork.Bots
                         game.Bot.Invalid = true;
                         Mongo.Bots.Save(game.Bot);
                         game.Cleanup();
-                        break;
-                    }
-					case States.DotaLobby:
-                    case States.DotaLobbyUI:
-                    {
-                        log.Debug("Bot entered LobbyUI " + game.Bot.Username);
-                        game.Status = MatchSetupStatus.Wait;
-                        game.State = DOTA_GameState.DOTA_GAMERULES_STATE_INIT;
-                        var match = game.GetGame();
-                        if (match != null)
-                        {
-                            match.Info.Status = Matches.Enums.MatchStatus.Lobby;
-                            match.Info = match.Info;
-                        }
-                        game.TransmitUpdate();
-                        game.TransmitLobbyReady();
-                        break;
-                    }
-                    case States.DotaLobbyPlay:
-                    {
-                        log.Debug("Bot entered Play state "+game.Bot.Username);
-                        game.Status = MatchSetupStatus.Done;
-                        var match = game.GetGame();
-                        if (match != null)
-                        {
-                            if (match.Info.Status == Matches.Enums.MatchStatus.Lobby)
-                            {
-                                match.Info.Status = Matches.Enums.MatchStatus.Play;
-                                match.Info = match.Info;
-                            }
-                        }
-                        game.TransmitUpdate();
                         break;
                     }
                 }
