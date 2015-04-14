@@ -149,7 +149,7 @@ namespace WLNetwork.Bots.DOTABot
 
         public void CreateLobby()
         {
-            if (setupDetails.State >= DOTA_GameState.DOTA_GAMERULES_STATE_WAIT_FOR_PLAYERS_TO_LOAD)
+			if (setupDetails.State >= DOTA_GameState.DOTA_GAMERULES_STATE_WAIT_FOR_PLAYERS_TO_LOAD && (dota.Lobby == null || dota.Lobby.pass_key != setupDetails.Password))
             {
                 Task.Factory.StartNew(() =>
                 {
@@ -349,8 +349,8 @@ namespace WLNetwork.Bots.DOTABot
                     log.DebugFormat("Lobby snapshot received with state: {0}", c.lobby.state);
                     log.Debug(JsonConvert.SerializeObject(c.lobby));
                     fsm.Fire(c.lobby.state == CSODOTALobby.State.RUN
-                        ? Events.DotaEnteredRunningLobby
-                        : Events.DotaJoinedLobby);
+							? Events.DotaEnterLobbyRun
+							: Events.DotaEnterLobbyUI);
 
                     ComparisonResult diffs = Diff.Compare(null, c.lobby);
                     if (c.lobby.state == CSODOTALobby.State.UI) fsm.FirePriority(Events.DotaEnterLobbyUI);
@@ -393,7 +393,9 @@ namespace WLNetwork.Bots.DOTABot
                 //new Callback<DotaGCHandler.LiveLeagueGameUpdate>(c => log.DebugFormat("Tournament games: {0}", c.result.live_league_games), manager);
                 new Callback<DotaGCHandler.PracticeLobbyUpdate>(c =>
                 {
-                    fsm.Fire(Events.DotaJoinedLobby);
+					fsm.Fire(c.lobby.state == CSODOTALobby.State.RUN
+							? Events.DotaEnterLobbyRun
+							: Events.DotaEnterLobbyUI);
                     ComparisonResult diffs = Diff.Compare(c.oldLobby, c.lobby);
                     var dstrings = new List<string>(diffs.Differences.Count);
                     dstrings.AddRange(
