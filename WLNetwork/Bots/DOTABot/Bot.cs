@@ -114,19 +114,19 @@ namespace WLNetwork.Bots.DOTABot
                 .On(Events.AttemptReconnect).Goto(States.Connecting);
             fsm.In(States.DisconnectRetry)
                 .ExecuteOnEntry(StartReconnectTimer);
-            fsm.In(States.Dota)
-                .ExecuteOnExit(DisconnectDota);
+			var dstate = fsm.In (States.Dota);
+			dstate.On (Events.DotaEnterLobbyRun).Goto (States.DotaLobbyPlay)
+				.On (Events.DotaEnterLobbyUI).Goto (States.DotaLobbyUI)
+				.On (Events.DotaJoinedLobby).Goto (States.DotaLobbyUI)
+				.On (Events.DotaEnteredRunningLobby).Goto (States.DotaLobbyPlay)
+				.On (Events.DotaCreatedLobby).Goto (States.DotaLobbyUI);
+            dstate.ExecuteOnExit(DisconnectDota);
             fsm.In(States.DotaConnect)
                 .ExecuteOnEntry(ConnectDota)
                 .On(Events.DotaGCReady).Goto(States.DotaMenu);
-            fsm.In(States.DotaMenu)
-                .ExecuteOnEntry(SetOnlinePresence)
-                .ExecuteOnEntry(CreateLobby)
-				.On(Events.DotaEnterLobbyRun).Goto(States.DotaLobbyPlay)
-				.On(Events.DotaEnterLobbyUI).Goto(States.DotaLobbyUI)
-                .On(Events.DotaJoinedLobby).Goto(States.DotaLobbyUI)
-                .On(Events.DotaEnteredRunningLobby).Goto(States.DotaLobbyPlay)
-                .On(Events.DotaCreatedLobby).Goto(States.DotaLobbyUI);
+			fsm.In (States.DotaMenu)
+                .ExecuteOnEntry (SetOnlinePresence)
+                .ExecuteOnEntry (CreateLobby);
             fsm.In(States.DotaLobby)
                 .ExecuteOnEntry(EnterLobbyChat)
                 .ExecuteOnEntry(EnterBroadcastChannel)
@@ -348,6 +348,7 @@ namespace WLNetwork.Bots.DOTABot
                 {
                     log.DebugFormat("Lobby snapshot received with state: {0}", c.lobby.state);
                     log.Debug(JsonConvert.SerializeObject(c.lobby));
+
                     fsm.Fire(c.lobby.state == CSODOTALobby.State.RUN
 							? Events.DotaEnterLobbyRun
 							: Events.DotaEnterLobbyUI);
