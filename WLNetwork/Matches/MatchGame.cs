@@ -503,6 +503,7 @@ namespace WLNetwork.Matches
             var result = new MatchResult
             {
                 Id = matchId,
+				MatchId = Id,
                 Players =
                     Players.Where(m => m.Team == MatchTeam.Dire || m.Team == MatchTeam.Radiant)
                         .Select(x => new MatchResultPlayer(x))

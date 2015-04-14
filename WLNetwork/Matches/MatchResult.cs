@@ -8,9 +8,12 @@ using WLNetwork.Database;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Model;
 using XSockets.Core.XSocket.Helpers;
+using System;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace WLNetwork.Matches
 {
+	[BsonIgnoreExtraElements]
     public class MatchResult
     {
         private static readonly Controllers.Matches Matches = new Controllers.Matches();
@@ -20,6 +23,12 @@ namespace WLNetwork.Matches
         ///     Match ID
         /// </summary>
         public ulong Id { get; set; }
+
+		/// <summary>
+		/// System match ID
+		/// </summary>
+		/// <value>The match identifier.</value>
+		public Guid MatchId { get; set; }
 
         /// <summary>
         ///     Match outcome

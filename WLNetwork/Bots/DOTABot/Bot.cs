@@ -122,9 +122,9 @@ namespace WLNetwork.Bots.DOTABot
             fsm.In(States.DotaMenu)
                 .ExecuteOnEntry(SetOnlinePresence)
                 .ExecuteOnEntry(CreateLobby)
-                .On(Events.DotaJoinedLobby).Goto(States.DotaLobby)
+                .On(Events.DotaJoinedLobby).Goto(States.DotaLobbyUI)
                 .On(Events.DotaEnteredRunningLobby).Goto(States.DotaLobbyPlay)
-                .On(Events.DotaCreatedLobby).Goto(States.DotaLobby);
+                .On(Events.DotaCreatedLobby).Goto(States.DotaLobbyUI);
             fsm.In(States.DotaLobby)
                 .ExecuteOnEntry(EnterLobbyChat)
                 .ExecuteOnEntry(EnterBroadcastChannel)
