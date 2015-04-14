@@ -119,7 +119,7 @@ namespace WLNetwork.Controllers
 
         public void SendMessage(Message message)
         {
-            if (message == null || !ConnectionContext.IsAuthenticated || !message.Validate()) return;
+			if (message == null || !ConnectionContext.IsAuthenticated || !message.Validate() || User == null) return;
             ChatChannel chan = Channels.FirstOrDefault(m => m.Id.ToString() == message.Channel);
             if (chan == null) return;
             log.DebugFormat("[{0}] {1}: \"{2}\"", chan.Name, User.profile.name, message.Text);
