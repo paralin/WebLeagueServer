@@ -93,10 +93,8 @@ namespace WLNetwork.Bots.DOTABot
                 .WithHistoryType(HistoryType.None)
                 .WithInitialSubState(States.DisconnectNoRetry)
                 .WithSubState(States.DisconnectRetry);
-            fsm.DefineHierarchyOn(States.DotaLobby)
-                .WithHistoryType(HistoryType.None)
-                .WithInitialSubState(States.DotaLobbyUI)
-                .WithSubState(States.DotaLobbyPlay);
+			fsm.DefineHierarchyOn (States.DotaLobby)
+				.WithHistoryType (HistoryType.None);
             fsm.In(States.Connecting)
                 .ExecuteOnEntry(InitAndConnect)
                 .On(Events.Connected).Goto(States.Connected)
@@ -114,25 +112,18 @@ namespace WLNetwork.Bots.DOTABot
                 .On(Events.AttemptReconnect).Goto(States.Connecting);
             fsm.In(States.DisconnectRetry)
                 .ExecuteOnEntry(StartReconnectTimer);
-            fsm.In(States.Dota)
-                .ExecuteOnExit(DisconnectDota);
+			fsm.In (States.Dota)
+				.ExecuteOnExit(DisconnectDota);
             fsm.In(States.DotaConnect)
                 .ExecuteOnEntry(ConnectDota)
                 .On(Events.DotaGCReady).Goto(States.DotaMenu);
-            fsm.In(States.DotaMenu)
-                .ExecuteOnEntry(SetOnlinePresence)
-                .ExecuteOnEntry(CreateLobby)
-                .On(Events.DotaJoinedLobby).Goto(States.DotaLobbyUI)
-                .On(Events.DotaEnteredRunningLobby).Goto(States.DotaLobbyPlay)
-                .On(Events.DotaCreatedLobby).Goto(States.DotaLobbyUI);
+			fsm.In (States.DotaMenu)
+                .ExecuteOnEntry (SetOnlinePresence)
+                .ExecuteOnEntry (CreateLobby);
             fsm.In(States.DotaLobby)
                 .ExecuteOnEntry(EnterLobbyChat)
                 .ExecuteOnEntry(EnterBroadcastChannel)
                 .On(Events.DotaLeftLobby).Goto(States.DotaMenu).Execute(LeaveChatChannel);
-            fsm.In(States.DotaLobbyUI)
-                .On(Events.DotaEnterLobbyRun).Goto(States.DotaLobbyPlay);
-            fsm.In(States.DotaLobbyPlay)
-                .On(Events.DotaEnterLobbyUI).Goto(States.DotaLobbyUI);
             fsm.Initialize(States.Connecting);
         }
 
@@ -147,7 +138,7 @@ namespace WLNetwork.Bots.DOTABot
 
         public void CreateLobby()
         {
-            if (setupDetails.State >= DOTA_GameState.DOTA_GAMERULES_STATE_WAIT_FOR_PLAYERS_TO_LOAD)
+			if (setupDetails.State >= DOTA_GameState.DOTA_GAMERULES_STATE_WAIT_FOR_PLAYERS_TO_LOAD && (dota.Lobby == null || dota.Lobby.pass_key != setupDetails.Password))
             {
                 Task.Factory.StartNew(() =>
                 {
@@ -346,9 +337,10 @@ namespace WLNetwork.Bots.DOTABot
                 {
                     log.DebugFormat("Lobby snapshot received with state: {0}", c.lobby.state);
                     log.Debug(JsonConvert.SerializeObject(c.lobby));
+
                     fsm.Fire(c.lobby.state == CSODOTALobby.State.RUN
-                        ? Events.DotaEnteredRunningLobby
-                        : Events.DotaJoinedLobby);
+							? Events.DotaEnterLobbyRun
+							: Events.DotaEnterLobbyUI);
 
                     ComparisonResult diffs = Diff.Compare(null, c.lobby);
                     if (c.lobby.state == CSODOTALobby.State.UI) fsm.FirePriority(Events.DotaEnterLobbyUI);
@@ -391,7 +383,9 @@ namespace WLNetwork.Bots.DOTABot
                 //new Callback<DotaGCHandler.LiveLeagueGameUpdate>(c => log.DebugFormat("Tournament games: {0}", c.result.live_league_games), manager);
                 new Callback<DotaGCHandler.PracticeLobbyUpdate>(c =>
                 {
-                    fsm.Fire(Events.DotaJoinedLobby);
+					fsm.Fire(c.lobby.state == CSODOTALobby.State.RUN
+							? Events.DotaEnterLobbyRun
+							: Events.DotaEnterLobbyUI);
                     ComparisonResult diffs = Diff.Compare(c.oldLobby, c.lobby);
                     var dstrings = new List<string>(diffs.Differences.Count);
                     dstrings.AddRange(

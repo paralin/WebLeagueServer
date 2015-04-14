@@ -240,7 +240,7 @@ namespace WLNetwork.Controllers
                 return "The match is already being set up.";
             if (Match.Info.MatchType == MatchType.Captains)
             {
-                if (Match.Players.Count < 10) return "You need at least 10 players to start the challenge.";
+				if (Match.Players.Count(m=>m.Team != MatchTeam.Spectate) < 10) return "You need at least 10 players to start the challenge.";
                 Match.StartPicks();
             }
             else if (Match.Info.MatchType == MatchType.StartGame)
