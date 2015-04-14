@@ -65,5 +65,10 @@ namespace WLNetwork.Matches
         ///     Rating at the start of the match
         /// </summary>
         public int Rating { get; set; }
+
+        /// <summary>
+        /// Hero ID
+        /// </summary>
+        public HeroInfo Hero { get; set; }
     }
 }

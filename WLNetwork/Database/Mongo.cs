@@ -21,6 +21,7 @@ namespace WLNetwork.Database
         public static MongoCollection<Bot> Bots;
         public static MongoCollection<MatchResult> Results;
         public static MongoCollection<ActiveMatch> ActiveMatches;
+        public static MongoCollection<HeroInfo> Heros;
 
         static Mongo()
         {
@@ -54,6 +55,7 @@ namespace WLNetwork.Database
             Bots = Database.GetCollection<Bot>("bots");
             Results = Database.GetCollection<MatchResult>("matchResults");
             ActiveMatches = Database.GetCollection<ActiveMatch>("activeMatches");
+            Heros = Database.GetCollection<HeroInfo>("heros");
         }
     }
 }
