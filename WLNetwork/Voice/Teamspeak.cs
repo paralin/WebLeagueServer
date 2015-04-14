@@ -253,7 +253,7 @@ namespace WLNetwork.Voice
             return await client.SendCommandAsync(command);
         }
 
-        public async void SetupChannels()
+        public async Task SetupChannels()
         {
             if (!connected) return;
             var channelsr = await client.ChannelList();
