@@ -93,10 +93,8 @@ namespace WLNetwork.Bots.DOTABot
                 .WithHistoryType(HistoryType.None)
                 .WithInitialSubState(States.DisconnectNoRetry)
                 .WithSubState(States.DisconnectRetry);
-            fsm.DefineHierarchyOn(States.DotaLobby)
-                .WithHistoryType(HistoryType.None)
-                .WithInitialSubState(States.DotaLobbyUI)
-                .WithSubState(States.DotaLobbyPlay);
+			fsm.DefineHierarchyOn (States.DotaLobby)
+				.WithHistoryType (HistoryType.None);
             fsm.In(States.Connecting)
                 .ExecuteOnEntry(InitAndConnect)
                 .On(Events.Connected).Goto(States.Connected)
@@ -114,13 +112,8 @@ namespace WLNetwork.Bots.DOTABot
                 .On(Events.AttemptReconnect).Goto(States.Connecting);
             fsm.In(States.DisconnectRetry)
                 .ExecuteOnEntry(StartReconnectTimer);
-			var dstate = fsm.In (States.Dota);
-			dstate.On (Events.DotaEnterLobbyRun).Goto (States.DotaLobbyPlay)
-				.On (Events.DotaEnterLobbyUI).Goto (States.DotaLobbyUI)
-				.On (Events.DotaJoinedLobby).Goto (States.DotaLobbyUI)
-				.On (Events.DotaEnteredRunningLobby).Goto (States.DotaLobbyPlay)
-				.On (Events.DotaCreatedLobby).Goto (States.DotaLobbyUI);
-            dstate.ExecuteOnExit(DisconnectDota);
+			fsm.In (States.Dota)
+				.ExecuteOnExit(DisconnectDota);
             fsm.In(States.DotaConnect)
                 .ExecuteOnEntry(ConnectDota)
                 .On(Events.DotaGCReady).Goto(States.DotaMenu);
@@ -131,10 +124,6 @@ namespace WLNetwork.Bots.DOTABot
                 .ExecuteOnEntry(EnterLobbyChat)
                 .ExecuteOnEntry(EnterBroadcastChannel)
                 .On(Events.DotaLeftLobby).Goto(States.DotaMenu).Execute(LeaveChatChannel);
-            fsm.In(States.DotaLobbyUI)
-                .On(Events.DotaEnterLobbyRun).Goto(States.DotaLobbyPlay);
-            fsm.In(States.DotaLobbyPlay)
-                .On(Events.DotaEnterLobbyUI).Goto(States.DotaLobbyUI);
             fsm.Initialize(States.Connecting);
         }
 

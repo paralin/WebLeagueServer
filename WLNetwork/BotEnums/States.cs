@@ -16,9 +16,7 @@
 
         #region DOTALOBBY
 
-        DotaLobby,
-        DotaLobbyUI,
-        DotaLobbyPlay
+        DotaLobby
 
         #endregion
 
