@@ -122,6 +122,8 @@ namespace WLNetwork.Bots.DOTABot
             fsm.In(States.DotaMenu)
                 .ExecuteOnEntry(SetOnlinePresence)
                 .ExecuteOnEntry(CreateLobby)
+				.On(Events.DotaEnterLobbyRun).Goto(States.DotaLobbyPlay)
+				.On(Events.DotaEnterLobbyUI).Goto(States.DotaLobbyUI)
                 .On(Events.DotaJoinedLobby).Goto(States.DotaLobbyUI)
                 .On(Events.DotaEnteredRunningLobby).Goto(States.DotaLobbyPlay)
                 .On(Events.DotaCreatedLobby).Goto(States.DotaLobbyUI);
