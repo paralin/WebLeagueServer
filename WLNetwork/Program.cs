@@ -7,6 +7,7 @@ using WLNetwork.Chat;
 using WLNetwork.Matches;
 using XSockets.Core.Common.Socket;
 using XSockets.Plugin.Framework;
+using WLNetwork.Database;
 
 namespace WLNetwork
 {
@@ -21,6 +22,8 @@ namespace WLNetwork
         {
             XmlConfigurator.Configure();
             log.Info("Web League master starting up!");
+			//Init database
+			log.Info("There are "+HeroCache.Heros.Values.Count+" heros in the system.");
             Console.CancelKeyPress += delegate { shutdown = true; };
             using (var container = Composable.GetExport<IXSocketServerContainer>())
             {
