@@ -419,48 +419,48 @@ namespace WLNetwork.Matches
         /// <param name="matchId"></param>
         /// <param name="match"></param>
         public void ProcessMatchResult(EMatchOutcome outcome)
-        {
-            if (!MatchesController.Games.Contains(this)) return;
-            ulong matchId = Setup.Details.MatchId;
-            var countMatch = (outcome == EMatchOutcome.k_EMatchOutcome_DireVictory || outcome == EMatchOutcome.k_EMatchOutcome_RadVictory);
-            var punishLeavers = false;
-            if ((countMatch && Setup.Details.Players.Any(m => m.IsLeaver)) || outcome == EMatchOutcome.k_EMatchOutcome_NotScored_Leaver)
-            {
-                log.Debug(matchId+" HAS LEAVERS, FORCING TO LEAVERS PENALTY STATE");
-                countMatch = false;
-                punishLeavers = true;
-            }
+		{
+			if (!MatchesController.Games.Contains (this))
+				return;
+			ulong matchId = Setup.Details.MatchId;
+			var countMatch = (outcome == EMatchOutcome.k_EMatchOutcome_DireVictory || outcome == EMatchOutcome.k_EMatchOutcome_RadVictory);
+			if (outcome == EMatchOutcome.k_EMatchOutcome_NotScored_Leaver) {
+				log.Debug (matchId + " HAS NO KNOWN OUTCOME DUE TO LEAVERS");
+				countMatch = false;
+			}
 
-            log.Debug("PROCESSING RESULT " + matchId + " WITH OUTCOME " + outcome);
-            var result = new MatchResult
-            {
-                Id = matchId,
+			log.Debug ("PROCESSING RESULT " + matchId + " WITH OUTCOME " + outcome);
+			var result = new MatchResult {
+				Id = matchId,
 				MatchId = Id,
-                Players =
-                    Players.Where(m => m.Team == MatchTeam.Dire || m.Team == MatchTeam.Radiant)
-                        .Select(x => new MatchResultPlayer(x))
-                        .ToArray(),
-                Result = outcome,
-                MatchCounted = countMatch,
-                RatingDire = 0,
-                RatingRadiant = 0
-            };
+				Players =
+                    Players.Where (m => m.Team == MatchTeam.Dire || m.Team == MatchTeam.Radiant)
+                        .Select (x => new MatchResultPlayer (x))
+                        .ToArray (),
+				Result = outcome,
+				MatchCounted = countMatch,
+				RatingDire = 0,
+				RatingRadiant = 0
+			};
 
-            if(countMatch)
-                RatingCalculator.CalculateRatingDelta(result);
+			if (countMatch)
+				RatingCalculator.CalculateRatingDelta (result);
 
-            result.ApplyRating();
-            result.Save();
+			result.ApplyRating ();
+			result.Save ();
 
-            if(countMatch)
-                foreach (
+			if (countMatch)
+			{	
+				foreach (
                     Controllers.Matches c in
                         Players.Select(player => Matches.Find(m => m.User != null && m.User.steam.steamid == player.SID))
-                            .SelectMany(cont => cont))
-                {
-                    c.Result = result;
-                }
-            else
+                            .SelectMany(cont => cont)) {
+					c.Result = result;
+				}
+				var leavers = Setup.Details.Players.Where (m => m.IsLeaver);
+				if(leavers.Any())
+					ChatChannel.GlobalSystemMessage (" Punishing leaver(s) " + string.Join (", ", leavers.Select (m => m.Name)) + " with an abandon and -10 rating.");
+			}else
             {
                 var reason = "some unknown reason";
                 switch (outcome)
@@ -483,14 +483,7 @@ namespace WLNetwork.Matches
                         reason = "unknown match result, admin will confirm result and apply rating";
                         break;
                 }
-                var sysMsg = "Match not counted due to " + reason + ".";
-                if (punishLeavers)
-                {
-                    sysMsg += " Punishing leaver(s) " +
-                              string.Join(", ", Setup.Details.Players.Where(m => m.IsLeaver).Select(m => m.Name)) +
-                              " with an abandon and -30 rating.";
-                }
-                ChatChannel.GlobalSystemMessage(sysMsg);
+				ChatChannel.GlobalSystemMessage("Match not counted due to " + reason + ".");
             }
             Destroy();
         }
