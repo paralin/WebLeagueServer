@@ -57,11 +57,12 @@ namespace WLNetwork.Matches
             Id = match.Id;
             Info = match.Info;
             Setup = new MatchSetup(match.Id, match.Details);
+			Setup.Details.IsRecovered = true;
             pickedAlready = true;
             Players = new ObservableRangeCollection<MatchPlayer>(match.Players);
             Players.CollectionChanged += PlayersOnCollectionChanged;
             
-            var ebot = BotDB.Bots.Values.FirstOrDefault(m => m.Id == match.Details.Bot.Id);
+			var ebot = BotDB.Bots.Values.FirstOrDefault(m => m.Username == match.Details.Bot.Username);
             if (ebot != null)
             {
                 ebot.InUse = true;
@@ -69,7 +70,7 @@ namespace WLNetwork.Matches
             }
             else
             {
-                ebot = Mongo.Bots.FindOneAs<Bot>(Query<Bot>.EQ(m => m.Id, match.Details.Bot.Id));
+				ebot = Mongo.Bots.FindOneAs<Bot>(Query<Bot>.EQ(m => m.Username, match.Details.Bot.Username));
                 if (ebot != null)
                 {
                     ebot.InUse = true;
