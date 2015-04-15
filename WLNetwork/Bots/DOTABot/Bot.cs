@@ -338,6 +338,13 @@ namespace WLNetwork.Bots.DOTABot
                     log.DebugFormat("Lobby snapshot received with state: {0}", c.lobby.state);
                     log.Debug(JsonConvert.SerializeObject(c.lobby));
 
+					if(c.lobby.pass_key != details.Password)
+					{
+						log.Warn("Bot is still in an old lobby, clearing it.");
+						leaveLobby();
+						return;
+					}
+
                     fsm.Fire(c.lobby.state == CSODOTALobby.State.RUN
 							? Events.DotaEnterLobbyRun
 							: Events.DotaEnterLobbyUI);
@@ -383,6 +390,12 @@ namespace WLNetwork.Bots.DOTABot
                 //new Callback<DotaGCHandler.LiveLeagueGameUpdate>(c => log.DebugFormat("Tournament games: {0}", c.result.live_league_games), manager);
                 new Callback<DotaGCHandler.PracticeLobbyUpdate>(c =>
                 {
+					if(c.lobby.pass_key != details.Password)
+					{
+						log.Warn("Bot is still in an old lobby, clearing it.");
+						leaveLobby();
+						return;
+					}
 					fsm.Fire(c.lobby.state == CSODOTALobby.State.RUN
 							? Events.DotaEnterLobbyRun
 							: Events.DotaEnterLobbyUI);
