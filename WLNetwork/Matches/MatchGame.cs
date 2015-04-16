@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using log4net;
@@ -245,7 +246,7 @@ namespace WLNetwork.Matches
             _balancing = false;
         }
 
-        public bool Destroyed;
+        public volatile bool Destroyed;
         /// <summary>
         ///     Delete the game.
         /// </summary>
@@ -291,6 +292,11 @@ namespace WLNetwork.Matches
                 name = plyrs[0].Name + " vs. " + plyrs[1].Name;
             }
             ChannelNames.Add(name);
+            if (Destroyed) 
+                {
+                    DeleteTeamspeakChannels();
+                    return;
+                }
             var topLevel = Teamspeak.Instance.Channels[name] = new ChannelInfoResult()
             {
                 ChannelName = name,
@@ -299,6 +305,11 @@ namespace WLNetwork.Matches
                 ChannelFlagPermanent = "1"
             };
             await Teamspeak.Instance.SetupChannels();
+            if (Destroyed)
+            {
+                DeleteTeamspeakChannels();
+                return;
+            }
             var uid = Id.ToString().Substring(0, 4);
             name = "Radiant "+uid;
             ChannelNames.Add(name);
@@ -325,6 +336,11 @@ namespace WLNetwork.Matches
                 Pid = topLevel.Cid
             };
             await Teamspeak.Instance.SetupChannels();
+            if (Destroyed)
+            {
+                DeleteTeamspeakChannels();
+                return;
+            }
 
             if (Setup.Details.IsRecovered && Info.Status > MatchStatus.Players)
             {
@@ -332,6 +348,11 @@ namespace WLNetwork.Matches
                 {
                     Teamspeak.Instance.ForceChannel[player.SID] = ChannelNames.FirstOrDefault(m => m.Contains(player.Team == MatchTeam.Radiant ? "Radiant" : "Dire"));
                 }
+            }
+            if (Destroyed)
+            {
+                DeleteTeamspeakChannels();
+                return;
             }
         }
 
