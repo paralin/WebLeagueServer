@@ -37,7 +37,8 @@ namespace WLNetwork.API
                     Players = plyrs,
                     State = match.Setup.Details.State,
                     StartTime = match.Setup.Details.GameStartTime,
-                    SpectatorCount = match.Setup.Details.SpectatorCount
+                    SpectatorCount = match.Setup.Details.SpectatorCount,
+                    MatchId = match.Setup.Details.MatchId
                 });
             }
             return arr.ToString(Formatting.Indented);
