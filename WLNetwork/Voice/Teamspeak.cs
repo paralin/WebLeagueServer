@@ -69,30 +69,22 @@ namespace WLNetwork.Voice
 
             PeriodicUpdate.Stop();
 
-            try
+            ThreadPool.QueueUserWorkItem(async (staten) =>
             {
-                bool updatedAny = false;
-                MatchGame game = null;
-                if (MatchGame.TSSetupQueue.TryDequeue(out game) && game != null)
+                try
                 {
-                    updatedAny = true;
-                    await game.CreateTeamspeakChannels();
+                    MatchGame game = null;
+                    if (MatchGame.TSSetupQueue.TryDequeue(out game) && game != null) await game.CreateTeamspeakChannels();
+
+                    await SetupChannels();
+                    await CheckClients();
                 }
-
-                await SetupChannels();
-                await CheckClients();
-
-                if (updatedAny && !MatchGame.TSSetupQueue.IsEmpty)
+                finally
                 {
-                    //force another update
-                    LastUpdateTime = new DateTime(0);
-                    Periodic();
+                    PeriodicUpdate.Start();
                 }
-            }
-            finally
-            {
-                if(!PeriodicUpdate.Enabled) PeriodicUpdate.Start();
-            }
+            });
+
         }
 
         public async Task Startup()
@@ -602,7 +594,8 @@ namespace WLNetwork.Voice
                 }
                 else
                 {
-                    log.Debug("Unable to delete channel " + channel.ChannelName + "!");
+                    if (res.ErrorMessage.Contains("invalid channel")) continue;
+                    log.Warn("Unable to delete channel " + channel.ChannelName + "! -> "+res.ErrorMessage);
                 }
             }
         }

@@ -33,7 +33,7 @@ namespace WLNetwork
             log.Info("There are " + HeroCache.Heros.Values.Count + " heros in the system.");
             Console.CancelKeyPress += delegate { shutdown = true; };
 
-            IXSocketServerContainer container;
+            IXSocketServerContainer container = null;
 
             ThreadPool.QueueUserWorkItem(delegate
             {
@@ -53,6 +53,9 @@ namespace WLNetwork
             {
                 Thread.Sleep(500);
             }
+
+            //container.Stop();
+            container.Dispose();
         }
     }
 }
