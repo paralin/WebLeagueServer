@@ -92,7 +92,13 @@ namespace WLNetwork.Matches
 
             MatchesController.Games.Add(this);
             log.Info("MATCH RESTORE [" + match.Id + "] [" + Info.Owner + "] [" + Info.GameMode + "] [" + Info.MatchType + "]");
-            CreateTeamspeakChannels();
+
+            Task.Factory.StartNew(() =>
+            {
+                Thread.Sleep(6000);
+                CreateTeamspeakChannels();
+            });
+
         }
 
         /// <summary>

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics.Eventing.Reader;
+using System.Net.Mime;
 using System.Reflection;
 using System.Threading;
 using log4net;
@@ -21,6 +23,8 @@ namespace WLNetwork
 
         public static void Main(string[] args)
         {
+            AppDomain.CurrentDomain.UnhandledException +=
+                (sender, eventArgs) => log.Fatal("UNHANDLED EXCEPTION", (Exception) eventArgs.ExceptionObject);
             XmlConfigurator.Configure();
             log.Info("Web League master starting up!");
 			//Init database
