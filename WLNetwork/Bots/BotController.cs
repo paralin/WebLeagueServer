@@ -99,6 +99,12 @@ namespace WLNetwork.Bots
             log.Debug("Hero ID "+hero.Id+" resolved to "+hero.fullName);
             
             //Let's not transmit this yet as when the match state updates it will be transmitted
+            if (game.Players.Where(m => m.Team == MatchTeam.Dire || m.Team == MatchTeam.Radiant)
+                .All(m => m.Hero != null))
+            {
+                var g = game.GetGame();
+                if (g != null) g.Players = g.Players;
+            }
         }
 
         private void SpectatorCountUpdate(object sender, uint u)
