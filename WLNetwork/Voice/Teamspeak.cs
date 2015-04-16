@@ -86,6 +86,12 @@ namespace WLNetwork.Voice
 
         private async void InitClient()
         {
+            if (!Env.ENABLE_TEAMSPEAK)
+            {
+                log.Warn("Teamspeak integration disabled, not starting client.");
+                return;
+            }
+
             connected = false;
             string[] parts = Env.TEAMSPEAK_URL.Split(':');
             int port = 10011;
@@ -118,6 +124,12 @@ namespace WLNetwork.Voice
             }
 
             parts = Env.TEAMSPEAK_AUTH.Split(':');
+            if (parts.Length != 2)
+            {
+                log.Warn("Invalid teamspeak auth detected, "+Env.TEAMSPEAK_AUTH+", not starting ts.");
+                return;
+            }
+
             ServerQueryBaseResult login;
             try
             {
@@ -146,6 +158,7 @@ namespace WLNetwork.Voice
             }
 
             ServerQueryBaseResult use = client.Use(UseServerBy.Port, Env.TEAMSPEAK_PORT).Result;
+
             if (use.Success)
             {
                 log.Debug("Successfully bound to teamspeak server.");
@@ -183,6 +196,11 @@ namespace WLNetwork.Voice
                         var idr = Regex.Match(g, "(sgid=)(\\d+)");
                         if (idr.Success)
                         {
+                            if (namer.Groups.Count < 3)
+                            {
+                                log.Warn("Invalid regex match for sg "+g+"!");
+                                continue;
+                            }
                             var groupn = namer.Groups[2].Value;
                             var idn = idr.Groups[2].Value;
                             ServerGroupCache[uint.Parse(idn)] = groupn.Unescape();
