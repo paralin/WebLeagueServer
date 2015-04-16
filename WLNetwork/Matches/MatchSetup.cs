@@ -20,7 +20,6 @@ namespace WLNetwork.Matches
         /// </summary>
         public Guid Id { get; private set; }
 
-
         /// <summary>
         ///     Details for the setup
         /// </summary>

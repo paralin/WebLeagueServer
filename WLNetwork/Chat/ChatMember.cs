@@ -64,6 +64,7 @@ namespace WLNetwork.Chat
 
         public enum ChatMemberType : int
         {
+            Spectator = -1,
             Normal = 0,
             Moderator = 1,
             Admin = 2
