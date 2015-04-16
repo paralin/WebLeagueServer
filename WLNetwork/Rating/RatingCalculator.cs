@@ -85,7 +85,7 @@ namespace WLNetwork.Rating
 
             data.RatingDire = incDire;
             data.RatingRadiant = incRadiant;
-			data.RatingDelta = Math.Abs (incDire);
+            data.RatingDelta = Math.Abs(incDire);
         }
 
         private struct KFactor

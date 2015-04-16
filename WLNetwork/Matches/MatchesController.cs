@@ -4,7 +4,6 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
 using log4net;
-using WLNetwork.Controllers;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Matches.Methods;
 using XSockets.Core.XSocket.Helpers;
@@ -56,14 +55,14 @@ namespace WLNetwork.Matches
                     args.NewItems.OfType<MatchGame>().Where(m => m.Info.Status == MatchStatus.Players);
                 var matchGames = newAvailable as MatchGame[] ?? newAvailable.ToArray();
                 Matches.InvokeTo(m => m.User != null, new AvailableGameUpd(matchGames.ToArray()), AvailableGameUpd.Msg);
-                Admins.InvokeTo (m=>m.User != null, new AvailableGameUpd(matchGames.ToArray()), AvailableGameUpd.Msg);
+                Admins.InvokeTo(m => m.User != null, new AvailableGameUpd(matchGames.ToArray()), AvailableGameUpd.Msg);
             }
             if (args.OldItems != null)
             {
                 Matches.InvokeTo(m => m.User != null, new AvailableGameRm(args.OldItems.OfType<MatchGame>().ToArray()),
                     AvailableGameRm.Msg);
                 Admins.InvokeTo(m => m.User != null, new AvailableGameRm(args.OldItems.OfType<MatchGame>().ToArray()),
-                   AvailableGameRm.Msg);
+                    AvailableGameRm.Msg);
             }
         }
     }

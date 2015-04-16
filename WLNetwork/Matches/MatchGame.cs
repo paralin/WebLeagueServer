@@ -57,12 +57,12 @@ namespace WLNetwork.Matches
             Id = match.Id;
             Info = match.Info;
             Setup = new MatchSetup(match.Id, match.Details);
-			Setup.Details.IsRecovered = true;
+            Setup.Details.IsRecovered = true;
             pickedAlready = true;
             Players = new ObservableRangeCollection<MatchPlayer>(match.Players);
             Players.CollectionChanged += PlayersOnCollectionChanged;
-            
-			var ebot = BotDB.Bots.Values.FirstOrDefault(m => m.Username == match.Details.Bot.Username);
+
+            var ebot = BotDB.Bots.Values.FirstOrDefault(m => m.Username == match.Details.Bot.Username);
             if (ebot != null)
             {
                 ebot.InUse = true;
@@ -70,7 +70,7 @@ namespace WLNetwork.Matches
             }
             else
             {
-				ebot = Mongo.Bots.FindOneAs<Bot>(Query<Bot>.EQ(m => m.Username, match.Details.Bot.Username));
+                ebot = Mongo.Bots.FindOneAs<Bot>(Query<Bot>.EQ(m => m.Username, match.Details.Bot.Username));
                 if (ebot != null)
                 {
                     ebot.InUse = true;
@@ -78,17 +78,19 @@ namespace WLNetwork.Matches
                 }
                 else
                 {
-                    log.Warn("Can't find bot for "+match.Id+"! Dropping match...");
+                    log.Warn("Can't find bot for " + match.Id + "! Dropping match...");
                     return;
                 }
             }
 
             controller = new BotController(Setup.Details);
             controller.instance.Start();
-            controller.instance.bot.LobbyNotRecovered += (sender, args) => ProcessMatchResult(EMatchOutcome.k_EMatchOutcome_Unknown);
+            controller.instance.bot.LobbyNotRecovered +=
+                (sender, args) => ProcessMatchResult(EMatchOutcome.k_EMatchOutcome_Unknown);
 
             MatchesController.Games.Add(this);
-            log.Info("MATCH RESTORE [" + match.Id + "] [" + Info.Owner + "] [" + Info.GameMode + "] [" + Info.MatchType + "]");
+            log.Info("MATCH RESTORE [" + match.Id + "] [" + Info.Owner + "] [" + Info.GameMode + "] [" + Info.MatchType +
+                     "]");
         }
 
         /// <summary>
@@ -227,7 +229,8 @@ namespace WLNetwork.Matches
             //MMR algorithm
             int direCount = 0;
             int radiCount = 0;
-            foreach (MatchPlayer plyr in Players.Where(m=>m.Team != MatchTeam.Spectate).OrderByDescending(m => m.Rating))
+            foreach (
+                MatchPlayer plyr in Players.Where(m => m.Team != MatchTeam.Spectate).OrderByDescending(m => m.Rating))
             {
                 if (direCount < radiCount && direCount < 5)
                 {
@@ -287,7 +290,7 @@ namespace WLNetwork.Matches
                 {
                     cont.Invoke(arg, "clearsetupmatch");
                 }
-                Admins.InvokeTo(m=>m.User != null, arg, "clearsetupmatch");
+                Admins.InvokeTo(m => m.User != null, arg, "clearsetupmatch");
             }
             else
             {
@@ -303,7 +306,7 @@ namespace WLNetwork.Matches
                         cont.Invoke(_setup, "setupsnapshot");
                     }
 #endif
-                    Admins.InvokeTo(m=>m.User != null, _setup, "setupsnapshot");
+                    Admins.InvokeTo(m => m.User != null, _setup, "setupsnapshot");
                     _setup.Details.Bot = bot;
                     if (_activeMatch != null) SaveActiveGame();
                 }
@@ -318,8 +321,8 @@ namespace WLNetwork.Matches
                 {
                     cont.Invoke(_info, "infosnapshot");
                 }
-                Admins.InvokeTo(m=>m.User != null, _info, "infosnapshot");
-                if(_activeMatch != null) SaveActiveGame();
+                Admins.InvokeTo(m => m.User != null, _info, "infosnapshot");
+                if (_activeMatch != null) SaveActiveGame();
             }
         }
 
@@ -347,7 +350,12 @@ namespace WLNetwork.Matches
         {
             MatchPlayer[] toRemove = Players.Where(m => m.Team == MatchTeam.Unassigned).ToArray();
             Players.RemoveRange(toRemove);
-            foreach (Controllers.Matches cont in toRemove.Select(player => Matches.Find(m => m.User != null && m.User.steam.steamid == player.SID).FirstOrDefault()).Where(cont => cont != null))
+            foreach (
+                Controllers.Matches cont in
+                    toRemove.Select(
+                        player =>
+                            Matches.Find(m => m.User != null && m.User.steam.steamid == player.SID).FirstOrDefault())
+                        .Where(cont => cont != null))
                 cont.Match = null;
         }
 
@@ -355,7 +363,12 @@ namespace WLNetwork.Matches
         {
             MatchPlayer[] toRemove = Players.Where(m => m.Team == MatchTeam.Spectate).ToArray();
             Players.RemoveRange(toRemove);
-            foreach (Controllers.Matches cont in toRemove.Select(player => Matches.Find(m => m.User != null && m.User.steam.steamid == player.SID).FirstOrDefault()).Where(cont => cont != null))
+            foreach (
+                Controllers.Matches cont in
+                    toRemove.Select(
+                        player =>
+                            Matches.Find(m => m.User != null && m.User.steam.steamid == player.SID).FirstOrDefault())
+                        .Where(cont => cont != null))
                 cont.Match = null;
         }
 
@@ -364,7 +377,7 @@ namespace WLNetwork.Matches
         /// </summary>
         public void SaveActiveGame()
         {
-            if(_activeMatch == null) _activeMatch = new ActiveMatch();
+            if (_activeMatch == null) _activeMatch = new ActiveMatch();
             _activeMatch.Id = Id;
             _activeMatch.Details = Setup.Details;
             _activeMatch.Players = Players.ToArray();
@@ -379,8 +392,10 @@ namespace WLNetwork.Matches
         public void PickPlayer(string sid, MatchTeam team)
         {
             //NOTE! The players list only rerenders when the player object is updated. As a result, we need to send the player team update AFTER the info update.
-			if (!(team == MatchTeam.Dire && Info.CaptainStatus == CaptainsStatus.DirePick || team == MatchTeam.Radiant && Info.CaptainStatus == CaptainsStatus.RadiantPick))
-				return;
+            if (
+                !(team == MatchTeam.Dire && Info.CaptainStatus == CaptainsStatus.DirePick ||
+                  team == MatchTeam.Radiant && Info.CaptainStatus == CaptainsStatus.RadiantPick))
+                return;
             MatchPlayer player = Players.FirstOrDefault(m => m.SID == sid && m.Team != MatchTeam.Spectate);
             if (player == null || player.Team != MatchTeam.Unassigned) return;
             player.Team = team;
@@ -420,48 +435,56 @@ namespace WLNetwork.Matches
         /// <param name="matchId"></param>
         /// <param name="match"></param>
         public void ProcessMatchResult(EMatchOutcome outcome)
-		{
-			if (!MatchesController.Games.Contains (this))
-				return;
-			ulong matchId = Setup.Details.MatchId;
-			var countMatch = (outcome == EMatchOutcome.k_EMatchOutcome_DireVictory || outcome == EMatchOutcome.k_EMatchOutcome_RadVictory);
-			if (outcome == EMatchOutcome.k_EMatchOutcome_NotScored_Leaver) {
-				log.Debug (matchId + " HAS NO KNOWN OUTCOME DUE TO LEAVERS");
-				countMatch = false;
-			}
+        {
+            if (!MatchesController.Games.Contains(this))
+                return;
+            ulong matchId = Setup.Details.MatchId;
+            var countMatch = (outcome == EMatchOutcome.k_EMatchOutcome_DireVictory ||
+                              outcome == EMatchOutcome.k_EMatchOutcome_RadVictory);
+            if (outcome == EMatchOutcome.k_EMatchOutcome_NotScored_Leaver)
+            {
+                log.Debug(matchId + " HAS NO KNOWN OUTCOME DUE TO LEAVERS");
+                countMatch = false;
+            }
 
-			log.Debug ("PROCESSING RESULT " + matchId + " WITH OUTCOME " + outcome);
-			var result = new MatchResult {
-				Id = matchId,
-				MatchId = Id,
-				Players =
-                    Players.Where (m => m.Team == MatchTeam.Dire || m.Team == MatchTeam.Radiant)
-                        .Select (x => new MatchResultPlayer (x))
-                        .ToArray (),
-				Result = outcome,
-				MatchCounted = countMatch,
-				RatingDire = 0,
-				RatingRadiant = 0
-			};
+            log.Debug("PROCESSING RESULT " + matchId + " WITH OUTCOME " + outcome);
+            var result = new MatchResult
+            {
+                Id = matchId,
+                MatchId = Id.ToString(),
+                MatchCompleted = DateTime.UtcNow,
+                Players =
+                    Players.Where(m => m.Team == MatchTeam.Dire || m.Team == MatchTeam.Radiant)
+                        .Select(x => new MatchResultPlayer(x))
+                        .ToArray(),
+                Result = outcome,
+                MatchCounted = countMatch,
+                RatingDire = 0,
+                RatingRadiant = 0
+            };
 
-			if (countMatch)
-				RatingCalculator.CalculateRatingDelta (result);
+            if (countMatch)
+                RatingCalculator.CalculateRatingDelta(result);
 
-			result.ApplyRating ();
-			result.Save ();
+            result.ApplyRating();
+            result.Save();
 
-			if (countMatch)
-			{	
-				foreach (
+            if (countMatch)
+            {
+                foreach (
                     Controllers.Matches c in
                         Players.Select(player => Matches.Find(m => m.User != null && m.User.steam.steamid == player.SID))
-                            .SelectMany(cont => cont)) {
-					c.Result = result;
-				}
-				var leavers = Setup.Details.Players.Where (m => m.IsLeaver);
-				if(leavers.Any())
-					ChatChannel.GlobalSystemMessage (" Punishing leaver(s) " + string.Join (", ", leavers.Select (m => m.Name)) + " with an abandon and -10 rating.");
-			}else
+                            .SelectMany(cont => cont))
+                {
+                    c.Result = result;
+                }
+                var leavers = Setup.Details.Players.Where(m => m.IsLeaver);
+                if (leavers.Any())
+                    ChatChannel.GlobalSystemMessage(" Punishing leaver(s) " +
+                                                    string.Join(", ", leavers.Select(m => m.Name)) +
+                                                    " with an abandon and -10 rating.");
+            }
+            else
             {
                 var reason = "some unknown reason";
                 switch (outcome)
@@ -484,15 +507,16 @@ namespace WLNetwork.Matches
                         reason = "unknown match result, admin will confirm result and apply rating";
                         break;
                 }
-				ChatChannel.GlobalSystemMessage("Match not counted due to " + reason + ".");
+                ChatChannel.GlobalSystemMessage("Match not counted due to " + reason + ".");
             }
             Destroy();
         }
 
         public void AdminDestroy()
         {
-            log.Debug("ADMIN DESTROY "+Id);
-            Matches.InvokeTo(m=>m.Match == this, new SystemMsg("Admin Closed Match", "An admin has destroyed the match you were in."), SystemMsg.Msg);
+            log.Debug("ADMIN DESTROY " + Id);
+            Matches.InvokeTo(m => m.Match == this,
+                new SystemMsg("Admin Closed Match", "An admin has destroyed the match you were in."), SystemMsg.Msg);
             this.Destroy();
         }
 
@@ -500,7 +524,7 @@ namespace WLNetwork.Matches
         {
             foreach (var match in Mongo.ActiveMatches.FindAllAs<ActiveMatch>())
             {
-                log.Debug("RECOVERING MATCH "+match.Id+"...");
+                log.Debug("RECOVERING MATCH " + match.Id + "...");
 // ReSharper disable once ObjectCreationAsStatement
                 new MatchGame(match).SaveActiveGame();
             }
