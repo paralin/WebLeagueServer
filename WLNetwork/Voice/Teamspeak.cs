@@ -2,14 +2,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using KellermanSoftware.CompareNetObjects;
 using log4net;
+using MongoDB.Driver.Builders;
+using Newtonsoft.Json.Linq;
 using TentacleSoftware.TeamSpeakQuery;
 using TentacleSoftware.TeamSpeakQuery.NotifyResult;
 using TentacleSoftware.TeamSpeakQuery.ServerQueryResult;
-using WLNetwork.Utils;
+using WLNetwork.Database;
+using WLNetwork.Matches;
+using WLNetwork.Model;
+using XSockets.Core.XSocket.Helpers;
+using Timer = System.Timers.Timer;
 
 namespace WLNetwork.Voice
 {
@@ -18,21 +25,53 @@ namespace WLNetwork.Voice
     /// </summary>
     public class Teamspeak
     {
+        private static Controllers.Matches Matches = new Controllers.Matches();
+        private static Controllers.Chat Chats = new Controllers.Chat();
+
         private static readonly ILog log = LogManager.GetLogger
             (MethodBase.GetCurrentMethod().DeclaringType);
         public static Teamspeak Instance = null;
 
         public Dictionary<string, ChannelInfoResult> Channels;
 
+        private Timer PeriodicUpdate;
+
         ServerQueryClient client;
 
         private bool connected = false;
+        private DateTime LastUpdateTime = DateTime.UtcNow;
+
+        public Dictionary<string, User> UserCache;
+        private Dictionary<uint, string> ServerGroupCache;
+        private WhoAmIResult me;
 
         public Teamspeak()
         {
             Instance = this;
             Channels = new Dictionary<string, ChannelInfoResult>();
+            UserCache = new Dictionary<string, User>();
+            ServerGroupCache = new Dictionary<uint, string>();
             RegisterDefaultChannels();
+            PeriodicUpdate = new Timer(8000);
+            PeriodicUpdate.Elapsed += (sender, args) => Periodic(null);
+        }
+
+        private async void Periodic(object state)
+        {
+            if ((LastUpdateTime - DateTime.UtcNow).Duration().Seconds < 1) return; //to prevent spam
+            LastUpdateTime = DateTime.UtcNow;
+
+            PeriodicUpdate.Stop();
+
+            try
+            {
+                await SetupChannels();
+                await CheckClients();
+            }
+            finally
+            {
+                PeriodicUpdate.Start();
+            }
         }
 
         public void Startup()
@@ -40,7 +79,7 @@ namespace WLNetwork.Voice
             Task.Factory.StartNew(InitClient);
         }
 
-        private void InitClient()
+        private async void InitClient()
         {
             connected = false;
             string[] parts = Env.TEAMSPEAK_URL.Split(':');
@@ -124,63 +163,122 @@ namespace WLNetwork.Voice
                 log.Warn("Unable to change query flood params, we could max out the server. "+res.ErrorMessage);
             }
 
-            client.KeepAlive(TimeSpan.FromMinutes(1));
-
-            ServerQueryBaseResult notifyRegister = client.ServerNotifyRegister(Event.textchannel).Result;
-            if (notifyRegister.Success)
+            var sgres = client.SendCommandAsync("servergrouplist").Result;
+            if (!res.Success)
             {
-                log.Debug("Registered notify events.");
+                log.Warn("Unable to fetch server group list.");
             }
             else
             {
-                log.Warn("Unable to register notify events, some things might be broken.");
+                foreach (var g in sgres.Response.Split('|').Where(m=>m.Contains("type=1")))
+                {
+                    var namer = Regex.Match(g, "(name=)([^\\s]+)");
+                    if (namer.Success)
+                    {
+                        var idr = Regex.Match(g, "(sgid=)(\\d+)");
+                        if (idr.Success)
+                        {
+                            var groupn = namer.Groups[2].Value;
+                            var idn = idr.Groups[2].Value;
+                            ServerGroupCache[uint.Parse(idn)] = groupn.Unescape();
+                            log.Debug("Server group "+groupn+"="+idn+".");
+                        }
+                    }
+                }
             }
+
+            client.KeepAlive(TimeSpan.FromSeconds(30));
+
+            await client.ClientUpdate("FPL Server");
+            me = await client.WhoAmI();
+
+            foreach (var eve in new[] {Event.channel, Event.server, Event.textchannel, Event.textprivate, Event.textserver})
+                await client.ServerNotifyRegister(eve, 0);
 
             log.Debug("Server ready, configuring...");
             connected = true;
-            SetupChannels();
+
+            LastUpdateTime = new DateTime(0);
+            PeriodicUpdate.Start();
+
+            await SetupChannels();
+
+            //log.Debug("I ("+me.ClientId+") am moving to "+Channels["Unknown"].Cid);
+            //await client.ClientMove(Channels["Unknown"].Cid, null, me.ClientId);
         }
 
         private void Shutdown()
         {
             connected = false;
+            PeriodicUpdate.Stop();
             client.Quit();
             client = null;
         }
 
         private void NotifyTextMessage(object sender, NotifyTextMessageResult notifyTextMessageResult)
         {
-            log.Debug("Text message => "+notifyTextMessageResult.Invokername+": "+notifyTextMessageResult.Msg);
+            if (int.Parse(notifyTextMessageResult.Invokerid) == me.ClientId || notifyTextMessageResult.Targetmode != "1") return;
+            log.Debug("Message => "+notifyTextMessageResult.Invokerid+"="+notifyTextMessageResult.Invokername+": "+notifyTextMessageResult.Msg);
+            var user = Mongo.Users.FindOneAs<User>(Query<User>.EQ(m => m.tsonetimeid, notifyTextMessageResult.Msg));
+            if(user == null)
+                client.SendTextMessage(TextMessageTargetMode.TextMessageTarget_CLIENT, int.Parse(notifyTextMessageResult.Invokerid), "Your token, "+notifyTextMessageResult.Msg+" is not recognized. Please try again.");
+            else
+            {
+                client.SendTextMessage(TextMessageTargetMode.TextMessageTarget_CLIENT, int.Parse(notifyTextMessageResult.Invokerid), "Thank you, "+user.profile.name+", welcome to the server.");
+                try
+                {
+                    Task.Factory.StartNew(async () =>
+                    {
+                        var usr = await client.ClientInfo(int.Parse(notifyTextMessageResult.Invokerid));
+                        foreach (var e in UserCache.Keys.Where(m => UserCache[m] != null && UserCache[m].Id == user.Id).ToArray())
+                            UserCache.Remove(e);
+                        //if (user.tsuniqueids == null) FOR NOW JUST ALLOW ONE TS AUTH AT ONCE
+                            user.tsuniqueids = new string[0];
+                        user.tsuniqueids = new List<string>(user.tsuniqueids) { usr.ClientUniqueIdentifier }.ToArray();
+                        user.tsonetimeid = null; //it will be regenned later
+                        Mongo.Users.Update(Query<User>.EQ(m => m.Id, user.Id),
+                            Update<User>.Set(m => m.tsuniqueids, user.tsuniqueids).Set(m=>m.tsonetimeid, null));
+                        foreach (var u in Matches.Find(m => m.User != null && m.User.Id == user.Id)) u.ReloadUser();
+                        foreach (var u in Chats.Find(m => m.User != null && m.User.Id == user.Id)) u.ReloadUser();
+                        UserCache[usr.ClientUniqueIdentifier] = user;
+                        await CheckClients();
+                    });
+                }
+                catch (Exception ex)
+                {
+                    log.Error("Error when recognizing signed in user: ", ex);
+                }
+            }
         }
 
         private void NotifyServerEdited(object sender, NotifyServerEditedResult notifyServerEditedResult)
         {
-            
         }
 
         private void NotifyClientMoved(object sender, NotifyClientMovedResult notifyClientMovedResult)
         {
-            
+            //ClientCache.Remove(notifyClientMovedResult.)
+            Periodic(null);
         }
 
         private void NotifyClientLeftView(object sender, NotifyClientLeftViewResult notifyClientLeftViewResult)
         {
-            
+            Periodic(null);
         }
 
         private void NotifyClientEnterView(object sender, NotifyClientEnterViewResult notifyClientEnterViewResult)
         {
-            
+            Periodic(null);
         }
 
         private void NotifyChannelEdited(object sender, NotifyChannelEditedResult notifyChannelEditedResult)
         {
-            
+            Periodic(null);
         }
 
         private void NotifyChannelDescriptionChanged(object sender, NotifyChannelDescriptionChangedResult notifyChannelDescriptionChangedResult)
         {
-            
+            Periodic(null);
         }
 
         private void ConnectionClosed(object sender, EventArgs eventArgs)
@@ -217,7 +315,8 @@ namespace WLNetwork.Voice
                 ChannelDescription = "Channel for clients that have not verified their identity yet.",
                 ChannelFlagPermanent = "1",
                 ChannelForcedSilence = "1",
-                ChannelNeededTalkPower = "99999"
+                ChannelNeededTalkPower = "99999",
+                ChannelPassword = "dontjoinmanuallyscrub"
             };
             Channels["[spacer0]"] = new ChannelInfoResult()
             {
@@ -253,9 +352,112 @@ namespace WLNetwork.Voice
             return await client.SendCommandAsync(command);
         }
 
+        private Dictionary<string, ClientInfoResult> ClientCache = new Dictionary<string, ClientInfoResult>(); 
+        public async Task CheckClients()
+        {
+            if (!connected) return;
+            LastUpdateTime = DateTime.UtcNow;
+
+            ClientListResult clientsr = null;
+            try
+            {
+                clientsr = await client.ClientList();
+            }
+            catch (Exception ex)
+            {
+                log.Error("Unable to get clients list", ex);
+                return;
+            }
+            if (!clientsr.Success)
+            {
+                log.Warn("Unable to list clients, " + clientsr.ErrorMessage + "!");
+                return;
+            }
+
+            foreach (var clii in clientsr.Values)
+            {
+                if (clii.ClientType != "0") continue;
+
+                ClientInfoResult cli = null;
+                if (!ClientCache.TryGetValue(clii.ClientUniqueIdentifier, out cli))
+                {
+                    var val = await client.ClientInfo(clii.ClientId);
+                    cli = val;
+                    //ClientCache[clii.ClientUniqueIdentifier] = val;
+                    cli.ClientId = clii.ClientId;
+                }
+
+                User user = null;
+                if (!UserCache.TryGetValue(cli.ClientUniqueIdentifier, out user) || user == null) user = Mongo.Users.FindOneAs<User>(Query<User>.EQ(m => m.tsuniqueids, cli.ClientUniqueIdentifier));
+
+                UserCache[cli.ClientUniqueIdentifier] = user;
+
+                var targetGroups = new List<uint>();
+                if(user == null) targetGroups.Add(ServerGroupCache.First(m=>m.Value == "Guest").Key);
+                else if (user.authItems.Contains("admin")) targetGroups.Add(ServerGroupCache.First(m => m.Value == "Server Admin").Key);
+                else if (user.vouch != null) targetGroups.Add(ServerGroupCache.First(m => m.Value == "Normal").Key);
+                else targetGroups.Add(ServerGroupCache.First(m => m.Value == "Guest").Key);
+
+                var ids = cli.ClientServerGroups.Split(',').Where(m => m.Length > 0).Select(uint.Parse).ToList();
+                foreach (var id in ids.Where(m => !targetGroups.Contains(m)))
+                {
+                    log.Debug("Removing server group "+id+" from client "+cli.ClientNickname);
+                    await SendCommandAsync("servergroupdelclient sgid=" + id + " cldbid=" + cli.ClientDatabaseId);
+                }
+                foreach (var id in targetGroups.Where(m => !ids.Contains(m)))
+                {
+                    log.Debug("Adding server group "+ServerGroupCache[id]+" to client "+cli.ClientNickname);
+                    await SendCommandAsync("servergroupaddclient sgid=" + id + " cldbid=" + cli.ClientDatabaseId);
+                }
+
+                var uchan = Channels["Unknown"];
+                if (user == null)
+                {
+                    if (uchan.Cid != cli.ChannelId && uchan.Cid != 0)
+                    {
+                        log.Debug("Moving client " + cli.ClientNickname + " to unknown channel, id: " + uchan.Cid +
+                                  " from " + cli.ChannelId + ".");
+                        var res = await SendCommandAsync("clientmove cid=" + uchan.Cid + " clid=" + cli.ClientId);
+                        if (!res.Success)
+                        {
+                            log.Warn("Unable to move client, " + res.ErrorMessage);
+                        }
+                        else
+                        {
+                            cli.ChannelId = uchan.Cid;
+                            await
+                                client.SendTextMessage(TextMessageTargetMode.TextMessageTarget_CLIENT,
+                                    cli.ClientId,
+                                    "Welcome to the FPL teamspeak. Please paste your client token here. If you don't know what it is, click your name at the top right of the site and select Teamspeak Info.");
+
+                        }
+                    }
+                    else if (!checkedunknown)
+                    {
+                        await client.SendTextMessage(TextMessageTargetMode.TextMessageTarget_CLIENT,
+                            cli.ClientId,
+                            "Welcome to the FPL teamspeak. Please paste your client token here. If you don't know what it is, click your name at the top right of the site and select Teamspeak Info.");
+                    }
+                    continue;
+                }
+                else
+                {
+                    if (uchan.Cid != 0 && cli.ChannelId == uchan.Cid)
+                    {
+                        log.Debug("Moving client "+cli.ClientNickname+" out of the unknown channel.");
+                        await SendCommandAsync("clientmove cid=" + Channels["Lobby"].Cid + " clid=" + cli.ClientId);
+                    }
+                }
+            }
+            checkedunknown = true;
+        }
+
+        private bool checkedunknown = false;
         public async Task SetupChannels()
         {
             if (!connected) return;
+            LastUpdateTime = DateTime.UtcNow;
+
             var channelsr = await client.ChannelList();
             if (!channelsr.Success)
             {
@@ -278,7 +480,7 @@ namespace WLNetwork.Voice
                     // Compare the two
                     var comp = compare.Compare(lookupr, channel);
                     if (channel.ChannelFlagPassword == null) channel.ChannelFlagPassword = "0";
-                    if (comp.Differences.Any(m => m.PropertyName != ".Cid" && (m.PropertyName != ".ChannelPassword" || (lookupr.ChannelFlagPassword != channel.ChannelFlagPassword))))
+                    if (comp.Differences.Any(m => m.PropertyName != ".Cid" && m.PropertyName != ".ChannelPassword"))
                     {
                         string[] props = comp.Differences.Select(m => m.PropertyName.Substring(1)).ToArray();
                         var eres = await SendCommandAsync("channeledit cid="+exist.Cid+" " + string.Join(" ", ObjectToArgs(channel, props)));
@@ -325,7 +527,7 @@ namespace WLNetwork.Voice
 
             foreach (var channel in channels)
             {
-                if (Channels.Keys.Contains(channel.ChannelName)) continue;
+                if (Channels.Keys.Contains(channel.ChannelName) || (channel.ChannelFlagPermanent == "0" && channel.Pid == 0)) continue;
                 var res = await SendCommandAsync("channeldelete force=1 cid=" + channel.Cid);
                 if (res.Success)
                 {

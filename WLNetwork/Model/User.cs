@@ -33,6 +33,8 @@ namespace WLNetwork.Model
         public SteamService steam { get; set; }
         public Vouch vouch { get; set; }
         public string[] channels { get; set; }
+        public string[] tsuniqueids { get; set; }
+        public string tsonetimeid { get; set; }
     }
 
     public class Vouch

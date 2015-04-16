@@ -184,7 +184,7 @@ namespace WLNetwork.Bots
         public void LeaverStatus(object sender, LeaverStatusArgs args)
         {
             if (game.Bot == null) return;
-            var someoneAbandoned = false;
+            //var someoneAbandoned = false;
             foreach (LeaverStatusArgs.Player plyr in args.Players)
             {
                 MatchPlayer tplyr = game.Players.FirstOrDefault(m => m.SID == plyr.SteamID);
@@ -193,18 +193,20 @@ namespace WLNetwork.Bots
                     var plyrLeft = args.Lobby.left_members.Any(m => "" + m.id == plyr.SteamID);
                     tplyr.IsLeaver = plyr.Status != DOTALeaverStatus_t.DOTA_LEAVER_NONE || plyrLeft;
                     tplyr.LeaverReason = plyr.Status;
-                    if (plyrLeft) someoneAbandoned = true;
+                    //if (plyrLeft) someoneAbandoned = true;
                 }
             }
             MatchGame g = game.GetGame();
             if (g != null)
             {
                 g.Players = g.Players;
+				/*
                 if (someoneAbandoned)
                 {
                     log.Warn("ABANDON FOR "+g.Id+", CLOSING GAME");
                     g.ProcessMatchResult(EMatchOutcome.k_EMatchOutcome_NotScored_Leaver);
                 }
+                */
             }
         }
 

@@ -235,6 +235,7 @@ namespace WLNetwork.Controllers
         {
             if (Match == null) return "You are not currently in a match.";
             if (User == null) return "You are not logged in for some reason.";
+            if (User.authItems.Contains("spectateOnly")) return "You cannot start matches, you can spectate only.";
             if (Match.Info.Owner != User.steam.steamid) return "You are not the host of this game.";
             if (Match.Setup != null || Match.Info.Status == MatchStatus.Teams)
                 return "The match is already being set up.";
@@ -330,6 +331,7 @@ namespace WLNetwork.Controllers
         public string JoinMatch(MatchJoinOptions options)
         {
             if (activeMatch != null && options.Id == activeMatch.Id) return "You are already in that match.";
+            if (User.authItems.Contains("spectateOnly") && !options.Spec) return "You cannot join matches, you can spectate only.";
             //LeaveMatch();
             if (activeMatch != null) return "You are already in a match, leave that one first.";
             MatchGame match = MatchesController.Games.FirstOrDefault( m => m.Id == options.Id && m.Info.Public);
@@ -383,11 +385,11 @@ namespace WLNetwork.Controllers
             target.ChallengerName = User.steam.personaname;
             if (target.ChallengedSID == null) return "You didn't specify a person to challenge.";
             if (target.ChallengedSID == User.steam.steamid) return "You cannot challenge yourself!";
-            Matches tcont =
-                this.Find(m => m.User != null && m.User.steam.steamid == target.ChallengedSID).FirstOrDefault();
+            Matches tcont = this.Find(m => m.User != null && m.User.steam.steamid == target.ChallengedSID).FirstOrDefault();
             if (tcont == null) return "That player is no longer online.";
             if (tcont.Match != null) return "That player is already in a match.";
             if (tcont.Challenge != null) return "That player is already waiting for a challenge.";
+            if (tcont.User.authItems.Contains("spectateOnly")) return "That player is a spectator and cannot play matches.";
             target.ChallengedName = tcont.User.steam.personaname;
             target.ChallengedSID = tcont.User.steam.steamid;
             tcont.Challenge = target;

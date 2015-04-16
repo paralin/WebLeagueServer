@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Timers;
 using log4net;
+using MongoDB.Driver.Builders;
 using MongoDB.Driver.Linq;
 using WLNetwork.Chat;
 using WLNetwork.Chat.Exceptions;
@@ -98,7 +99,7 @@ namespace WLNetwork.Controllers
         private void SaveChatChannels()
         {
             User.channels = Channels.Where(m=>m.Leavable && m.ChannelType == ChannelType.Public).Select(m => m.Name).ToArray();
-            Database.Mongo.Users.Save(User);
+            Database.Mongo.Users.Update(Query<User>.EQ(m=>m.Id, User.Id), Update<User>.Set(m=>m.channels, User.channels));
         }
 
         private void LoadChatChannels()

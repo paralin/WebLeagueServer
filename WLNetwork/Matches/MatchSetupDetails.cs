@@ -64,5 +64,10 @@ namespace WLNetwork.Matches
         ///     Time game started
         /// </summary>
         public DateTime GameStartTime { get; set; }
+
+        /// <summary>
+        ///  Is this a recovered in progress match
+        /// </summary>
+        public bool IsRecovered { get; set; }
     }
 }
