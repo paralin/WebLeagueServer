@@ -24,34 +24,33 @@ namespace WLNetwork
         public static void Main(string[] args)
         {
             XmlConfigurator.Configure();
-            AppDomain.CurrentDomain.UnhandledException +=
-    (sender, eventArgs) => log.Fatal("UNHANDLED EXCEPTION", (Exception)eventArgs.ExceptionObject);
-            
+            AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) => log.Fatal("UNHANDLED EXCEPTION", (Exception) eventArgs.ExceptionObject);
+
             log.Info("Web League master starting up!");
+            //Init database
+            log.Info("There are " + HeroCache.Heros.Values.Count + " heros in the system.");
+            Console.CancelKeyPress += delegate { shutdown = true; };
+            using (var container = Composable.GetExport<IXSocketServerContainer>())
+            {
+                container.Start();
+                log.Debug("Server online and listening.");
 
-            var conf = new HostConfiguration();
-            conf.UrlReservations.CreateAutomatically = true;
+                new ChatChannel("main", ChannelType.Public, false, true);
+                new Teamspeak().Startup();
+                MatchGame.RecoverActiveMatches();
 
-            using(var webHost = new NancyHost(new Uri("http://localhost:8080"), new DefaultNancyBootstrapper(), conf)) {
-                try
+                var conf = new HostConfiguration {UrlReservations = {CreateAutomatically = true}};
+                using (
+                    var webHost = new NancyHost(new Uri("http://localhost:8080"), new DefaultNancyBootstrapper(), conf))
                 {
-                    webHost.Start();
-                }
-                catch (Exception ex)
-                {
-                    log.Error("Unable to start web server!", ex);
-                }
-
-                //Init database
-			    log.Info("There are "+HeroCache.Heros.Values.Count+" heros in the system.");
-                Console.CancelKeyPress += delegate { shutdown = true; };
-                using (var container = Composable.GetExport<IXSocketServerContainer>())
-                {
-                    container.Start();
-                    log.Debug("Server online and listening.");
-                    new ChatChannel("main", ChannelType.Public, false, true);
-                    new Teamspeak().Startup();
-                    MatchGame.RecoverActiveMatches();
+                    try
+                    {
+                        webHost.Start();
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error("Unable to start web server!", ex);
+                    }
                     while (!shutdown && !(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter))
                     {
                         Thread.Sleep(500);
