@@ -1,9 +1,8 @@
 ﻿using System.Linq;
+using Dota2.GC.Dota.Internal;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Builders;
-using SteamKit2;
-using SteamKit2.GC.Dota.Internal;
 using WLNetwork.Database;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Model;

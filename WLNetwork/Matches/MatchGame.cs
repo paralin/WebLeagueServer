@@ -7,12 +7,11 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using Dota2.GC.Dota.Internal;
 using log4net;
 using MongoDB.Driver.Builders;
-using SteamKit2.GC.Dota.Internal;
 using TentacleSoftware.TeamSpeakQuery.ServerQueryResult;
 using WLNetwork.Bots;
 using WLNetwork.Chat;
@@ -359,7 +358,7 @@ namespace WLNetwork.Matches
         public void DeleteTeamspeakChannels()
         {
             ChannelInfoResult val;
-            Task.Factory.StartNew(async () =>
+            ThreadPool.QueueUserWorkItem(async delegate
             {
                 foreach (var chan in ChannelNames)
                     Teamspeak.Instance.Channels.TryRemove(chan, out val);
@@ -520,7 +519,7 @@ namespace WLNetwork.Matches
                     pickedAlready = true;
                 }
             }
-            Task.Factory.StartNew(() =>
+            Task.Run(() =>
             {
                 Thread.Sleep(100);
                 Players = Players;

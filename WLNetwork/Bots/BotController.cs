@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using Dota2.GC.Dota.Internal;
 using log4net;
 using SteamKit2;
-using SteamKit2.GC.CSGO.Internal;
-using SteamKit2.GC.Dota.Internal;
 using WLNetwork.BotEnums;
 using WLNetwork.Chat;
 using WLNetwork.Database;

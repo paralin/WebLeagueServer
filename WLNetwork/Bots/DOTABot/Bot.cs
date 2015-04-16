@@ -5,13 +5,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Appccelerate.StateMachine;
 using Appccelerate.StateMachine.Machine;
+using Dota2;
+using Dota2.GC.Dota.Internal;
 using KellermanSoftware.CompareNetObjects;
 using log4net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SteamKit2;
-using SteamKit2.GC.Dota;
-using SteamKit2.GC.Dota.Internal;
 using WLBotHost.Utils;
 using WLNetwork.BotEnums;
 using WLNetwork.Bots.DOTABot.Enums;
@@ -140,7 +140,7 @@ namespace WLNetwork.Bots.DOTABot
         {
 			if (setupDetails.IsRecovered)
             {
-                Task.Factory.StartNew(() =>
+                ThreadPool.QueueUserWorkItem(state =>
                 {
                     Thread.Sleep(2000);
                     if (dota.Lobby != null) return;
@@ -444,14 +444,14 @@ namespace WLNetwork.Bots.DOTABot
                     user = null;
                 }
                 if (client.IsConnected) client.Disconnect();
-                client.ClearHandlers();
+                client.RemoveHandler(typeof(DotaGCHandler));
                 client = null;
             }
         }
 
         public void Destroy()
         {
-            manager.Unregister();
+            //manager.Unregister();
             manager = null;
             if (fsm != null)
             {

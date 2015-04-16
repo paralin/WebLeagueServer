@@ -1,6 +1,6 @@
-﻿using System;
-using SteamKit2.GC.Dota.Internal;
-using WLNetwork.BotEnums;
+﻿
+
+using Dota2.GC.Dota.Internal;
 
 namespace WLNetwork
 {

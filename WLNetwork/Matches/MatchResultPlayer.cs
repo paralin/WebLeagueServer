@@ -1,4 +1,4 @@
-﻿using SteamKit2.GC.Dota.Internal;
+﻿using Dota2.GC.Dota.Internal;
 using WLNetwork.Matches.Enums;
 
 namespace WLNetwork.Matches

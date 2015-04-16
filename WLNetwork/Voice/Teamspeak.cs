@@ -95,12 +95,12 @@ namespace WLNetwork.Voice
             }
         }
 
-        public void Startup()
+        public async Task Startup()
         {
-            Task.Factory.StartNew(InitClient);
+            await InitClient();
         }
 
-        private async void InitClient()
+        private async Task InitClient()
         {
             if (!Env.ENABLE_TEAMSPEAK)
             {
@@ -131,7 +131,7 @@ namespace WLNetwork.Voice
             {
                 log.Debug("Can't connect to teamspeak, trying again in 1 minute.");
                 Shutdown();
-                Task.Factory.StartNew(() =>
+                ThreadPool.QueueUserWorkItem(state =>
                 {
                     Thread.Sleep(TimeSpan.FromMinutes(1));
                     Startup();
@@ -155,7 +155,7 @@ namespace WLNetwork.Voice
             {
                 log.Error("Error authenticating with teamspeak! Trying again in 1 minute...", ex);
                 Shutdown();
-                Task.Factory.StartNew(() =>
+                ThreadPool.QueueUserWorkItem(state =>
                 {
                     Thread.Sleep(TimeSpan.FromMinutes(1));
                     Startup();
@@ -183,7 +183,7 @@ namespace WLNetwork.Voice
             {
                 log.Debug("Can't select teamspeak server, trying again in 1 minute.");
                 Shutdown();
-                Task.Factory.StartNew(() =>
+                ThreadPool.QueueUserWorkItem(state =>
                 {
                     Thread.Sleep(TimeSpan.FromMinutes(1));
                     Startup();
@@ -268,7 +268,7 @@ namespace WLNetwork.Voice
                 client.SendTextMessage(TextMessageTargetMode.TextMessageTarget_CLIENT, int.Parse(notifyTextMessageResult.Invokerid), "Thank you, "+user.profile.name+", welcome to the server.");
                 try
                 {
-                    Task.Factory.StartNew(async () =>
+                    Task.Run(async () =>
                     {
                         var usr = await client.ClientInfo(int.Parse(notifyTextMessageResult.Invokerid));
                         foreach (var e in UserCache.Keys.Where(m => UserCache[m] != null && UserCache[m].Id == user.Id).ToArray())

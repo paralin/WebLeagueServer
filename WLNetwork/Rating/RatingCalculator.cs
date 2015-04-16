@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using SteamKit2.GC.Dota.Internal;
+using Dota2.GC.Dota.Internal;
 using WLNetwork.Matches;
 using WLNetwork.Matches.Enums;
 

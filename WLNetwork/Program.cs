@@ -32,24 +32,26 @@ namespace WLNetwork
             //Init database
             log.Info("There are " + HeroCache.Heros.Values.Count + " heros in the system.");
             Console.CancelKeyPress += delegate { shutdown = true; };
-            using (var container = Composable.GetExport<IXSocketServerContainer>())
+
+            IXSocketServerContainer container;
+
+            ThreadPool.QueueUserWorkItem(delegate
             {
+                container = Composable.GetExport<IXSocketServerContainer>();
                 container.Start();
                 log.Debug("Server online and listening.");
+            });
 
+            ThreadPool.QueueUserWorkItem((async state =>
+            {
                 new ChatChannel("main", ChannelType.Public, false, true);
-
-                ThreadPool.QueueUserWorkItem((state =>
-                {
-                    new Teamspeak().Startup();
-                    MatchGame.RecoverActiveMatches();
-                }));
-               
-
-                while (!shutdown && !(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter))
-                {
-                    Thread.Sleep(500);
-                }
+                await new Teamspeak().Startup();
+                MatchGame.RecoverActiveMatches();
+            }));
+            
+            while (!shutdown && !(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter))
+            {
+                Thread.Sleep(500);
             }
         }
     }
