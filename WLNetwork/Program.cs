@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Diagnostics.Eventing.Reader;
-using System.Net.Mime;
 using System.Reflection;
 using System.Threading;
 using log4net;
