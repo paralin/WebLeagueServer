@@ -138,7 +138,7 @@ namespace WLNetwork.Bots.DOTABot
 
         public void CreateLobby()
         {
-			if (setupDetails.State >= DOTA_GameState.DOTA_GAMERULES_STATE_WAIT_FOR_PLAYERS_TO_LOAD && (dota.Lobby == null || dota.Lobby.pass_key != setupDetails.Password))
+			if (setupDetails.IsRecovered)
             {
                 Task.Factory.StartNew(() =>
                 {

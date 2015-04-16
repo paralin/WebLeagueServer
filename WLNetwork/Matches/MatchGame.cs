@@ -275,7 +275,6 @@ namespace WLNetwork.Matches
         {
             Task.Factory.StartNew(async () =>
             {
-
                 //Top level match channel
                 string name;
                 if (Info.MatchType == MatchType.StartGame)

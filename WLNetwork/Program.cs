@@ -31,8 +31,8 @@ namespace WLNetwork
                 container.Start();
                 log.Debug("Server online and listening.");
                 new ChatChannel("main", ChannelType.Public, false, true);
-                MatchGame.RecoverActiveMatches();
                 new Teamspeak().Startup();
+                MatchGame.RecoverActiveMatches();
                 while (!shutdown && !(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter))
                 {
                     Thread.Sleep(500);
