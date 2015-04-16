@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -32,7 +33,7 @@ namespace WLNetwork.Voice
             (MethodBase.GetCurrentMethod().DeclaringType);
         public static Teamspeak Instance = null;
 
-        public Dictionary<string, ChannelInfoResult> Channels;
+        public ConcurrentDictionary<string, ChannelInfoResult> Channels;
 
         private Timer PeriodicUpdate;
 
@@ -48,12 +49,12 @@ namespace WLNetwork.Voice
         /// <summary>
         /// Force users with this ID to this channel name
         /// </summary>
-        public Dictionary<string, string> ForceChannel = new Dictionary<string, string>(); 
+        public ConcurrentDictionary<string, string> ForceChannel = new ConcurrentDictionary<string, string>();
 
         public Teamspeak()
         {
             Instance = this;
-            Channels = new Dictionary<string, ChannelInfoResult>();
+            Channels = new ConcurrentDictionary<string, ChannelInfoResult>();
             UserCache = new Dictionary<string, User>();
             ServerGroupCache = new Dictionary<uint, string>();
             RegisterDefaultChannels();
@@ -471,7 +472,8 @@ namespace WLNetwork.Voice
                         ChannelInfoResult chan = null;
                         if (!Channels.TryGetValue(fc, out chan) || chan == null)
                         {
-                            ForceChannel.Remove(user.Id);
+                            string foobar;
+                            ForceChannel.TryRemove(user.Id, out foobar);
                         }
                         else
                         {

@@ -326,10 +326,11 @@ namespace WLNetwork.Matches
 
         public void DeleteTeamspeakChannels()
         {
+            ChannelInfoResult val;
             Task.Factory.StartNew(async () =>
             {
                 foreach (var chan in ChannelNames)
-                    Teamspeak.Instance.Channels.Remove(chan);
+                    Teamspeak.Instance.Channels.TryRemove(chan, out val);
                 await Teamspeak.Instance.SetupChannels();
                 ChannelNames.Clear();
             });
@@ -353,7 +354,8 @@ namespace WLNetwork.Matches
                 Admins.InvokeTo(m => m.User != null, arg, "clearsetupmatch");
                 foreach (var plyr in Players)
                 {
-                    Teamspeak.Instance.ForceChannel.Remove(plyr.SID);
+                    string foobar;
+                    Teamspeak.Instance.ForceChannel.TryRemove(plyr.SID, out foobar);
                 }
             }
             else
