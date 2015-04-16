@@ -38,8 +38,13 @@ namespace WLNetwork
                 log.Debug("Server online and listening.");
 
                 new ChatChannel("main", ChannelType.Public, false, true);
-                new Teamspeak().Startup();
-                Task.Factory.StartNew(MatchGame.RecoverActiveMatches);
+
+                ThreadPool.QueueUserWorkItem((state =>
+                {
+                    new Teamspeak().Startup();
+                    MatchGame.RecoverActiveMatches();
+                }));
+               
 
                 while (!shutdown && !(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter))
                 {
