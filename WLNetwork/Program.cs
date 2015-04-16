@@ -21,9 +21,9 @@ namespace WLNetwork
 
         public static void Main(string[] args)
         {
-            AppDomain.CurrentDomain.UnhandledException +=
-                (sender, eventArgs) => log.Fatal("UNHANDLED EXCEPTION", (Exception) eventArgs.ExceptionObject);
             XmlConfigurator.Configure();
+            AppDomain.CurrentDomain.UnhandledException +=
+    (sender, eventArgs) => log.Fatal("UNHANDLED EXCEPTION", (Exception)eventArgs.ExceptionObject);
             log.Info("Web League master starting up!");
 			//Init database
 			log.Info("There are "+HeroCache.Heros.Values.Count+" heros in the system.");

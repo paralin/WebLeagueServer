@@ -58,11 +58,11 @@ namespace WLNetwork.Voice
             UserCache = new Dictionary<string, User>();
             ServerGroupCache = new Dictionary<uint, string>();
             RegisterDefaultChannels();
-            PeriodicUpdate = new Timer(8000);
+            PeriodicUpdate = new Timer(5000);
             PeriodicUpdate.Elapsed += (sender, args) => Periodic(null);
         }
 
-        private async void Periodic(object state)
+        private async void Periodic(object state=null)
         {
             if ((LastUpdateTime - DateTime.UtcNow).Duration().Seconds < 1) return; //to prevent spam
             LastUpdateTime = DateTime.UtcNow;
@@ -71,12 +71,27 @@ namespace WLNetwork.Voice
 
             try
             {
+                bool updatedAny = false;
+                MatchGame game = null;
+                if (MatchGame.TSSetupQueue.TryDequeue(out game) && game != null)
+                {
+                    updatedAny = true;
+                    await game.CreateTeamspeakChannels();
+                }
+
                 await SetupChannels();
                 await CheckClients();
+
+                if (updatedAny)
+                {
+                    //force another update
+                    LastUpdateTime = new DateTime(0);
+                    Periodic();
+                }
             }
             finally
             {
-                PeriodicUpdate.Start();
+                if(!PeriodicUpdate.Enabled) PeriodicUpdate.Start();
             }
         }
 
@@ -222,13 +237,15 @@ namespace WLNetwork.Voice
             log.Debug("Server ready, configuring...");
             connected = true;
 
-            LastUpdateTime = new DateTime(0);
-            PeriodicUpdate.Start();
-
-            await SetupChannels();
-
-            //log.Debug("I ("+me.ClientId+") am moving to "+Channels["Unknown"].Cid);
-            //await client.ClientMove(Channels["Unknown"].Cid, null, me.ClientId);
+            try
+            {
+                await SetupChannels();
+            }
+            finally
+            {
+                LastUpdateTime = new DateTime(0);
+                PeriodicUpdate.Start();
+            }
         }
 
         private void Shutdown()

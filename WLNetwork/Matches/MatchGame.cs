@@ -1,6 +1,7 @@
 ﻿#define SEND_DATA_TO_EVERYONE
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -44,6 +45,8 @@ namespace WLNetwork.Matches
         public BotController controller = null;
 
         private List<string> ChannelNames = new List<string>(); 
+
+        public static ConcurrentQueue<MatchGame> TSSetupQueue = new ConcurrentQueue<MatchGame>(); 
 
         /// <summary>
         ///     This is for two picks in captains, set to true at start so first pick is just 1
@@ -93,12 +96,7 @@ namespace WLNetwork.Matches
             MatchesController.Games.Add(this);
             log.Info("MATCH RESTORE [" + match.Id + "] [" + Info.Owner + "] [" + Info.GameMode + "] [" + Info.MatchType + "]");
 
-            Task.Factory.StartNew(() =>
-            {
-                Thread.Sleep(6000);
-                CreateTeamspeakChannels();
-            });
-
+            TSSetupQueue.Enqueue(this);
         }
 
         /// <summary>
@@ -247,11 +245,13 @@ namespace WLNetwork.Matches
             _balancing = false;
         }
 
+        public bool Destroyed;
         /// <summary>
         ///     Delete the game.
         /// </summary>
         public void Destroy()
         {
+            Destroyed = true;
             if (_activeMatch != null)
             {
                 Mongo.ActiveMatches.Remove(Query<ActiveMatch>.EQ(m => m.Id, Id));
@@ -277,56 +277,62 @@ namespace WLNetwork.Matches
             DeleteTeamspeakChannels();
         }
 
-        public void CreateTeamspeakChannels()
+        public async Task CreateTeamspeakChannels()
         {
-            Task.Factory.StartNew(async () =>
-            {
-                //Top level match channel
-                string name;
-                if (Info.MatchType == MatchType.StartGame)
-                    name = Players.First(m => m.IsCaptain || m.SID == Info.Owner).Name + "'s Startgame";
-                else
-                {
-                    var plyrs = Players.Where(m => m.IsCaptain).ToArray();
-                    name = plyrs[0].Name + " vs. " + plyrs[1].Name;
-                }
-                ChannelNames.Add(name);
-                var topLevel = Teamspeak.Instance.Channels[name] = new ChannelInfoResult()
-                {
-                    ChannelName = name,
-                    ChannelCodecQuality = "10",
-                    ChannelDescription = "Top level channel for this match. Match ID is "+Id+".",
-                    ChannelFlagPermanent = "1"
-                };
-                await Teamspeak.Instance.SetupChannels();
-                var uid = Id.ToString().Substring(0, 4);
-                name = "Radiant "+uid;
-                ChannelNames.Add(name);
-                var radiant = Teamspeak.Instance.Channels[name] = new ChannelInfoResult()
-                {
-                    ChannelName = name,
-                    ChannelCodecQuality = "10",
-                    ChannelDescription = "Channel for the radiant team.",
-                    ChannelFlagPassword = "1",
-                    ChannelPassword = Id.ToString()+"p",
-                    ChannelFlagPermanent = "1",
-                    Pid = topLevel.Cid
-                };
-                name = "Dire "+uid;
-                ChannelNames.Add(name);
-                var dire = Teamspeak.Instance.Channels[name] = new ChannelInfoResult()
-                {
-                    ChannelName = name,
-                    ChannelCodecQuality = "10",
-                    ChannelDescription = "Channel for the dire team. Match ID is "+Id+".",
-                    ChannelFlagPassword = "1",
-                    ChannelPassword = Id+"p",
-                    ChannelFlagPermanent = "1",
-                    Pid = topLevel.Cid
-                };
-                await Teamspeak.Instance.SetupChannels();
+            if (ChannelNames.Count > 0 || Destroyed) return;
 
-            });
+            //Top level match channel
+            string name;
+            if (Info.MatchType == MatchType.StartGame)
+                name = Players.First(m => m.IsCaptain || m.SID == Info.Owner).Name + "'s Startgame";
+            else
+            {
+                var plyrs = Players.Where(m => m.IsCaptain).ToArray();
+                name = plyrs[0].Name + " vs. " + plyrs[1].Name;
+            }
+            ChannelNames.Add(name);
+            var topLevel = Teamspeak.Instance.Channels[name] = new ChannelInfoResult()
+            {
+                ChannelName = name,
+                ChannelCodecQuality = "10",
+                ChannelDescription = "Top level channel for this match. Match ID is "+Id+".",
+                ChannelFlagPermanent = "1"
+            };
+            await Teamspeak.Instance.SetupChannels();
+            var uid = Id.ToString().Substring(0, 4);
+            name = "Radiant "+uid;
+            ChannelNames.Add(name);
+            var radiant = Teamspeak.Instance.Channels[name] = new ChannelInfoResult()
+            {
+                ChannelName = name,
+                ChannelCodecQuality = "10",
+                ChannelDescription = "Channel for the radiant team.",
+                ChannelFlagPassword = "1",
+                ChannelPassword = Id.ToString()+"p",
+                ChannelFlagPermanent = "1",
+                Pid = topLevel.Cid
+            };
+            name = "Dire "+uid;
+            ChannelNames.Add(name);
+            var dire = Teamspeak.Instance.Channels[name] = new ChannelInfoResult()
+            {
+                ChannelName = name,
+                ChannelCodecQuality = "10",
+                ChannelDescription = "Channel for the dire team. Match ID is "+Id+".",
+                ChannelFlagPassword = "1",
+                ChannelPassword = Id+"p",
+                ChannelFlagPermanent = "1",
+                Pid = topLevel.Cid
+            };
+            await Teamspeak.Instance.SetupChannels();
+
+            if (Setup.Details.IsRecovered && Info.Status > MatchStatus.Players)
+            {
+                foreach (var player in Players)
+                {
+                    Teamspeak.Instance.ForceChannel[player.SID] = ChannelNames.FirstOrDefault(m => m.Contains(player.Team == MatchTeam.Radiant ? "Radiant" : "Dire"));
+                }
+            }
         }
 
         public void DeleteTeamspeakChannels()

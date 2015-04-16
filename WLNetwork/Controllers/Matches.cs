@@ -320,7 +320,7 @@ namespace WLNetwork.Controllers
                 new MatchPlayer(other.User) {IsCaptain = true, Team = MatchTeam.Dire},
                 new MatchPlayer(User) {IsCaptain = true, Team = MatchTeam.Radiant}
             });
-            match.CreateTeamspeakChannels();
+            MatchGame.TSSetupQueue.Enqueue(match);
         }
 
         /// <summary>
