@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection;
 using log4net;
+using SteamKit2;
 using SteamKit2.GC.CSGO.Internal;
 using SteamKit2.GC.Dota.Internal;
 using WLNetwork.BotEnums;
@@ -126,6 +127,7 @@ namespace WLNetwork.Bots
             if (g != null)
             {
                 game.GameStartTime = DateTime.UtcNow;
+                game.ServerSteamID = new SteamID(instance.bot.dota.Lobby.server_id).Render(true);
                 game.TransmitUpdate();
                 g.KickSpectators();
                 g.SaveActiveGame();

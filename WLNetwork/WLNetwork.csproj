@@ -126,7 +126,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="API\Matches.cs" />
     <Compile Include="BotEnums\States.cs" />
     <Compile Include="Bots\BotDB.cs" />
     <Compile Include="Bots\BotInstance.cs" />

@@ -69,5 +69,10 @@ namespace WLNetwork.Matches
         ///  Is this a recovered in progress match
         /// </summary>
         public bool IsRecovered { get; set; }
+
+        /// <summary>
+        /// The server steam id
+        /// </summary>
+        public string ServerSteamID { get; set; }
     }
 }
