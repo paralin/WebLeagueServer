@@ -104,7 +104,7 @@ namespace WLNetwork.Matches
             Mongo.Users.Update(
                 Query.In("steam.steamid",
                     Players.Where(m => m.IsLeaver).Select(m => new BsonString(m.SID)).ToArray()),
-                Update<User>.Inc(m => m.profile.abandons, 1).Inc(m => m.profile.rating, -10), UpdateFlags.Multi);
+                Update<User>.Inc(m => m.profile.abandons, 1).Inc(m => m.profile.rating, -25), UpdateFlags.Multi);
 
             foreach (var cont in Matches.Find(m => m.User != null && Players.Any(x => x.SID == m.User.steam.steamid)))
                 cont.ReloadUser();

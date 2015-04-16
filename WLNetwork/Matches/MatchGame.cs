@@ -581,7 +581,7 @@ namespace WLNetwork.Matches
                 if (leavers.Any())
                     ChatChannel.GlobalSystemMessage(" Punishing leaver(s) " +
                                                     string.Join(", ", leavers.Select(m => m.Name)) +
-                                                    " with an abandon and -10 rating.");
+                                                    " with an abandon and -25 rating.");
             }
             else
             {
