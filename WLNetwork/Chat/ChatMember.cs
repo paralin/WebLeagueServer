@@ -26,6 +26,8 @@ namespace WLNetwork.Chat
                 MemberType = ChatMemberType.Admin;
             else if (user.authItems.Contains("vouch"))
                 MemberType = ChatMemberType.Moderator;
+            else if (user.authItems.Contains("spectateOnly"))
+                MemberType = ChatMemberType.Spectator;
             else
                 MemberType = ChatMemberType.Normal;
         }

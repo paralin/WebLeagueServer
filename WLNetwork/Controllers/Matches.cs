@@ -329,7 +329,7 @@ namespace WLNetwork.Controllers
         public string JoinMatch(MatchJoinOptions options)
         {
             if (activeMatch != null && options.Id == activeMatch.Id) return "You are already in that match.";
-            if (User.authItems.Contains("spectateOnly")) return "You cannot join matches, you can spectate only.";
+            if (User.authItems.Contains("spectateOnly") && !options.Spec) return "You cannot join matches, you can spectate only.";
             //LeaveMatch();
             if (activeMatch != null) return "You are already in a match, leave that one first.";
             MatchGame match = MatchesController.Games.FirstOrDefault( m => m.Id == options.Id && m.Info.Public);
