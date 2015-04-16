@@ -577,6 +577,9 @@ namespace WLNetwork.Voice
                 else
                 {
                     log.Warn("Unable to create channel "+channel.ChannelName+", "+res.ErrorMessage+"...");
+                    ChannelInfoResult bogus;
+                    if (res.ErrorMessage.Contains("invalid channelID"))
+                        Channels.TryRemove(channel.ChannelName, out bogus);
                 }
             }
 
