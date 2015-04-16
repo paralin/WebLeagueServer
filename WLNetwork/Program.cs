@@ -3,6 +3,8 @@ using System.Reflection;
 using System.Threading;
 using log4net;
 using log4net.Config;
+using Nancy;
+using Nancy.Hosting.Self;
 using WLNetwork.Chat;
 using WLNetwork.Matches;
 using WLNetwork.Voice;
@@ -24,20 +26,36 @@ namespace WLNetwork
             XmlConfigurator.Configure();
             AppDomain.CurrentDomain.UnhandledException +=
     (sender, eventArgs) => log.Fatal("UNHANDLED EXCEPTION", (Exception)eventArgs.ExceptionObject);
+            
             log.Info("Web League master starting up!");
-			//Init database
-			log.Info("There are "+HeroCache.Heros.Values.Count+" heros in the system.");
-            Console.CancelKeyPress += delegate { shutdown = true; };
-            using (var container = Composable.GetExport<IXSocketServerContainer>())
-            {
-                container.Start();
-                log.Debug("Server online and listening.");
-                new ChatChannel("main", ChannelType.Public, false, true);
-                new Teamspeak().Startup();
-                MatchGame.RecoverActiveMatches();
-                while (!shutdown && !(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter))
+
+            var conf = new HostConfiguration();
+            conf.UrlReservations.CreateAutomatically = true;
+
+            using(var webHost = new NancyHost(new Uri("http://localhost:8080"), new DefaultNancyBootstrapper(), conf)) {
+                try
                 {
-                    Thread.Sleep(500);
+                    webHost.Start();
+                }
+                catch (Exception ex)
+                {
+                    log.Error("Unable to start web server!", ex);
+                }
+
+                //Init database
+			    log.Info("There are "+HeroCache.Heros.Values.Count+" heros in the system.");
+                Console.CancelKeyPress += delegate { shutdown = true; };
+                using (var container = Composable.GetExport<IXSocketServerContainer>())
+                {
+                    container.Start();
+                    log.Debug("Server online and listening.");
+                    new ChatChannel("main", ChannelType.Public, false, true);
+                    new Teamspeak().Startup();
+                    MatchGame.RecoverActiveMatches();
+                    while (!shutdown && !(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter))
+                    {
+                        Thread.Sleep(500);
+                    }
                 }
             }
         }

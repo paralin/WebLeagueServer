@@ -82,7 +82,7 @@ namespace WLNetwork.Voice
                 await SetupChannels();
                 await CheckClients();
 
-                if (updatedAny)
+                if (updatedAny && !MatchGame.TSSetupQueue.IsEmpty)
                 {
                     //force another update
                     LastUpdateTime = new DateTime(0);
