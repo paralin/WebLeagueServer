@@ -141,7 +141,7 @@ namespace WLNetwork.Controllers
                 if (user == null) return "Can't find that person.";
                 if (user.member == null) user.ReloadUser();
                 if (user.member == null) return "That user is not available to chat.";
-                var chan = new ChatChannel(User.profile.name.Substring(0, 5)+" + "+user.User.profile.name.Substring(0,5), ChannelType.OneToOne);
+                var chan = new ChatChannel(User.profile.name.Substring(0, Math.Min(5, User.profile.name.Length))+" + "+user.User.profile.name.Substring(0,Math.Min(5, user.User.profile.name.Length)), ChannelType.OneToOne);
                 chan.Members.Add(member.ID, member);
                 chan.Members.Add(user.member.ID, user.member);
                 Channels.Add(chan);
