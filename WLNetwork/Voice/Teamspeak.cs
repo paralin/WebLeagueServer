@@ -45,6 +45,11 @@ namespace WLNetwork.Voice
         private Dictionary<uint, string> ServerGroupCache;
         private WhoAmIResult me;
 
+        /// <summary>
+        /// Force users with this ID to this channel name
+        /// </summary>
+        public Dictionary<string, string> ForceChannel = new Dictionary<string, string>(); 
+
         public Teamspeak()
         {
             Instance = this;
@@ -442,7 +447,24 @@ namespace WLNetwork.Voice
                 }
                 else
                 {
-                    if (uchan.Cid != 0 && cli.ChannelId == uchan.Cid)
+                    string fc;
+                    if (ForceChannel.TryGetValue(user.steam.steamid, out fc) && fc != null)
+                    {
+                        ChannelInfoResult chan = null;
+                        if (!Channels.TryGetValue(fc, out chan) || chan == null)
+                        {
+                            ForceChannel.Remove(user.Id);
+                        }
+                        else
+                        {
+                            if (chan.Cid != 0 && cli.ChannelId != chan.Cid)
+                            {
+                                log.Debug("Moving client "+cli.ClientNickname+" into forced channel "+chan.ChannelName+".");
+                                await SendCommandAsync("clientmove cid=" + chan.Cid + " clid=" + cli.ClientId);
+                            }
+                        }
+                    }
+                    else if (uchan.Cid != 0 && cli.ChannelId == uchan.Cid)
                     {
                         log.Debug("Moving client "+cli.ClientNickname+" out of the unknown channel.");
                         await SendCommandAsync("clientmove cid=" + Channels["Lobby"].Cid + " clid=" + cli.ClientId);

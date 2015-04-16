@@ -177,15 +177,6 @@ namespace WLNetwork.Matches
             }
         }
 
-        /// <summary>
-        ///     Transmit an update for a player.
-        /// </summary>
-        /// <param name="player"></param>
-        public void PlayerUpdate()
-        {
-            RebalanceTeams();
-        }
-
         public void StartPicks()
         {
             if (Info.Status != MatchStatus.Players) return;
@@ -211,6 +202,8 @@ namespace WLNetwork.Matches
             });
             Info.Status = MatchStatus.Lobby;
             Info = Info;
+            foreach(var plyr in Players.Where(m=>m.Team == MatchTeam.Radiant || m.Team == MatchTeam.Dire))
+                Teamspeak.Instance.ForceChannel[plyr.SID] = ChannelNames.FirstOrDefault(m => m.Contains(plyr.Team == MatchTeam.Radiant ? "Radiant" : "Dire"));
             BotDB.RegisterSetup(Setup);
         }
 
@@ -358,6 +351,10 @@ namespace WLNetwork.Matches
                     cont.Invoke(arg, "clearsetupmatch");
                 }
                 Admins.InvokeTo(m => m.User != null, arg, "clearsetupmatch");
+                foreach (var plyr in Players)
+                {
+                    Teamspeak.Instance.ForceChannel.Remove(plyr.SID);
+                }
             }
             else
             {
@@ -466,6 +463,7 @@ namespace WLNetwork.Matches
             MatchPlayer player = Players.FirstOrDefault(m => m.SID == sid && m.Team != MatchTeam.Spectate);
             if (player == null || player.Team != MatchTeam.Unassigned) return;
             player.Team = team;
+            Teamspeak.Instance.ForceChannel[player.SID] = ChannelNames.FirstOrDefault(m => m.Contains(player.Team == MatchTeam.Radiant ? "Radiant" : "Dire"));
             if (Players.Count(m => m.Team == MatchTeam.Radiant || m.Team == MatchTeam.Dire) >= 10)
             {
                 Info.CaptainStatus = CaptainsStatus.DirePick;
