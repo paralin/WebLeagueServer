@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using log4net;
 using log4net.Config;
 using Nancy;
@@ -27,6 +28,7 @@ namespace WLNetwork
             AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) => log.Fatal("UNHANDLED EXCEPTION", (Exception) eventArgs.ExceptionObject);
 
             log.Info("Web League master starting up!");
+
             //Init database
             log.Info("There are " + HeroCache.Heros.Values.Count + " heros in the system.");
             Console.CancelKeyPress += delegate { shutdown = true; };
@@ -37,24 +39,11 @@ namespace WLNetwork
 
                 new ChatChannel("main", ChannelType.Public, false, true);
                 new Teamspeak().Startup();
-                MatchGame.RecoverActiveMatches();
+                Task.Factory.StartNew(MatchGame.RecoverActiveMatches);
 
-                var conf = new HostConfiguration {UrlReservations = {CreateAutomatically = true}};
-                using (
-                    var webHost = new NancyHost(new Uri("http://localhost:8080"), new DefaultNancyBootstrapper(), conf))
+                while (!shutdown && !(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter))
                 {
-                    try
-                    {
-                        webHost.Start();
-                    }
-                    catch (Exception ex)
-                    {
-                        log.Error("Unable to start web server!", ex);
-                    }
-                    while (!shutdown && !(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter))
-                    {
-                        Thread.Sleep(500);
-                    }
+                    Thread.Sleep(500);
                 }
             }
         }
