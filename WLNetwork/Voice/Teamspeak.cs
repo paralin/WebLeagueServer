@@ -412,9 +412,14 @@ namespace WLNetwork.Voice
                 }
 
                 User user = null;
-                if (!UserCache.TryGetValue(cli.ClientUniqueIdentifier, out user) || user == null) user = Mongo.Users.FindOneAs<User>(Query<User>.EQ(m => m.tsuniqueids, cli.ClientUniqueIdentifier));
+                if (cli.ClientUniqueIdentifier != null)
+                {
+                    if (!UserCache.TryGetValue(cli.ClientUniqueIdentifier, out user) || user == null)
+                        user =
+                            Mongo.Users.FindOneAs<User>(Query<User>.EQ(m => m.tsuniqueids, cli.ClientUniqueIdentifier));
 
-                UserCache[cli.ClientUniqueIdentifier] = user;
+                    UserCache[cli.ClientUniqueIdentifier] = user;
+                }
 
                 var targetGroups = new List<uint>();
                 if(user == null) targetGroups.Add(ServerGroupCache.First(m=>m.Value == "Guest").Key);
