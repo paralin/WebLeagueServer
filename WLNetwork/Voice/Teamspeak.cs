@@ -95,7 +95,7 @@ namespace WLNetwork.Voice
             connected = false;
             string[] parts = Env.TEAMSPEAK_URL.Split(':');
             int port = 10011;
-            if (parts.Length < 2) port = int.Parse(parts[1]);
+            if (parts.Length >= 2) port = int.Parse(parts[1]);
             
             log.Debug("Initializing teamspeak, connecting to "+Env.TEAMSPEAK_URL+"...");
             
