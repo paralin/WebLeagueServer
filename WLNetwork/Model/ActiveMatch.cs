@@ -18,11 +18,6 @@ namespace WLNetwork.Model
         public MatchSetupDetails Details { get; set; }
 
         /// <summary>
-        /// Players
-        /// </summary>
-        public MatchPlayer[] Players { get; set; }
-
-        /// <summary>
         /// Info
         /// </summary>
         public MatchGameInfo Info { get; set; }

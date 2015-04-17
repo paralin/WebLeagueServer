@@ -64,7 +64,7 @@ namespace WLNetwork.Matches
             Setup = new MatchSetup(match.Id, match.Details);
             Setup.Details.IsRecovered = true;
             pickedAlready = true;
-            Players = new ObservableRangeCollection<MatchPlayer>(match.Players);
+            Players = new ObservableRangeCollection<MatchPlayer>(match.Details.Players);
             Players.CollectionChanged += PlayersOnCollectionChanged;
 
             var ebot = BotDB.Bots.Values.FirstOrDefault(m => m.Username == match.Details.Bot.Username);
@@ -482,7 +482,6 @@ namespace WLNetwork.Matches
             if (_activeMatch == null) _activeMatch = new ActiveMatch();
             _activeMatch.Id = Id;
             _activeMatch.Details = Setup.Details;
-            _activeMatch.Players = Players.ToArray();
             _activeMatch.Info = Info;
             Mongo.ActiveMatches.Save(_activeMatch);
         }
