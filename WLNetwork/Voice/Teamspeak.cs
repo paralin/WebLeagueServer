@@ -450,12 +450,7 @@ namespace WLNetwork.Voice
                     if (ForceChannel.TryGetValue(user.steam.steamid, out fc) && fc != null)
                     {
                         ChannelInfoResult chan = null;
-                        if (!Channels.TryGetValue(fc, out chan) || chan == null)
-                        {
-                            string foobar;
-                            ForceChannel.TryRemove(user.Id, out foobar);
-                        }
-                        else
+                        if (Channels.TryGetValue(fc, out chan) && chan == null)
                         {
                             if (chan.Cid != 0 && cli.ChannelId != chan.Cid)
                             {
