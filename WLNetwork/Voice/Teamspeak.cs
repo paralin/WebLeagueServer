@@ -58,6 +58,7 @@ namespace WLNetwork.Voice
             UserCache = new Dictionary<string, User>();
             ServerGroupCache = new Dictionary<uint, string>();
             RegisterDefaultChannels();
+
             PeriodicUpdate = new Timer(5000);
             PeriodicUpdate.Elapsed += (sender, args) => Periodic(null);
         }
@@ -84,7 +85,6 @@ namespace WLNetwork.Voice
                     PeriodicUpdate.Start();
                 }
             });
-
         }
 
         public async Task Startup()
@@ -218,7 +218,7 @@ namespace WLNetwork.Voice
                 }
             }
 
-            client.KeepAlive(TimeSpan.FromSeconds(30));
+            client.KeepAlive(TimeSpan.FromSeconds(20));
 
             await client.ClientUpdate("FPL Server");
             me = await client.WhoAmI();

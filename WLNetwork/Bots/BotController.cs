@@ -219,6 +219,7 @@ namespace WLNetwork.Bots
 
         public void MatchStatus(object sender, MatchStateArgs args)
         {
+            if (game.State == args.State) return;
             game.State = args.State;
             if (game.Bot == null) return;
             log.Debug(game.Bot.Username + " -> match_state => " + args.State);
