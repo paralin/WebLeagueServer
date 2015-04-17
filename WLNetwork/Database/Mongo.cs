@@ -31,9 +31,9 @@ namespace WLNetwork.Database
                 return;
             }
 #if DEBUG
-            Client = new MongoClient(Settings.Default.DMongoURL + "/" + Settings.Default.DMongoDB);
+            Client = new MongoClient(Settings.Default.DMongoURL + "/" + Settings.Default.DMongoDB + "?safe=true;maxpoolsize=600");
 #else
-            Client = new MongoClient(Env.MONGODB_URL);
+            Client = new MongoClient(Env.MONGODB_URL + "?safe=true;maxpoolsize=600");
 #endif
             Server = Client.GetServer();
 #if DEBUG
