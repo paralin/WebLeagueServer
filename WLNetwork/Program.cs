@@ -24,6 +24,7 @@ namespace WLNetwork
 
         public static void Main(string[] args)
         {
+            ThreadPool.SetMaxThreads (1000, 1000);
             XmlConfigurator.Configure();
             AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) => log.Fatal("UNHANDLED EXCEPTION", (Exception) eventArgs.ExceptionObject);
 
@@ -33,20 +34,17 @@ namespace WLNetwork
             log.Info("There are " + HeroCache.Heros.Values.Count + " heros in the system.");
             Console.CancelKeyPress += delegate { shutdown = true; };
 
-            IXSocketServerContainer container = null;
 
-            ThreadPool.QueueUserWorkItem(delegate
+            var container = Composable.GetExport<IXSocketServerContainer>();
+            container.Start();
+            new ChatChannel("main", ChannelType.Public, false, true);
+            log.Debug("Server online and listening.");
+
+            ThreadPool.QueueUserWorkItem((async state =>
             {
-                container = Composable.GetExport<IXSocketServerContainer>();
-                container.Start();
-                new ChatChannel("main", ChannelType.Public, false, true);
-                log.Debug("Server online and listening.");
-                ThreadPool.QueueUserWorkItem((async state =>
-                {
-                    await new Teamspeak().Startup();
-                    ThreadPool.QueueUserWorkItem((async se => MatchGame.RecoverActiveMatches()));
-                }));
-            });
+                await new Teamspeak().Startup();
+                ThreadPool.QueueUserWorkItem((async se => MatchGame.RecoverActiveMatches()));
+            }));
             
             while (!shutdown && !(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter))
             {

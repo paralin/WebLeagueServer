@@ -360,16 +360,12 @@ namespace WLNetwork.Matches
         public void DeleteTeamspeakChannels()
         {
             ChannelInfoResult val;
-            ThreadPool.QueueUserWorkItem(async delegate
-            {
-                var sids = Teamspeak.Instance.ForceChannel.Values.Where(m => m.Contains(Id.ToString().Substring(0, 4))).ToArray();
-                string bogus;
-                foreach (var sid in sids) Teamspeak.Instance.ForceChannel.TryRemove(sid, out bogus);
-                foreach (var chan in ChannelNames)
-                    Teamspeak.Instance.Channels.TryRemove(chan, out val);
-                await Teamspeak.Instance.SetupChannels();
-                ChannelNames.Clear();
-            });
+            var sids = Teamspeak.Instance.ForceChannel.Values.Where(m => m.Contains(Id.ToString().Substring(0, 4))).ToArray();
+            string bogus;
+            foreach (var sid in sids) Teamspeak.Instance.ForceChannel.TryRemove(sid, out bogus);
+            foreach (var chan in ChannelNames)
+               Teamspeak.Instance.Channels.TryRemove(chan, out val);
+            ChannelNames.Clear();
         }
 
         ~MatchGame()
