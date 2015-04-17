@@ -3,8 +3,6 @@ using System.Reflection;
 using System.Timers;
 using log4net;
 using MongoDB.Driver.Builders;
-using MongoDB.Driver.Linq;
-using SteamKit2.GC.Internal;
 using WLNetwork.Chat;
 using WLNetwork.Database;
 using WLNetwork.Matches;
@@ -12,7 +10,6 @@ using WLNetwork.Matches.Enums;
 using WLNetwork.Matches.Methods;
 using WLNetwork.Model;
 using XSockets.Core.Common.Socket.Attributes;
-using XSockets.Core.XSocket;
 using XSockets.Core.XSocket.Helpers;
 
 namespace WLNetwork.Controllers
