@@ -100,7 +100,7 @@ namespace WLNetwork.Voice
             
             log.Debug("Initializing teamspeak, connecting to "+Env.TEAMSPEAK_URL+"...");
             
-            client = new ServerQueryClient(parts[0], port, TimeSpan.FromMilliseconds(100));
+            client = new ServerQueryClient(parts[0], port, TimeSpan.FromMilliseconds(50));
             client.ConnectionClosed += ConnectionClosed;
             client.NotifyTextMessage += NotifyTextMessage;
 
