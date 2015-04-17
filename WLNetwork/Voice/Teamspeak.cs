@@ -38,7 +38,6 @@ namespace WLNetwork.Voice
         ServerQueryClient client;
 
         private bool connected = false;
-        private DateTime LastUpdateTime = DateTime.UtcNow;
 
         public Dictionary<string, User> UserCache;
         private Dictionary<uint, string> ServerGroupCache;
@@ -60,9 +59,6 @@ namespace WLNetwork.Voice
 
         private async Task Periodic()
         {
-            if ((LastUpdateTime - DateTime.UtcNow).Duration().Seconds < 1) return; //to prevent spam
-            LastUpdateTime = DateTime.UtcNow;
-
             try
             {
                 MatchGame game = null;
@@ -223,7 +219,6 @@ namespace WLNetwork.Voice
             finally
             {
                 closed = false;
-                LastUpdateTime = new DateTime(0);
                 thid++;
                 ThreadPool.QueueUserWorkItem(PeriodicUpdate);
             }
@@ -287,8 +282,11 @@ namespace WLNetwork.Voice
         {
             connected = false;
             log.Warn("Disconnected from teamspeak, trying to connect again...");
-            Shutdown();
-            Startup();
+            Task.Run(() =>
+            {
+                Shutdown();
+                Startup();
+            });
         }
 
         private void RegisterDefaultChannels()
@@ -358,7 +356,6 @@ namespace WLNetwork.Voice
         public async Task CheckClients()
         {
             if (!connected) return;
-            LastUpdateTime = DateTime.UtcNow;
 
             ClientListResult clientsr = null;
             try
@@ -481,7 +478,6 @@ namespace WLNetwork.Voice
         public async Task SetupChannels()
         {
             if (!connected) return;
-            LastUpdateTime = DateTime.UtcNow;
 
             var channelsr = await client.ChannelList();
             if (!channelsr.Success)
