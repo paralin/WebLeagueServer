@@ -4,7 +4,8 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Timers;
+using System.Threading;
+using System.Threading.Tasks;
 using log4net;
 using MongoDB.Driver.Builders;
 using MongoDB.Driver.Linq;
@@ -16,6 +17,7 @@ using XSockets.Core.Common.Socket.Attributes;
 using XSockets.Core.Common.Socket.Event.Arguments;
 using XSockets.Core.XSocket;
 using XSockets.Core.XSocket.Helpers;
+using Timer = System.Timers.Timer;
 
 namespace WLNetwork.Controllers
 {
@@ -39,9 +41,13 @@ namespace WLNetwork.Controllers
             OnOpen += (sender, args) =>
             {
                 log.Debug("CONNECTED [" + ConnectionContext.PersistentId + "]");
-                StartPingTimer();
-                JoinOrCreate(new JoinCreateRequest() {Name = "main"});
-                LoadChatChannels();
+                Task.Run(() =>
+                {
+                    Thread.Sleep(100);
+                    StartPingTimer();
+                    JoinOrCreate(new JoinCreateRequest() { Name = "main" });
+                    LoadChatChannels();
+                });
             };
             OnAuthorizationFailed +=
                 (sender, args) =>
