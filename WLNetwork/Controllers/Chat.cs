@@ -31,7 +31,7 @@ namespace WLNetwork.Controllers
         public ObservableCollection<ChatChannel> Channels = new ObservableCollection<ChatChannel>();
         private ChatMember member;
         private Timer pingTimer = null;
-
+        
         public Chat()
         {
             Channels.CollectionChanged += ChatChannelOnCollectionChanged;
@@ -127,6 +127,7 @@ namespace WLNetwork.Controllers
             chan.TransmitMessage(chan.Members.Values.FirstOrDefault(m => m.SteamID == User.steam.steamid), message.Text);
         }
 
+        private static object joinLock = new object();
         public string JoinOrCreate(JoinCreateRequest req)
         {
             if (req == null || string.IsNullOrEmpty(req.Name)) return "You didn't provide any channels to join.";
@@ -141,11 +142,18 @@ namespace WLNetwork.Controllers
                 if (user == null) return "Can't find that person.";
                 if (user.member == null) user.ReloadUser();
                 if (user.member == null) return "That user is not available to chat.";
-                var chan = new ChatChannel(User.profile.name.Substring(0, Math.Min(5, User.profile.name.Length))+" + "+user.User.profile.name.Substring(0,Math.Min(5, user.User.profile.name.Length)), ChannelType.OneToOne);
-                chan.Members.Add(member.ID, member);
-                chan.Members.Add(user.member.ID, user.member);
-                Channels.Add(chan);
-                user.Channels.Add(chan);
+                lock (joinLock)
+                {
+                    var chan =
+                        new ChatChannel(
+                            User.profile.name.Substring(0, Math.Min(5, User.profile.name.Length)) + " + " +
+                            user.User.profile.name.Substring(0, Math.Min(5, user.User.profile.name.Length)),
+                            ChannelType.OneToOne);
+                    chan.Members.Add(member.ID, member);
+                    chan.Members.Add(user.member.ID, user.member);
+                    Channels.Add(chan);
+                    user.Channels.Add(chan);
+                }
                 return null;
             }
             else
@@ -156,9 +164,12 @@ namespace WLNetwork.Controllers
                     return "You are already in that channel.";
                 try
                 {
-                    ChatChannel chan = ChatChannel.JoinOrCreate(req.Name.ToLower(), member);
-                    if (chan != null)
-                        Channels.Add(chan);
+                    lock (joinLock)
+                    {
+                        ChatChannel chan = ChatChannel.JoinOrCreate(req.Name.ToLower(), member);
+                        if (chan != null)
+                            Channels.Add(chan);
+                    }
                     return null;
                 }
                 catch (JoinCreateException ex)
