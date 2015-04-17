@@ -70,6 +70,9 @@ namespace WLNetwork.Voice
             catch (Exception ex)
             {
                 log.Warn("Error in periodic update.", ex);
+                log.Debug ("Restarting teamspeak.");
+                Shutdown ();
+                Task.Run (Startup);
             }
         }
 
@@ -238,6 +241,7 @@ namespace WLNetwork.Voice
         private void Shutdown()
         {
             connected = false;
+            thid++;
             client.Quit();
             client = null;
         }
