@@ -70,6 +70,7 @@ namespace WLNetwork.Bots
 			{
 				match.Info.Status = Matches.Enums.MatchStatus.Lobby;
 				match.Info = match.Info;
+                match.MovePlayersToChannel();
 			}
 			game.TransmitUpdate();
 			game.TransmitLobbyReady();
