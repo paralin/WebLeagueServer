@@ -41,13 +41,9 @@ namespace WLNetwork.Controllers
             OnOpen += (sender, args) =>
             {
                 log.Debug("CONNECTED [" + ConnectionContext.PersistentId + "]");
-                Task.Run(() =>
-                {
-                    Thread.Sleep(100);
-                    StartPingTimer();
-                    JoinOrCreate(new JoinCreateRequest() { Name = "main" });
-                    LoadChatChannels();
-                });
+                StartPingTimer();
+                JoinOrCreate(new JoinCreateRequest() { Name = "main" });
+                LoadChatChannels();
             };
             OnAuthorizationFailed +=
                 (sender, args) =>

@@ -450,13 +450,18 @@ namespace WLNetwork.Voice
                     if (ForceChannel.TryGetValue(user.steam.steamid, out fc) && fc != null)
                     {
                         ChannelInfoResult chan = null;
-                        if (Channels.TryGetValue(fc, out chan) && chan == null)
+                        if (Channels.TryGetValue(fc, out chan) && chan != null)
                         {
                             if (chan.Cid != 0 && cli.ChannelId != chan.Cid)
                             {
-                                log.Debug("Moving client "+cli.ClientNickname+" into forced channel "+chan.ChannelName+".");
+                                log.Debug("Moving client " + cli.ClientNickname + " into forced channel " +
+                                          chan.ChannelName + ".");
                                 await SendCommandAsync("clientmove cid=" + chan.Cid + " clid=" + cli.ClientId);
                             }
+                        }
+                        else
+                        {
+                            log.Debug("Can't find force channel for "+fc);
                         }
                     }
                     else if (uchan.Cid != 0 && cli.ChannelId == uchan.Cid)
