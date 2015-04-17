@@ -475,6 +475,7 @@ namespace WLNetwork.Voice
         }
 
         private bool checkedunknown = false;
+        private ConcurrentDictionary<string, ChannelInfoResult> ChannelCache = new ConcurrentDictionary<string, ChannelInfoResult>(); 
         public async Task SetupChannels()
         {
             if (!connected) return;
@@ -496,7 +497,12 @@ namespace WLNetwork.Voice
                 if (exist != null)
                 {
                     channel.Cid = exist.Cid;
-                    var lookupr = await client.ChannelInfo(exist.Cid);
+                    ChannelInfoResult lookupr = null;
+                    if (!ChannelCache.TryGetValue(channel.ChannelName, out lookupr) || lookupr == null)
+                    {
+                        lookupr = await client.ChannelInfo(exist.Cid);
+                        ChannelCache[channel.ChannelName] = lookupr;
+                    }
 
                     // Compare the two
                     var comp = compare.Compare(lookupr, channel);
@@ -505,6 +511,8 @@ namespace WLNetwork.Voice
                     {
                         string[] props = comp.Differences.Select(m => m.PropertyName.Substring(1)).ToArray();
                         var eres = await SendCommandAsync("channeledit cid="+exist.Cid+" " + string.Join(" ", ObjectToArgs(channel, props)));
+                        ChannelInfoResult bogus;
+                        ChannelCache.TryRemove(channel.ChannelName, out bogus);
                         if (eres.Success)
                         {
                             log.Debug("Edited channel " + channel.ChannelName + ", updated "+string.Join(", ", props)+".");
@@ -553,6 +561,8 @@ namespace WLNetwork.Voice
             {
                 if (Channels.Keys.Contains(channel.ChannelName) || (channel.ChannelFlagPermanent == "0" && channel.Pid == 0)) continue;
                 var res = await SendCommandAsync("channeldelete force=1 cid=" + channel.Cid);
+                ChannelInfoResult bogus;
+                ChannelCache.TryRemove(channel.ChannelName, out bogus);
                 if (res.Success)
                 {
                     log.Debug("Deleted channel " + channel.ChannelName + ".");
