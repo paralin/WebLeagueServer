@@ -189,7 +189,6 @@ namespace WLNetwork.Controllers
             var match = new MatchGame(User.steam.steamid, options);
             Match = match;
             match.Players.Add(new MatchPlayer(User));
-            match.CreateTeamspeakChannels();
             ChatChannel.GlobalSystemMessage(User.profile.name+" created a new match.");
             return null;
         }

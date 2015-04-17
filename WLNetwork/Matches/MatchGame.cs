@@ -123,6 +123,7 @@ namespace WLNetwork.Matches
             MatchesController.Games.Add(this);
             //note: Don't add to public games as it's not started yet
             log.Info("MATCH CREATE [" + Id + "] [" + owner + "] [" + options.GameMode + "] [" + options.MatchType + "]");
+            TSSetupQueue.Enqueue(this);
         }
 
         /// <summary>

@@ -72,7 +72,7 @@ namespace WLNetwork.Voice
                 log.Warn("Error in periodic update.", ex);
                 log.Debug ("Restarting teamspeak.");
                 Shutdown ();
-                Task.Run (Startup);
+                Startup();
             }
         }
 
