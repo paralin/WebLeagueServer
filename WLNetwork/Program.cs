@@ -39,12 +39,12 @@ namespace WLNetwork
             {
                 container = Composable.GetExport<IXSocketServerContainer>();
                 container.Start();
+                new ChatChannel("main", ChannelType.Public, false, true);
                 log.Debug("Server online and listening.");
             });
 
             ThreadPool.QueueUserWorkItem((async state =>
             {
-                new ChatChannel("main", ChannelType.Public, false, true);
                 await new Teamspeak().Startup();
                 MatchGame.RecoverActiveMatches();
             }));
