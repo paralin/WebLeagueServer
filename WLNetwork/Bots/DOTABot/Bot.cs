@@ -276,6 +276,7 @@ namespace WLNetwork.Bots.DOTABot
             if (client == null)
             {
                 client = new SteamClient();
+                DotaGCHandler.Bootstrap(client);;
                 user = client.GetHandler<SteamUser>();
                 friends = client.GetHandler<SteamFriends>();
                 dota = client.GetHandler<DotaGCHandler>();
