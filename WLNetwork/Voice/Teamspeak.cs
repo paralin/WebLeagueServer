@@ -35,8 +35,6 @@ namespace WLNetwork.Voice
 
         public ConcurrentDictionary<string, ChannelInfoResult> Channels;
 
-        private Timer PeriodicUpdate;
-
         ServerQueryClient client;
 
         private bool connected = false;
@@ -58,39 +56,34 @@ namespace WLNetwork.Voice
             UserCache = new Dictionary<string, User>();
             ServerGroupCache = new Dictionary<uint, string>();
             RegisterDefaultChannels();
-
-            PeriodicUpdate = new Timer(5000);
-            PeriodicUpdate.Elapsed += (sender, args) => Periodic(null);
         }
 
-        private async void Periodic(object state=null)
+        private async Task Periodic()
         {
             if ((LastUpdateTime - DateTime.UtcNow).Duration().Seconds < 1) return; //to prevent spam
             LastUpdateTime = DateTime.UtcNow;
 
-            PeriodicUpdate.Stop();
-
-            ThreadPool.QueueUserWorkItem(async (staten) =>
+            try
             {
-                try
-                {
-                    MatchGame game = null;
-                    if (MatchGame.TSSetupQueue.TryDequeue(out game) && game != null) await game.CreateTeamspeakChannels();
+                MatchGame game = null;
+                if (MatchGame.TSSetupQueue.TryDequeue(out game) && game != null) await game.CreateTeamspeakChannels();
 
-                    await SetupChannels();
-                    await CheckClients();
-                }
-                finally
-                {
-                    PeriodicUpdate.Start();
-                }
-            });
+                await SetupChannels();
+                await CheckClients();
+            }
+            catch (Exception ex)
+            {
+                log.Warn("Error in periodic update.", ex);
+            }
         }
 
         public async Task Startup()
         {
             await InitClient();
         }
+
+        private bool closed = true;
+        private int thid = 0;
 
         private async Task InitClient()
         {
@@ -109,12 +102,6 @@ namespace WLNetwork.Voice
             
             client = new ServerQueryClient(parts[0], port, TimeSpan.FromMilliseconds(100));
             client.ConnectionClosed += ConnectionClosed;
-            client.NotifyChannelDescriptionChanged += NotifyChannelDescriptionChanged;
-            client.NotifyChannelEdited += NotifyChannelEdited;
-            client.NotifyClientEnterView += NotifyClientEnterView;
-            client.NotifyClientLeftView += NotifyClientLeftView;
-            client.NotifyClientMoved += NotifyClientMoved;
-            client.NotifyServerEdited += NotifyServerEdited;
             client.NotifyTextMessage += NotifyTextMessage;
 
             ServerQueryBaseResult connectedr = client.Initialize().Result;
@@ -235,15 +222,27 @@ namespace WLNetwork.Voice
             }
             finally
             {
+                closed = false;
                 LastUpdateTime = new DateTime(0);
-                PeriodicUpdate.Start();
+                thid++;
+                ThreadPool.QueueUserWorkItem(PeriodicUpdate);
             }
+        }
+
+        private async void PeriodicUpdate(object state)
+        {
+            int ourid = thid;
+            while (!closed && ourid == thid)
+            {
+                await Periodic();
+                Thread.Sleep(1000);
+            }
+            log.Debug("Teamspeak thread "+ourid+" quit.");
         }
 
         private void Shutdown()
         {
             connected = false;
-            PeriodicUpdate.Stop();
             client.Quit();
             client = null;
         }
@@ -282,36 +281,6 @@ namespace WLNetwork.Voice
                     log.Error("Error when recognizing signed in user: ", ex);
                 }
             }
-        }
-
-        private void NotifyServerEdited(object sender, NotifyServerEditedResult notifyServerEditedResult)
-        {
-        }
-
-        private void NotifyClientMoved(object sender, NotifyClientMovedResult notifyClientMovedResult)
-        {
-            //ClientCache.Remove(notifyClientMovedResult.)
-            Periodic(null);
-        }
-
-        private void NotifyClientLeftView(object sender, NotifyClientLeftViewResult notifyClientLeftViewResult)
-        {
-            Periodic(null);
-        }
-
-        private void NotifyClientEnterView(object sender, NotifyClientEnterViewResult notifyClientEnterViewResult)
-        {
-            Periodic(null);
-        }
-
-        private void NotifyChannelEdited(object sender, NotifyChannelEditedResult notifyChannelEditedResult)
-        {
-            Periodic(null);
-        }
-
-        private void NotifyChannelDescriptionChanged(object sender, NotifyChannelDescriptionChangedResult notifyChannelDescriptionChangedResult)
-        {
-            Periodic(null);
         }
 
         private void ConnectionClosed(object sender, EventArgs eventArgs)

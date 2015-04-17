@@ -41,13 +41,12 @@ namespace WLNetwork
                 container.Start();
                 new ChatChannel("main", ChannelType.Public, false, true);
                 log.Debug("Server online and listening.");
+                ThreadPool.QueueUserWorkItem((async state =>
+                {
+                    await new Teamspeak().Startup();
+                    ThreadPool.QueueUserWorkItem((async se => MatchGame.RecoverActiveMatches()));
+                }));
             });
-
-            ThreadPool.QueueUserWorkItem((async state =>
-            {
-                await new Teamspeak().Startup();
-                MatchGame.RecoverActiveMatches();
-            }));
             
             while (!shutdown && !(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter))
             {
