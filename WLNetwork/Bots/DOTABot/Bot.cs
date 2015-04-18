@@ -377,6 +377,11 @@ namespace WLNetwork.Bots.DOTABot
                 {
                     log.Debug("Bot has left/been kicked from the lobby.");
                     fsm.Fire(Events.DotaLeftLobby);
+                    if (!setupDetails.IsRecovered)
+                    {
+                        dontRecreateLobby = false;
+                        CreateLobby();
+                    }
                 }, manager);
                 new Callback<DotaGCHandler.Popup>(c =>
                 {
