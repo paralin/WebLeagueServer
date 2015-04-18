@@ -21,6 +21,7 @@ namespace WLNetwork
         public static void Main(string[] args)
         {
             XmlConfigurator.Configure();
+            ThreadPool.SetMaxThreads (1500, 1500);
             AppDomain.CurrentDomain.UnhandledException +=
                 (sender, eventArgs) => log.Fatal("UNHANDLED EXCEPTION", (Exception) eventArgs.ExceptionObject);
 
