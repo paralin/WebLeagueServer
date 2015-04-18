@@ -64,6 +64,7 @@ namespace WLNetwork.Matches
             Setup.Details.IsRecovered = true;
             pickedAlready = true;
             Players = new ObservableRangeCollection<MatchPlayer>(match.Details.Players);
+            KickSpectators ();
             Players.CollectionChanged += PlayersOnCollectionChanged;
 
             var ebot = BotDB.Bots.Values.FirstOrDefault(m => m.Username == match.Details.Bot.Username);
@@ -96,6 +97,8 @@ namespace WLNetwork.Matches
             log.Info("MATCH RESTORE [" + match.Id + "] [" + Info.Owner + "] [" + Info.GameMode + "] [" + Info.MatchType + "]");
 
             TSSetupQueue.Enqueue(this);
+            _activeMatch = match;
+            SaveActiveGame ();
         }
 
         /// <summary>
