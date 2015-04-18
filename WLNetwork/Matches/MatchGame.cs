@@ -167,6 +167,8 @@ namespace WLNetwork.Matches
                         m =>
                             m.User != null,
                         new MatchPlayersSnapshot(this), MatchPlayersSnapshot.Msg);
+                    if (_activeMatch != null)
+                        SaveActiveGame ();
                 }
             }
         }
