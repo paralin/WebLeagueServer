@@ -25,7 +25,7 @@ namespace WLNetwork.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("mongodb://192.168.1.46:27017")]
+        [global::System.Configuration.DefaultSettingValueAttribute("mongodb://192.168.0.6:27017")]
         public string DMongoURL {
             get {
                 return ((string)(this["DMongoURL"]));
@@ -56,42 +56,6 @@ namespace WLNetwork.Properties {
             }
             set {
                 this["AuthSecret"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("192.168.1.46:10011")]
-        public string TEAMSPEAK_URL {
-            get {
-                return ((string)(this["TEAMSPEAK_URL"]));
-            }
-            set {
-                this["TEAMSPEAK_URL"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("serveradmin:EvVFycUi")]
-        public string TEAMSPEAK_AUTH {
-            get {
-                return ((string)(this["TEAMSPEAK_AUTH"]));
-            }
-            set {
-                this["TEAMSPEAK_AUTH"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("9987")]
-        public int TEAMSPEAK_PORT {
-            get {
-                return ((int)(this["TEAMSPEAK_PORT"]));
-            }
-            set {
-                this["TEAMSPEAK_PORT"] = value;
             }
         }
     }

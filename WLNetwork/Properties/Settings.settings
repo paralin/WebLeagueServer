@@ -3,22 +3,13 @@
   <Profiles />
   <Settings>
     <Setting Name="DMongoURL" Type="System.String" Scope="User">
-      <Value Profile="(Default)">mongodb://192.168.1.46:27017</Value>
+      <Value Profile="(Default)">mongodb://192.168.0.6:27017</Value>
     </Setting>
     <Setting Name="DMongoDB" Type="System.String" Scope="User">
       <Value Profile="(Default)">webleague-dev</Value>
     </Setting>
     <Setting Name="AuthSecret" Type="System.String" Scope="User">
       <Value Profile="(Default)">webleague-secret</Value>
-    </Setting>
-    <Setting Name="TEAMSPEAK_URL" Type="System.String" Scope="User">
-      <Value Profile="(Default)">192.168.1.46:10011</Value>
-    </Setting>
-    <Setting Name="TEAMSPEAK_AUTH" Type="System.String" Scope="User">
-      <Value Profile="(Default)">serveradmin:EvVFycUi</Value>
-    </Setting>
-    <Setting Name="TEAMSPEAK_PORT" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">9987</Value>
     </Setting>
   </Settings>
 </SettingsFile>

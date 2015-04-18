@@ -22,7 +22,6 @@ using WLNetwork.Matches.Methods;
 using WLNetwork.Model;
 using WLNetwork.Rating;
 using WLNetwork.Utils;
-using WLNetwork.Voice;
 using XSockets.Core.XSocket.Helpers;
 using MatchType = WLNetwork.Matches.Enums.MatchType;
 
@@ -209,12 +208,6 @@ namespace WLNetwork.Matches
             BotDB.RegisterSetup(Setup);
         }
 
-        public void MovePlayersToChannel()
-        {
-            foreach (var plyr in Players.Where(m => m.Team == MatchTeam.Radiant || m.Team == MatchTeam.Dire))
-                Teamspeak.Instance.ForceChannel[plyr.SID] = (plyr.Team == MatchTeam.Radiant ? "Radiant" : "Dire")+" "+Id.ToString().Substring(0, 4);
-        }
-
         private void PlayersOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
         {
             if (_balancing) return;
@@ -278,98 +271,6 @@ namespace WLNetwork.Matches
 #endif
                 log.Info("MATCH DESTROY [" + Id + "]");
             }
-            DeleteTeamspeakChannels();
-        }
-
-        public async Task CreateTeamspeakChannels()
-        {
-            if (ChannelNames.Count > 0 || Destroyed) return;
-
-            //Top level match channel
-            string name;
-            if (Info.MatchType == MatchType.StartGame)
-                name = Players.First(m => m.IsCaptain || m.SID == Info.Owner).Name + "'s Startgame";
-            else
-            {
-                var plyrs = Players.Where(m => m.IsCaptain).ToArray();
-                name = plyrs[0].Name + " vs. " + plyrs[1].Name;
-            }
-            ChannelNames.Add(name);
-            if (Destroyed) 
-                {
-                    DeleteTeamspeakChannels();
-                    return;
-                }
-            var topLevel = Teamspeak.Instance.Channels[name] = new ChannelInfoResult()
-            {
-                ChannelName = name,
-                ChannelCodecQuality = "10",
-                ChannelDescription = "Top level channel for this match. Match ID is "+Id+".",
-                ChannelFlagPermanent = "1"
-            };
-            await Teamspeak.Instance.SetupChannels();
-            if (Destroyed)
-            {
-                DeleteTeamspeakChannels();
-                return;
-            }
-            var uid = Id.ToString().Substring(0, 4);
-            name = "Radiant "+uid;
-            ChannelNames.Add(name);
-            var radiant = Teamspeak.Instance.Channels[name] = new ChannelInfoResult()
-            {
-                ChannelName = name,
-                ChannelCodecQuality = "10",
-                ChannelDescription = "Channel for the radiant team.",
-                ChannelFlagPassword = "1",
-                ChannelPassword = Id.ToString()+"p",
-                ChannelFlagPermanent = "1",
-                Pid = topLevel.Cid
-            };
-            name = "Dire "+uid;
-            ChannelNames.Add(name);
-            var dire = Teamspeak.Instance.Channels[name] = new ChannelInfoResult()
-            {
-                ChannelName = name,
-                ChannelCodecQuality = "10",
-                ChannelDescription = "Channel for the dire team. Match ID is "+Id+".",
-                ChannelFlagPassword = "1",
-                ChannelPassword = Id+"p",
-                ChannelFlagPermanent = "1",
-                Pid = topLevel.Cid
-            };
-            await Teamspeak.Instance.SetupChannels();
-            if (Destroyed)
-            {
-                DeleteTeamspeakChannels();
-                return;
-            }
-
-            if (Setup.Details.IsRecovered && Info.Status > MatchStatus.Players)
-            {
-                MovePlayersToChannel();
-            }
-
-            if (Destroyed)
-            {
-                DeleteTeamspeakChannels();
-                return;
-            }
-        }
-
-        public void DeleteTeamspeakChannels()
-        {
-            ChannelInfoResult val;
-            ThreadPool.QueueUserWorkItem(async delegate
-            {
-                var sids = Teamspeak.Instance.ForceChannel.Values.Where(m => m.Contains(Id.ToString().Substring(0, 4))).ToArray();
-                string bogus;
-                foreach (var sid in sids) Teamspeak.Instance.ForceChannel.TryRemove(sid, out bogus);
-                foreach (var chan in ChannelNames)
-                    Teamspeak.Instance.Channels.TryRemove(chan, out val);
-                await Teamspeak.Instance.SetupChannels();
-                ChannelNames.Clear();
-            });
         }
 
         ~MatchGame()
@@ -388,11 +289,6 @@ namespace WLNetwork.Matches
                     cont.Invoke(arg, "clearsetupmatch");
                 }
                 Admins.InvokeTo(m => m.User != null, arg, "clearsetupmatch");
-                foreach (var plyr in Players)
-                {
-                    string foobar;
-                    Teamspeak.Instance.ForceChannel.TryRemove(plyr.SID, out foobar);
-                }
             }
             else
             {
@@ -501,7 +397,6 @@ namespace WLNetwork.Matches
             MatchPlayer player = Players.FirstOrDefault(m => m.SID == sid && m.Team != MatchTeam.Spectate);
             if (player == null || player.Team != MatchTeam.Unassigned) return;
             player.Team = team;
-            Teamspeak.Instance.ForceChannel[player.SID] = ChannelNames.FirstOrDefault(m => m.Contains(player.Team == MatchTeam.Radiant ? "Radiant" : "Dire"));
             if (Players.Count(m => m.Team == MatchTeam.Radiant || m.Team == MatchTeam.Dire) >= 10)
             {
                 Info.CaptainStatus = CaptainsStatus.DirePick;

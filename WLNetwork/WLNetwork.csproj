@@ -200,7 +200,6 @@
     </Compile>
     <Compile Include="Rating\RatingCalculator.cs" />
     <Compile Include="StateUpdateArgs.cs" />
-    <Compile Include="Voice\Teamspeak.cs" />
     <Compile Include="Utils\Diff.cs" />
     <Compile Include="Utils\ObservableDictionary.cs" />
     <Compile Include="Utils\ObservableRangeCollection.cs" />
