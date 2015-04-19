@@ -31,6 +31,7 @@ namespace WLNetwork.Bots.DOTABot
         private uint GCVersion;
         private SteamClient client;
         private bool dontRecreateLobby;
+        private bool alreadyLeftExisting = false;
 
         private SteamFriends friends;
         public ActiveStateMachine<States, Events> fsm;
@@ -377,8 +378,9 @@ namespace WLNetwork.Bots.DOTABot
                 {
                     log.Debug("Bot has left/been kicked from the lobby.");
                     fsm.Fire(Events.DotaLeftLobby);
-                    if (!setupDetails.IsRecovered)
+                    if (!setupDetails.IsRecovered && !alreadyLeftExisting)
                     {
+                        alreadyLeftExisting = true;
                         dontRecreateLobby = false;
                         CreateLobby();
                     }

@@ -134,6 +134,7 @@ namespace WLNetwork.Bots
                 game.GameStartTime = DateTime.UtcNow;
                 game.ServerSteamID = new SteamID(instance.bot.dota.Lobby.server_id).Render(true);
                 game.TransmitUpdate();
+                g.GameStarted();
                 g.KickSpectators();
                 g.SaveActiveGame();
             }

@@ -20,6 +20,7 @@ namespace WLNetwork.Chat
             UID = user.Id;
             Name = user.profile.name;
             Rating = user.profile.rating;
+            WinStreak = user.profile.winStreak;
             Avatar = avatar;
 
             if (user.authItems.Contains("admin"))
@@ -57,7 +58,12 @@ namespace WLNetwork.Chat
         /// <summary>
         ///     Rating
         /// </summary>
-        public int Rating { get; set; }
+        public uint Rating { get; set; }
+
+        /// <summary>
+        ///     Current win streak
+        /// </summary>
+        public uint WinStreak { get; set; }
 
         /// <summary>
         ///     Member type for visibility in the player list

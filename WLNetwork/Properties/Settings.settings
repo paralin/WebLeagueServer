@@ -11,5 +11,11 @@
     <Setting Name="AuthSecret" Type="System.String" Scope="User">
       <Value Profile="(Default)">webleague-secret</Value>
     </Setting>
+    <Setting Name="MinWinStreakForAnnounce" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">3</Value>
+    </Setting>
+    <Setting Name="MinWinStreakForRating" Type="System.UInt32" Scope="User">
+      <Value Profile="(Default)">3</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -74,9 +74,10 @@ namespace WLNetwork.Model
     public class Profile
     {
         public string name { get; set; }
-        public int rating { get; set; }
-        public int wins { get; set; }
-        public int losses { get; set; }
-        public int abandons { get; set; }
+        public uint rating { get; set; }
+        public uint wins { get; set; }
+        public uint losses { get; set; }
+        public uint abandons { get; set; }
+        public uint winStreak { get; set; }
     }
 }

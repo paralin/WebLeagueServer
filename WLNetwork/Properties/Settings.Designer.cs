@@ -58,5 +58,29 @@ namespace WLNetwork.Properties {
                 this["AuthSecret"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("3")]
+        public uint MinWinStreakForAnnounce {
+            get {
+                return ((uint)(this["MinWinStreakForAnnounce"]));
+            }
+            set {
+                this["MinWinStreakForAnnounce"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("3")]
+        public uint MinWinStreakForRating {
+            get {
+                return ((uint)(this["MinWinStreakForRating"]));
+            }
+            set {
+                this["MinWinStreakForRating"] = value;
+            }
+        }
     }
 }

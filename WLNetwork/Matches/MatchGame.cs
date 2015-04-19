@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Dota2.GC.Dota.Internal;
 using log4net;
 using MongoDB.Driver.Builders;
-using TentacleSoftware.TeamSpeakQuery.ServerQueryResult;
 using WLNetwork.Bots;
 using WLNetwork.Chat;
 using WLNetwork.Controllers;
@@ -20,6 +19,7 @@ using WLNetwork.Database;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Matches.Methods;
 using WLNetwork.Model;
+using WLNetwork.Properties;
 using WLNetwork.Rating;
 using WLNetwork.Utils;
 using XSockets.Core.XSocket.Helpers;
@@ -482,11 +482,25 @@ namespace WLNetwork.Matches
                 {
                     c.Result = result;
                 }
-                var leavers = Setup.Details.Players.Where(m => m.IsLeaver);
-                if (leavers.Any())
+                var leavers = Setup.Details.Players.Where(m => m.IsLeaver).ToArray();
+                if (leavers.Length > 0)
                     ChatChannel.GlobalSystemMessage(" Punishing leaver(s) " +
                                                     string.Join(", ", leavers.Select(m => m.Name)) +
                                                     " with an abandon and -25 rating.");
+                var completeMsg = "Match " + Id.ToString().Substring(0, 4) + " (MatchID " + Setup.Details.MatchId +
+                                  ") completed with " +
+                                  (outcome == EMatchOutcome.k_EMatchOutcome_DireVictory
+                                      ? "dire victory."
+                                      : "radiant victory.");
+                if (result.StreakEndedRating > 0)
+                {
+                    var max = result.EndedWinStreaks.Max();
+                    var plyr = (Players.FirstOrDefault(m => m.SID == max.Key));
+                    if(plyr != null)
+                        completeMsg += " "+(result.Result == EMatchOutcome.k_EMatchOutcome_RadVictory ? "Radiant" : "Dire")+" received a bonus "+result.StreakEndedRating+" rating for ending "+plyr.Name+"'s " + max.Value + " win streak!";
+                }
+                ChatChannel.GlobalSystemMessage(completeMsg);
+            
             }
             else
             {
@@ -513,6 +527,7 @@ namespace WLNetwork.Matches
                 }
                 ChatChannel.GlobalSystemMessage("Match not counted due to " + reason + ".");
             }
+
             Destroy();
         }
 
@@ -531,6 +546,15 @@ namespace WLNetwork.Matches
                 log.Debug("RECOVERING MATCH " + match.Id + "...");
 // ReSharper disable once ObjectCreationAsStatement
                 new MatchGame(match).SaveActiveGame();
+            }
+        }
+
+        public void GameStarted()
+        {
+            // Announce win streaks
+            foreach (var plyr in Players.Where(m => m.Team == MatchTeam.Dire || m.Team == MatchTeam.Radiant).Where(plyr => plyr.WinStreak >= Settings.Default.MinWinStreakForAnnounce))
+            {
+                ChatChannel.GlobalSystemMessage(plyr.Name+" has a "+plyr.WinStreak+" win streak!");
             }
         }
     }

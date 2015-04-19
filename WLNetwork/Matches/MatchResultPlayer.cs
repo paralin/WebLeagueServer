@@ -16,6 +16,7 @@ namespace WLNetwork.Matches
                 IsLeaver = player.IsLeaver;
                 LeaverReason = player.LeaverReason;
                 RatingBefore = player.Rating;
+                WinStreakBefore = player.WinStreak;
             }
         }
 
@@ -52,6 +53,11 @@ namespace WLNetwork.Matches
         /// <summary>
         ///     Rating at the start of the match
         /// </summary>
-        public int RatingBefore { get; set; }
+        public uint RatingBefore { get; set; }
+
+        /// <summary>
+        ///     Win streak before this match
+        /// </summary>
+        public uint WinStreakBefore { get; set; }
     }
 }

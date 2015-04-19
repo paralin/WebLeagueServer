@@ -1,11 +1,14 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Dota2.GC.Dota.Internal;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Builders;
+using TentacleSoftware.TeamSpeakQuery;
 using WLNetwork.Database;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Model;
+using WLNetwork.Properties;
 using XSockets.Core.XSocket.Helpers;
 using System;
 using MongoDB.Bson.Serialization.Attributes;
@@ -61,6 +64,11 @@ namespace WLNetwork.Matches
         public int RatingDelta { get; set; }
 
         /// <summary>
+        /// Bonus delta for streak ended, already applied to rating
+        /// </summary>
+        public uint StreakEndedRating { get; set; }
+
+        /// <summary>
         ///     Match data
         /// </summary>
         public CMsgDOTAMatch Match { get; set; }
@@ -70,21 +78,43 @@ namespace WLNetwork.Matches
         /// </summary>
         public DateTime MatchCompleted { get; set; }
 
+        /// <summary>
+        /// Ended win streaks
+        /// </summary>
+        public Dictionary<string, uint> EndedWinStreaks { get; set; }
+
         public void ApplyRating()
         {
             if (MatchCounted)
             {
-                var radUpdate = Update<User>.Inc(p => p.profile.rating, RatingRadiant);
-                if (Result == EMatchOutcome.k_EMatchOutcome_RadVictory)
-                    radUpdate.Inc(p => p.profile.wins, 1);
-                else if (Result == EMatchOutcome.k_EMatchOutcome_DireVictory)
-                    radUpdate.Inc(p => p.profile.losses, 1);
+                EndedWinStreaks = new Dictionary<string, uint>();
 
+                foreach (var plyr in Players.Where(m => m.Team == (Result == EMatchOutcome.k_EMatchOutcome_RadVictory ? MatchTeam.Dire : MatchTeam.Radiant) && m.WinStreakBefore > 0))
+                    EndedWinStreaks[plyr.SID] = plyr.WinStreakBefore;
+
+                if (EndedWinStreaks.Values.Count > 0)
+                {
+                    var max = EndedWinStreaks.Max(m => m.Value);
+                    if (max >= Settings.Default.MinWinStreakForRating)
+                    {
+                        StreakEndedRating = (uint)Math.Floor((Math.Log10((max-2)*0.02d)+2.0d)*10.0d);
+                        if (Result == EMatchOutcome.k_EMatchOutcome_DireVictory) RatingDire += (int)StreakEndedRating;
+                        else RatingRadiant += (int)StreakEndedRating;
+                    }
+                }
+
+                var radUpdate = Update<User>.Inc(p => p.profile.rating, RatingRadiant);
                 var direUpdate = Update<User>.Inc(p => p.profile.rating, RatingDire);
                 if (Result == EMatchOutcome.k_EMatchOutcome_RadVictory)
-                    direUpdate.Inc(p => p.profile.losses, 1);
+                {
+                    radUpdate.Inc(p => p.profile.wins, 1).Inc(p => p.profile.winStreak, 1);
+                    direUpdate.Set(p=>p.profile.winStreak, 0u).Inc(p => p.profile.losses, 1);
+                }
                 else if (Result == EMatchOutcome.k_EMatchOutcome_DireVictory)
-                    direUpdate.Inc(p => p.profile.wins, 1);
+                {
+                    radUpdate.Set(m => m.profile.winStreak, 0u).Inc(p => p.profile.losses, 1);
+                    direUpdate.Inc(p => p.profile.wins, 1).Inc(p=>p.profile.winStreak, 1);
+                }
 
                 Mongo.Users.Update(
                     Query.In("steam.steamid",

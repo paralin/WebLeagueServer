@@ -101,7 +101,7 @@ namespace WLNetwork.Controllers
         private void SaveChatChannels()
         {
             User.channels = Channels.Where(m=>m.Leavable && m.ChannelType == ChannelType.Public).Select(m => m.Name).ToArray();
-            Database.Mongo.Users.Update(Query<User>.EQ(m=>m.Id, User.Id), Update<User>.Set(m=>m.channels, User.channels));
+             Database.Mongo.Users.Update(Query<User>.EQ(m=>m.Id, User.Id), Update<User>.Set(m=>m.channels, User.channels));
         }
 
         private void LoadChatChannels()

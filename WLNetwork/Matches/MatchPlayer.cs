@@ -18,6 +18,7 @@ namespace WLNetwork.Matches
                 Avatar = user.steam.avatarfull;
                 Team = MatchTeam.Dire;
                 Rating = user.profile.rating;
+                WinStreak = user.profile.winStreak;
             }
         }
 
@@ -64,7 +65,12 @@ namespace WLNetwork.Matches
         /// <summary>
         ///     Rating at the start of the match
         /// </summary>
-        public int Rating { get; set; }
+        public uint Rating { get; set; }
+
+        /// <summary>
+        /// Win streak before
+        /// </summary>
+        public uint WinStreak { get; set; }
 
         /// <summary>
         /// Hero ID
