@@ -185,6 +185,8 @@ namespace WLNetwork.Controllers
             LeaveMatch();
             if (options == null) return "You didn't give any options for the match.";
             if (Match != null) return "You are already in a match you cannot leave.";
+            if (User != null && User.authItems.Contains("spectateOnly")) return "You are limited to spectating only.";
+            if (User != null && User.authItems.Contains("challengeOnly")) return "You are limited to joining challenge pools only. You cannot create challenges/startgames.";
             options.MatchType = MatchType.StartGame;
             var match = new MatchGame(User.steam.steamid, options);
             Match = match;
@@ -332,6 +334,7 @@ namespace WLNetwork.Controllers
             if (activeMatch != null) return "You are already in a match, leave that one first.";
             MatchGame match = MatchesController.Games.FirstOrDefault( m => m.Id == options.Id && m.Info.Public);
             if (match == null) return "That match can't be found.";
+            if (User != null && User.authItems.Contains("challengeOnly") && match.Info.MatchType != MatchType.Captains) return "You are limited to joining challenge pools only.";
             if (match.Info.Status != MatchStatus.Players && !options.Spec)
                 return "Can't join a match that has started.";
             if (match.Info.Status > MatchStatus.Lobby && options.Spec)
@@ -377,6 +380,8 @@ namespace WLNetwork.Controllers
         {
             if (Match != null) return "You are already in a match.";
             if (Challenge != null) return "Waiting for a challenge response already...";
+            if (User != null && User.authItems.Contains("spectateOnly")) return "You are spectator and cannot play matches.";
+            if (User != null && User.authItems.Contains("challengeOnly")) return "You are limited to joining challenge pools only.";
             target.ChallengerSID = User.steam.steamid;
             target.ChallengerName = User.steam.personaname;
             if (target.ChallengedSID == null) return "You didn't specify a person to challenge.";
