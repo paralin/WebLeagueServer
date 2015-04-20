@@ -494,10 +494,10 @@ namespace WLNetwork.Matches
                                       : "radiant victory.");
                 if (result.StreakEndedRating > 0)
                 {
-                    var max = result.EndedWinStreaks.Max();
-                    var plyr = (Players.FirstOrDefault(m => m.SID == max.Key));
+                    var max = result.EndedWinStreaks.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
+                    var plyr = (Players.FirstOrDefault(m => m.SID == max));
                     if(plyr != null)
-                        completeMsg += " "+(result.Result == EMatchOutcome.k_EMatchOutcome_RadVictory ? "Radiant" : "Dire")+" received a bonus "+result.StreakEndedRating+" rating for ending "+plyr.Name+"'s " + max.Value + " win streak!";
+                        completeMsg += " "+(result.Result == EMatchOutcome.k_EMatchOutcome_RadVictory ? "Radiant" : "Dire")+" received a bonus "+result.StreakEndedRating+" rating for ending "+plyr.Name+"'s " + result.EndedWinStreaks[max] + " win streak!";
                 }
                 ChatChannel.GlobalSystemMessage(completeMsg);
             
