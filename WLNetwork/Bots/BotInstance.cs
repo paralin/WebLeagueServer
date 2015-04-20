@@ -44,6 +44,11 @@ namespace WLNetwork.Bots
             bot = new LobbyBot(details, new WlBotExtension(details, this));
             bot.LobbyUpdate += (lobby, differences) =>
             {
+                if (lobby != null && lobby.pass_key != details.Password)
+                {
+                    log.Warn("Ignored update for invalid password ["+lobby.pass_key+" != "+details.Password+"]");
+                    return;
+                }
                 if (lobby == null)
                 {
                     if (LobbyCleared != null) LobbyCleared(this, EventArgs.Empty);
@@ -116,7 +121,7 @@ namespace WLNetwork.Bots
                     MatchStatus(this, new MatchStateArgs {State = lobby.game_state, Status = lobby.state});
                 if (differences.Differences.Any(m => m.PropertyName == ".match_id"))
                     if (MatchId != null) MatchId(this, lobby.match_id);
-                if (lobby.match_outcome != EMatchOutcome.k_EMatchOutcome_Unknown)
+                if (lobby.match_outcome != EMatchOutcome.k_EMatchOutcome_Unknown && lobby.match_id != 0 && lobby.game_state > DOTA_GameState.DOTA_GAMERULES_STATE_GAME_IN_PROGRESS)
                     if (MatchOutcome != null) MatchOutcome(this, lobby.match_outcome);
                 if (differences.Differences.Any(m=>m.PropertyName == ".game_state") && lobby.game_state == DOTA_GameState.DOTA_GAMERULES_STATE_HERO_SELECTION)
                     if (GameStarted != null) GameStarted(this, EventArgs.Empty);
