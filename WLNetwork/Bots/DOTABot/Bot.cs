@@ -166,9 +166,9 @@ namespace WLNetwork.Bots.DOTABot
                 dota_tv_delay = LobbyDotaTVDelay.LobbyDotaTV_10,
                 fill_with_bots = false,
                 game_mode = (uint) (DOTA_GameMode) setupDetails.GameMode,
-                game_name = "WebLeague Game",
-                game_version = DOTAGameVersion.GAME_VERSION_CURRENT//,
-                //server_region = 1
+                game_name = "FPL Match "+setupDetails.Id.ToString().Substring(0,4),
+                game_version = DOTAGameVersion.GAME_VERSION_CURRENT,
+                server_region = 3
             };
             dota.CreateLobby(setupDetails.Password, ldetails);
         }
