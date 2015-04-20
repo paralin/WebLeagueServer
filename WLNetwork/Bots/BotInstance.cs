@@ -116,7 +116,7 @@ namespace WLNetwork.Bots
                     MatchStatus(this, new MatchStateArgs {State = lobby.game_state, Status = lobby.state});
                 if (differences.Differences.Any(m => m.PropertyName == ".match_id"))
                     if (MatchId != null) MatchId(this, lobby.match_id);
-                if (differences.Differences.Any(m => m.PropertyName == ".match_outcome") && lobby.match_outcome != EMatchOutcome.k_EMatchOutcome_Unknown)
+                if (lobby.match_outcome != EMatchOutcome.k_EMatchOutcome_Unknown)
                     if (MatchOutcome != null) MatchOutcome(this, lobby.match_outcome);
                 if (differences.Differences.Any(m=>m.PropertyName == ".game_state") && lobby.game_state == DOTA_GameState.DOTA_GAMERULES_STATE_HERO_SELECTION)
                     if (GameStarted != null) GameStarted(this, EventArgs.Empty);

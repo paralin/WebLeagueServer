@@ -241,8 +241,12 @@ namespace WLNetwork.Bots
             //todo: do something here?
         }
 
+        bool outcomeProcessed = false;
         public void MatchOutcome(object sender, EMatchOutcome args)
         {
+            if (outcomeProcessed)
+                return;
+            outcomeProcessed = true;
             if (game.Bot == null) return;
             MatchGame g = game.GetGame();
             if (g != null)
