@@ -71,6 +71,7 @@ namespace WLNetwork.Model
         public int loccityid { get; set; }
     }
 
+    [BsonIgnoreExtraElements]
     public class Profile
     {
         public string name { get; set; }
