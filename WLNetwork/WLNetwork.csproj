@@ -43,7 +43,7 @@
       <HintPath>..\packages\Appccelerate.StateMachine.2.12.0\lib\portable-windows8+net45\Appccelerate.StateMachine.dll</HintPath>
     </Reference>
     <Reference Include="Dota2, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Dota2.0.1.2\lib\net40\Dota2.dll</HintPath>
+      <HintPath>..\packages\Dota2.0.1.3\lib\net40\Dota2.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="JWT">

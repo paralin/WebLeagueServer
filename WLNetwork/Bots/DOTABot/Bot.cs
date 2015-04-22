@@ -434,7 +434,7 @@ namespace WLNetwork.Bots.DOTABot
         private void ConnectDota()
         {
             log.Debug("Attempting to connect to Dota...");
-            dota.LaunchDota();
+            dota.Start();
         }
 
         public void DisconnectAndCleanup()
