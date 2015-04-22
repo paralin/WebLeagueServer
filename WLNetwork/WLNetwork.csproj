@@ -43,7 +43,7 @@
       <HintPath>..\packages\Appccelerate.StateMachine.2.12.0\lib\portable-windows8+net45\Appccelerate.StateMachine.dll</HintPath>
     </Reference>
     <Reference Include="Dota2, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Dota2.0.1.0\lib\net40\Dota2.dll</HintPath>
+      <HintPath>..\packages\Dota2.0.1.2\lib\net40\Dota2.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="JWT">
@@ -99,12 +99,6 @@
     </Reference>
     <Reference Include="KellermanSoftware.Compare-Net-Objects">
       <HintPath>..\packages\CompareNETObjects.3.02.0.0\lib\net45\KellermanSoftware.Compare-NET-Objects.dll</HintPath>
-    </Reference>
-    <Reference Include="Nancy, Version=1.1.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\Nancy.1.1\lib\net40\Nancy.dll</HintPath>
-    </Reference>
-    <Reference Include="Nancy.Hosting.Self, Version=1.1.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\Nancy.Hosting.Self.1.1\lib\net40\Nancy.Hosting.Self.dll</HintPath>
     </Reference>
     <Reference Include="XSockets.Plugin.Framework">
       <HintPath>..\packages\XSockets.Plugin.Framework.4.2.0\lib\net45\XSockets.Plugin.Framework.dll</HintPath>
