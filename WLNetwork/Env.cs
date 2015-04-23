@@ -21,9 +21,17 @@ namespace WLNetwork
                 log.Fatal("MONGODB_URL environment variable missing.");
                 Environment.Exit(126);
             }
+
+            var tid = System.Environment.GetEnvironmentVariable("TICKET_ID");
+            if (tid == null || !int.TryParse(tid, out TICKET_ID))
+            {
+                log.Fatal("TICKET_ID environment variable missing.");
+                TICKET_ID = Settings.Default.LeagueTicketID;
+            }
 #endif
         }
 
         public static string MONGODB_URL;
+        public static int TICKET_ID;
     }
 }

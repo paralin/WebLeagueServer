@@ -170,6 +170,7 @@ namespace WLNetwork.Bots.DOTABot
                 game_version = DOTAGameVersion.GAME_VERSION_CURRENT,
                 server_region = 3
             };
+            if (Env.TICKET_ID != 0) ldetails.leagueid = (uint)Env.TICKET_ID;
             dota.CreateLobby(setupDetails.Password, ldetails);
         }
 

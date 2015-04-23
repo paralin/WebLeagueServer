@@ -17,5 +17,8 @@
     <Setting Name="MinWinStreakForRating" Type="System.UInt32" Scope="User">
       <Value Profile="(Default)">3</Value>
     </Setting>
+    <Setting Name="LeagueTicketID" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">3092</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

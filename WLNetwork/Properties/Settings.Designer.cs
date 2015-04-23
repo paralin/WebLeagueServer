@@ -82,5 +82,17 @@ namespace WLNetwork.Properties {
                 this["MinWinStreakForRating"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("3092")]
+        public int LeagueTicketID {
+            get {
+                return ((int)(this["LeagueTicketID"]));
+            }
+            set {
+                this["LeagueTicketID"] = value;
+            }
+        }
     }
 }
