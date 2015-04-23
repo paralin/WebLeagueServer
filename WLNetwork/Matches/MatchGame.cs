@@ -40,9 +40,8 @@ namespace WLNetwork.Matches
         private ObservableRangeCollection<MatchPlayer> _players;
         private MatchSetup _setup;
         private ActiveMatch _activeMatch = null;
-
+        private ConcurrentBag<string> forbidSids = new ConcurrentBag<string>(); 
         public BotController controller = null;
-
         private List<string> ChannelNames = new List<string>(); 
 
         public static ConcurrentQueue<MatchGame> TSSetupQueue = new ConcurrentQueue<MatchGame>(); 
@@ -539,6 +538,9 @@ namespace WLNetwork.Matches
             this.Destroy();
         }
 
+        /// <summary>
+        /// Static, recover all active matches
+        /// </summary>
         public static void RecoverActiveMatches()
         {
             foreach (var match in Mongo.ActiveMatches.FindAllAs<ActiveMatch>())
@@ -549,6 +551,9 @@ namespace WLNetwork.Matches
             }
         }
 
+        /// <summary>
+        /// Called when the match is started
+        /// </summary>
         public void GameStarted()
         {
             // Announce win streaks
@@ -556,6 +561,31 @@ namespace WLNetwork.Matches
             {
                 ChatChannel.GlobalSystemMessage(plyr.Name+" has a "+plyr.WinStreak+" win streak!");
             }
+        }
+
+        /// <summary>
+        /// Boot a player from the startgame.
+        /// </summary>
+        /// <param name="sid"></param>
+        public void KickPlayer(string sid)
+        {
+            var first = Matches.Find(m => m.User != null && m.User.steam.steamid == sid && m.Match != null && m.Match == this).FirstOrDefault();
+            if (first == null) return;
+            var plyr = Players.FirstOrDefault(m => m.SID == sid);
+            if (plyr != null && plyr.Team == MatchTeam.Spectate) return;
+            first.LeaveMatch();
+            first.Invoke("onkickedfromsg");
+            forbidSids.Add(sid);
+        }
+
+        /// <summary>
+        /// Check if a player is forbidden from this match
+        /// </summary>
+        /// <param name="steamid"></param>
+        /// <returns></returns>
+        public bool PlayerForbidden(string steamid)
+        {
+            return forbidSids.Contains(steamid);
         }
     }
 

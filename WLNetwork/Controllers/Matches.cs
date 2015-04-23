@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Timers;
 using log4net;
@@ -266,6 +268,16 @@ namespace WLNetwork.Controllers
         }
 
         /// <summary>
+        ///      Kick a player from a startgame
+        /// </summary>
+        /// <param name="player"></param>
+        public void KickPlayer(PickPlayer player)
+        {
+            if (Match == null || User == null || Match.Info.MatchType != MatchType.StartGame || Match.Info.Owner != User.steam.steamid || player.SID == User.steam.steamid || Match.Info.Status > MatchStatus.Players) return;
+            Match.KickPlayer(player.SID);
+        }
+
+        /// <summary>
         ///     Dismiss a result.
         /// </summary>
         public void DismissResult()
@@ -341,6 +353,8 @@ namespace WLNetwork.Controllers
                 return "Can't spectate a match already past the lobby stage.";
             if (!options.Spec && match.Players.Count(m => m.Team != MatchTeam.Spectate) >= 10 && match.Info.MatchType != MatchType.Captains) 
                 return "That match is full.";
+            if (match.PlayerForbidden(User.steam.steamid))
+                return "Can't join as you've been kicked from that startgame.";
             Match = match;
             match.Players.Add(new MatchPlayer(User) {Team = options.Spec ? MatchTeam.Spectate : MatchTeam.Unassigned});
             return null;
