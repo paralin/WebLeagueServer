@@ -37,6 +37,7 @@ namespace WLNetwork.Model
         public string tsonetimeid { get; set; }
     }
 
+    [BsonIgnoreExtraElements]
     public class Vouch
     {
         public int __v { get; set; }
@@ -47,6 +48,7 @@ namespace WLNetwork.Model
         public string avatar { get; set; }
     }
 
+    [BsonIgnoreExtraElements]
     public class SteamService
     {
         public string steamid { get; set; }

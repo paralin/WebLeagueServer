@@ -163,7 +163,7 @@ namespace WLNetwork.Bots.DOTABot
                 allow_cheats = false,
 #endif
                 allow_spectating = true,
-                dota_tv_delay = LobbyDotaTVDelay.LobbyDotaTV_10,
+                dota_tv_delay = LobbyDotaTVDelay.LobbyDotaTV_120,
                 fill_with_bots = false,
                 game_mode = (uint) (DOTA_GameMode) setupDetails.GameMode,
                 game_name = "FPL Match "+setupDetails.Id.ToString().Substring(0,4),
