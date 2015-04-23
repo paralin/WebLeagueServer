@@ -44,11 +44,7 @@ namespace WLNetwork.Bots
             bot = new LobbyBot(details, new WlBotExtension(details, this));
             bot.LobbyUpdate += (lobby, differences) =>
             {
-                if (lobby != null && lobby.pass_key != details.Password)
-                {
-                    log.Warn("Ignored update for invalid password ["+lobby.pass_key+" != "+details.Password+"]");
-                    return;
-                }
+                try {
                 if (lobby == null)
                 {
                     if (LobbyCleared != null) LobbyCleared(this, EventArgs.Empty);
@@ -129,6 +125,10 @@ namespace WLNetwork.Bots
                     if (FirstBloodHappened != null) FirstBloodHappened(this, EventArgs.Empty);
                 if(differences.Differences.Any(m=>m.PropertyName == ".num_spectators"))
                     if (SpectatorCountUpdate != null) SpectatorCountUpdate(this, lobby.num_spectators);
+                }catch(Exception ex)
+                {
+                    log.Error("Unhandled exception in lobbyUpdate", ex);
+                }
             };
         }
 

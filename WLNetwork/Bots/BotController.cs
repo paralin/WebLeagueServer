@@ -244,7 +244,7 @@ namespace WLNetwork.Bots
         bool outcomeProcessed = false;
         public void MatchOutcome(object sender, EMatchOutcome args)
         {
-            if (outcomeProcessed)
+            if (outcomeProcessed || game.MatchId == 0)
                 return;
             outcomeProcessed = true;
             if (game.Bot == null) return;
