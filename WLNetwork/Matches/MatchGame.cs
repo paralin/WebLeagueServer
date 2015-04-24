@@ -225,7 +225,7 @@ namespace WLNetwork.Matches
         /// <summary>
         /// Determines whether the supplied binary team is valid
         /// </summary>
-        private static void IsValidTeam(MatchPlayer[] playerPool, uint team)
+        private static bool IsValidTeam(MatchPlayer[] playerPool, uint team)
         {
             uint v = (uint)team;
             uint c; 
@@ -253,7 +253,6 @@ namespace WLNetwork.Matches
 
         private static void ApplyBinaryTeams(MatchPlayer[] playerPool, uint team)
         { 
-            var score = 0;
             for (var i = 0; i < playerPool.Length; ++i)
             {
                 if ((team & 1) == 1)
@@ -281,7 +280,7 @@ namespace WLNetwork.Matches
                     continue;
                 var scoreDiff = Math.Abs (CalculateTeamScore (playerPool, team) - CalculateTeamScore (playerPool, ~team));
                 if (scoreDiff < min) {
-                    min = scoreDiff;
+                    min = (uint)scoreDiff;
                     minTeam = team;
                 }
             }
