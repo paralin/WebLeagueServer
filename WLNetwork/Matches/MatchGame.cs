@@ -271,7 +271,7 @@ namespace WLNetwork.Matches
             if (_balancing || Info.MatchType != MatchType.StartGame || Info.Status > MatchStatus.Lobby) return;
             _balancing = true;
 
-            var playerPool = Players.Where (m => m.Team == MatchTeam.Radiant || m.Team == MatchTeam.Dire).ToArray();
+            var playerPool = Players.Where (m => m.Team == MatchTeam.Radiant || m.Team == MatchTeam.Dire || m.Team == MatchTeam.Unassigned).ToArray();
 
             uint min = uint.MaxValue;
             uint minTeam = 0;
