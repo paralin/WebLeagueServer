@@ -71,6 +71,7 @@ namespace WLNetwork.Bots.DOTABot
                 Username = details.Bot.Username,
                 Password = details.Bot.Password
             };
+
             log = LogManager.GetLogger("LobbyBot " + details.Bot.Username);
             log.Debug("Initializing a new LobbyBot, username: " + details.Bot.Username);
             reconnectTimer.Elapsed += (sender, args) =>
@@ -217,6 +218,16 @@ namespace WLNetwork.Bots.DOTABot
 
         public void FetchMatchResult(ulong match_id, Action<CMsgDOTAMatch> callback)
         {
+            // Set timeout
+            Task.Run(() =>
+            {
+                Thread.Sleep(5000);
+                if (!Callbacks.ContainsKey(match_id)) return;
+                log.Debug("Match result fetch for "+match_id+" timed out!");
+                Callbacks[match_id](null);
+                Callbacks.Remove(match_id);
+            });
+
             MatchId = match_id;
             Callbacks[match_id] = callback;
             dota.RequestMatchResult(match_id);

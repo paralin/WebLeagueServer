@@ -36,6 +36,7 @@ namespace WLNetwork.Matches
         private static readonly Controllers.Matches Matches = new Controllers.Matches();
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private bool _balancing;
+        private bool _alreadyAttemptedMatchResult = false;
         private MatchGameInfo _info;
         private ObservableRangeCollection<MatchPlayer> _players;
         private MatchSetup _setup;
@@ -90,7 +91,7 @@ namespace WLNetwork.Matches
             controller = new BotController(Setup.Details);
             controller.instance.Start();
             controller.instance.bot.LobbyNotRecovered +=
-                (sender, args) => ProcessMatchResult(EMatchOutcome.k_EMatchOutcome_Unknown);
+                (sender, args) => LobbyNotRecovered();
 
             MatchesController.Games.Add(this);
             log.Info("MATCH RESTORE [" + match.Id + "] [" + Info.Owner + "] [" + Info.GameMode + "] [" + Info.MatchType + "]");
@@ -98,6 +99,34 @@ namespace WLNetwork.Matches
             TSSetupQueue.Enqueue(this);
             _activeMatch = match;
             SaveActiveGame ();
+        }
+
+        /// <summary>
+        /// Called when the lobby is not recovered
+        /// </summary>
+        private void LobbyNotRecovered()
+        {
+            if (Setup != null && Setup.Details != null && Setup.Details.MatchId != 0)
+            {
+                Info.Status = MatchStatus.Complete;
+                Info = Info;
+                
+                controller.instance.bot.FetchMatchResult(Setup.Details.MatchId, match =>
+                {
+                    if (match == null)
+                    {
+                        log.Warn("Unable to recover match result for "+Info.Id+"!");
+                        _alreadyAttemptedMatchResult = true;
+                        ProcessMatchResult(EMatchOutcome.k_EMatchOutcome_Unknown);
+                    }
+                    else
+                    {
+                        ProcessMatchResult(match.good_guys_win ? EMatchOutcome.k_EMatchOutcome_RadVictory : EMatchOutcome.k_EMatchOutcome_DireVictory, match);
+                    }
+                });
+                
+            }else
+                ProcessMatchResult(EMatchOutcome.k_EMatchOutcome_Unknown);
         }
 
         /// <summary>
@@ -435,9 +464,10 @@ namespace WLNetwork.Matches
         /// <summary>
         ///     Complete the game
         /// </summary>
-        /// <param name="matchId"></param>
+        /// <param name="outcome"></param>
         /// <param name="match"></param>
-        public void ProcessMatchResult(EMatchOutcome outcome)
+        /// <param name="matchId"></param>
+        public void ProcessMatchResult(EMatchOutcome outcome, CMsgDOTAMatch match = null)
         {
             if (!MatchesController.Games.Contains(this))
                 return;
@@ -468,6 +498,8 @@ namespace WLNetwork.Matches
 
             if (countMatch)
                 RatingCalculator.CalculateRatingDelta(result);
+
+            if (match != null) result.Match = match;
 
             result.ApplyRating();
             result.Save();
@@ -527,6 +559,24 @@ namespace WLNetwork.Matches
                 ChatChannel.GlobalSystemMessage("Match not counted due to " + reason + ".");
             }
 
+            if (match != null || _alreadyAttemptedMatchResult || Setup == null || Setup.Details == null || controller == null || controller.instance == null || Setup.Details.MatchId == 0)
+            {
+                Destroy();
+            }
+            else
+            {
+                controller.instance.bot.FetchMatchResult(Setup.Details.MatchId, dotaMatch =>
+                {
+                    if (dotaMatch != null)
+                    {
+                        log.Debug("Fetched match data for "+dotaMatch.match_id+" successfully.");
+                        result.Match = dotaMatch;
+                        result.Save();
+                    }
+
+                    Destroy();
+                });
+            }
             Destroy();
         }
 

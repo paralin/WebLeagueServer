@@ -26,7 +26,7 @@ namespace WLNetwork.Matches
                 {
                     if (game.controller != null)
                     {
-                        game.controller.instance.Stop();
+                        game.controller.instance.Stop(true);
                         game.controller = null;
                     }
                     BotDB.SetupQueue.Remove(setup);
