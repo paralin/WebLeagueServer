@@ -628,7 +628,6 @@ namespace WLNetwork.Matches
                     Destroy();
                 });
             }
-            Destroy();
         }
 
         public void AdminDestroy()
