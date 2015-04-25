@@ -85,7 +85,7 @@ namespace WLNetwork.Bots
                 else if (lobby.state == CSODOTALobby.State.RUN &&
                          lobby.game_state > DOTA_GameState.DOTA_GAMERULES_STATE_WAIT_FOR_PLAYERS_TO_LOAD &&
                          lobby.game_state < DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME)
-                    if (differences.Differences.Any(m => m.Object1TypeName == "DOTALeaverStatus_t" || m.PropertyName == ".left_members"))
+                    if (differences.Differences.Any(m => m.PropertyName == ".left_members"))
                     {
                         var args = new LeaverStatusArgs
                         {

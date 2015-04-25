@@ -25,6 +25,8 @@ using WLNetwork.Utils;
 using XSockets.Core.XSocket.Helpers;
 using MatchType = WLNetwork.Matches.Enums.MatchType;
 
+//#define ENABLE_LEAVER_PENALTY
+
 namespace WLNetwork.Matches
 {
     /// <summary>
@@ -250,29 +252,70 @@ namespace WLNetwork.Matches
         }
 
         /// <summary>
+        /// Determines whether the supplied binary team is valid
+        /// </summary>
+        private static bool IsValidTeam(MatchPlayer[] playerPool, uint team)
+        {
+            uint v = (uint)team;
+            uint c; 
+            for (c = 0; v!=0; v >>= 1)
+            {
+                c += v & 1;
+            }
+            return (c == playerPool.Length/2);
+        }
+
+        /// <summary>
+        /// Calculates the team score for a binary team
+        /// </summary>
+        private static int CalculateTeamScore(MatchPlayer[] playerPool, uint team)
+        {
+            var score = 0;
+            for (var i = 0; i < playerPool.Length; ++i)
+            {
+                if ((team & 1) == 1)
+                    score += (int)playerPool[i].Rating;
+                team >>= 1;
+            }
+            return score;
+        } 
+
+        private static void ApplyBinaryTeams(MatchPlayer[] playerPool, uint team)
+        { 
+            for (var i = 0; i < playerPool.Length; ++i)
+            {
+                if ((team & 1) == 1)
+                    playerPool [i].Team = MatchTeam.Radiant;
+                else
+                    playerPool [i].Team = MatchTeam.Dire;
+                team >>= 1;
+            }
+        }
+
+        /// <summary>
         ///     Balance teams
         /// </summary>
         public void RebalanceTeams()
         {
             if (_balancing || Info.MatchType != MatchType.StartGame || Info.Status > MatchStatus.Lobby) return;
             _balancing = true;
-            //MMR algorithm
-            int direCount = 0;
-            int radiCount = 0;
-            foreach (
-                MatchPlayer plyr in Players.Where(m => m.Team != MatchTeam.Spectate).OrderByDescending(m => m.Rating))
-            {
-                if (direCount < radiCount && direCount < 5)
-                {
-                    plyr.Team = MatchTeam.Dire;
-                    direCount++;
-                }
-                else
-                {
-                    plyr.Team = MatchTeam.Radiant;
-                    radiCount++;
+
+            var playerPool = Players.Where (m => m.Team == MatchTeam.Radiant || m.Team == MatchTeam.Dire || m.Team == MatchTeam.Unassigned).ToArray();
+
+            uint min = uint.MaxValue;
+            uint minTeam = 0;
+            for (uint team = 0; team < (uint)(Math.Pow (2, playerPool.Length) - 1); ++team) {
+                if (!IsValidTeam (playerPool, team))
+                    continue;
+                var scoreDiff = Math.Abs (CalculateTeamScore (playerPool, team) - CalculateTeamScore (playerPool, ~team));
+                if (scoreDiff < min) {
+                    min = (uint)scoreDiff;
+                    minTeam = team;
                 }
             }
+
+            ApplyBinaryTeams (playerPool, minTeam);
+
             _balancing = false;
         }
 
@@ -501,7 +544,12 @@ namespace WLNetwork.Matches
 
             if (match != null) result.Match = match;
 
-            result.ApplyRating();
+            #if ENABLE_LEAVER_PENALTY
+            result.ApplyRating(true);
+            #else
+            result.ApplyRating(false);
+            #endif
+
             result.Save();
 
             if (countMatch)
@@ -513,11 +561,14 @@ namespace WLNetwork.Matches
                 {
                     c.Result = result;
                 }
+
+                #if ENABLE_LEAVER_PENALTY
                 var leavers = Setup.Details.Players.Where(m => m.IsLeaver).ToArray();
                 if (leavers.Length > 0)
                     ChatChannel.GlobalSystemMessage(" Punishing leaver(s) " +
                                                     string.Join(", ", leavers.Select(m => m.Name)) +
                                                     " with an abandon and -25 rating.");
+                #endif
                 var completeMsg = "Match " + Id.ToString().Substring(0, 4) + " (MatchID " + Setup.Details.MatchId +
                                   ") completed with " +
                                   (outcome == EMatchOutcome.k_EMatchOutcome_DireVictory

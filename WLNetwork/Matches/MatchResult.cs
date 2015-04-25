@@ -83,7 +83,7 @@ namespace WLNetwork.Matches
         /// </summary>
         public Dictionary<string, uint> EndedWinStreaks { get; set; }
 
-        public void ApplyRating()
+        public void ApplyRating(bool punishLeavers = false)
         {
             if (MatchCounted)
             {
@@ -118,18 +118,19 @@ namespace WLNetwork.Matches
 
                 Mongo.Users.Update(
                     Query.In("steam.steamid",
-                        Players.Where(m => m.Team == MatchTeam.Radiant && !m.IsLeaver)
+                        Players.Where(m => m.Team == MatchTeam.Radiant && (!punishLeavers || !m.IsLeaver))
                             .Select(m => new BsonString(m.SID))
                             .ToArray()),
                     radUpdate, UpdateFlags.Multi);
                 Mongo.Users.Update(
                     Query.In("steam.steamid",
-                        Players.Where(m => m.Team == MatchTeam.Dire && !m.IsLeaver)
+                        Players.Where(m => m.Team == MatchTeam.Dire && (!punishLeavers || !m.IsLeaver))
                             .Select(m => new BsonString(m.SID))
                             .ToArray()),
                     direUpdate, UpdateFlags.Multi);
             }
 
+            if(punishLeavers)
             Mongo.Users.Update(
                 Query.In("steam.steamid",
                     Players.Where(m => m.IsLeaver).Select(m => new BsonString(m.SID)).ToArray()),
