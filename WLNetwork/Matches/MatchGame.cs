@@ -250,8 +250,8 @@ namespace WLNetwork.Matches
             /* Don't rebalance every time players change now
             if (_balancing) return;
             RebalanceTeams();
-            Players = Players;
              */
+            Players = Players;
         }
 
         /// <summary>
