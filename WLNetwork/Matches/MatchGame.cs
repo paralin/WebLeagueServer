@@ -232,6 +232,7 @@ namespace WLNetwork.Matches
         public void StartSetup()
         {
             if (Setup != null || (Info.Status != MatchStatus.Players && Info.MatchType != MatchType.Captains)) return;
+            RebalanceTeams();
             Setup = new MatchSetup(Id, new MatchSetupDetails
             {
                 Id = Id,
@@ -246,9 +247,11 @@ namespace WLNetwork.Matches
 
         private void PlayersOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
         {
+            /* Don't rebalance every time players change now
             if (_balancing) return;
             RebalanceTeams();
             Players = Players;
+             */
         }
 
         /// <summary>
@@ -304,14 +307,15 @@ namespace WLNetwork.Matches
 
             uint min = uint.MaxValue;
             uint minTeam = 0;
-            for (uint team = 0; team < (uint)(Math.Pow (2, playerPool.Length) - 1); ++team) {
+            for (uint team = 0; team < (1 << (playerPool.Length - 1)); ++team) {
                 if (!IsValidTeam (playerPool, team))
                     continue;
+
                 var scoreDiff = Math.Abs (CalculateTeamScore (playerPool, team) - CalculateTeamScore (playerPool, ~team));
-                if (scoreDiff < min) {
-                    min = (uint)scoreDiff;
-                    minTeam = team;
-                }
+                if (scoreDiff >= min) continue;
+
+                min = (uint)scoreDiff;
+                minTeam = team;
             }
 
             ApplyBinaryTeams (playerPool, minTeam);

@@ -247,7 +247,7 @@ namespace WLNetwork.Controllers
             else if (Match.Info.MatchType == MatchType.StartGame)
             {
 #if !DEBUG
-                if (Match.Players.Count < 10 && !User.authItems.Contains("admin"))
+                if (Match.Players.Count(m=>m.Team != MatchTeam.Spectate) < 10 && !User.authItems.Contains("admin"))
                     return "Non admins must have 10 players for start games.";
 #endif
                 Match.StartSetup();
