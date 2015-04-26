@@ -233,6 +233,7 @@ namespace WLNetwork.Matches
         {
             if (Setup != null || (Info.Status != MatchStatus.Players && Info.MatchType != MatchType.Captains)) return;
             RebalanceTeams();
+            Players = Players;
             Setup = new MatchSetup(Id, new MatchSetupDetails
             {
                 Id = Id,
