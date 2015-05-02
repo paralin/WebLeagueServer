@@ -47,7 +47,7 @@ namespace WLNetwork.Controllers
                     if (other.Challenge != null)
                     {
                         Challenge = other.Challenge;
-                        if (other.challengeTimer.Enabled)
+                        //if (other.challengeTimer.Enabled)
                             challengeTimer.Start();
                         other.Match = null;
                     }
@@ -331,6 +331,31 @@ namespace WLNetwork.Controllers
                 new MatchPlayer(User) {IsCaptain = true, Team = MatchTeam.Radiant}
             });
             MatchGame.TSSetupQueue.Enqueue(match);
+        }
+
+        /// <summary>
+        /// Delete a sent challenge.
+        /// </summary>
+        public void CancelChallenge()
+        {
+            var tchallenge = Challenge;
+
+            Challenge = null;
+            challengeTimer.Stop();
+
+            if (tchallenge == null || User == null) return;
+
+            var tsid = tchallenge.ChallengerSID == User.steam.steamid ? tchallenge.ChallengedSID : tchallenge.ChallengerSID;
+            Matches other = this.Find(m => m.User != null && m.User.steam.steamid == tsid).FirstOrDefault();
+            if (other != null)
+            {
+                other.challengeTimer.Stop();
+                other.Challenge = null;
+            }
+
+            Challenge = null;
+
+            ChatChannel.GlobalSystemMessage(User.profile.name + " canceled his challenge.");
         }
 
         /// <summary>

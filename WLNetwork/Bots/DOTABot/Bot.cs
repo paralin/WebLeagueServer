@@ -317,7 +317,7 @@ namespace WLNetwork.Bots.DOTABot
                             fsm.Fire(Events.LogonFailSteamGuard);
                             return;
                         }
-                        if (c.Result == EResult.ServiceUnavailable)
+                        if (c.Result == EResult.ServiceUnavailable || c.Result == EResult.TryAnotherCM)
                         {
                             fsm.Fire(Events.LogonFailSteamDown);
                             return;
