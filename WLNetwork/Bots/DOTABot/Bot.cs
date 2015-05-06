@@ -9,6 +9,7 @@ using Dota2;
 using Dota2.GC.Dota.Internal;
 using KellermanSoftware.CompareNetObjects;
 using log4net;
+using MongoDB.Driver.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SteamKit2;
@@ -16,6 +17,8 @@ using WLBotHost.Utils;
 using WLNetwork.BotEnums;
 using WLNetwork.Bots.DOTABot.Enums;
 using WLNetwork.Matches;
+using WLNetwork.Matches.Enums;
+using MatchType = WLNetwork.Matches.Enums.MatchType;
 using Timer = System.Timers.Timer;
 
 namespace WLNetwork.Bots.DOTABot
@@ -155,6 +158,22 @@ namespace WLNetwork.Bots.DOTABot
             dontRecreateLobby = true;
             leaveLobby();
             log.Debug("Setting up the lobby with passcode [" + setupDetails.Password + "]...");
+
+            string gameName = "FPL Match";
+            var game = setupDetails.GetGame();
+            switch (game.Info.MatchType)
+            {
+                case MatchType.Captains:
+                case MatchType.StartGame:
+                    gameName = "FPL Match " + setupDetails.Id.ToString().Substring(0, 4);
+                    break;
+                case MatchType.OneVsOne:
+                    var p1 = setupDetails.Players.FirstOrDefault(m => m.Team == MatchTeam.Radiant);
+                    var p2 = setupDetails.Players.FirstOrDefault(m => m.Team == MatchTeam.Dire);
+                    if (p1 != null && p2 != null) gameName = "FPL " + p1.Name + " vs. " + p2.Name;
+                    break;
+            }
+
             var ldetails = new CMsgPracticeLobbySetDetails
             {
                 allchat = false,
@@ -164,12 +183,12 @@ namespace WLNetwork.Bots.DOTABot
                 allow_cheats = false,
 #endif
                 allow_spectating = true,
-                dota_tv_delay = LobbyDotaTVDelay.LobbyDotaTV_120,
+                dota_tv_delay = game.Info.MatchType == MatchType.OneVsOne ? LobbyDotaTVDelay.LobbyDotaTV_10 : LobbyDotaTVDelay.LobbyDotaTV_120,
                 fill_with_bots = false,
                 game_mode = (uint) (DOTA_GameMode) setupDetails.GameMode,
-                game_name = "FPL Match "+setupDetails.Id.ToString().Substring(0,4),
+                game_name = gameName,
                 game_version = DOTAGameVersion.GAME_VERSION_CURRENT,
-                server_region = 3
+                server_region = game.Info.MatchType == MatchType.OneVsOne ? 0u : 3u
             };
             if (Env.TICKET_ID != 0) ldetails.leagueid = (uint)Env.TICKET_ID;
             dota.CreateLobby(setupDetails.Password, ldetails);

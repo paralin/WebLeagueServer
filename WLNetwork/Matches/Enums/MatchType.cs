@@ -3,6 +3,7 @@
     public enum MatchType
     {
         StartGame = 0,
-        Captains = 1
+        Captains = 1,
+        OneVsOne = 2
     }
 }

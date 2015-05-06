@@ -28,5 +28,10 @@ namespace WLNetwork.Matches
         ///     Game mode
         /// </summary>
         public GameMode GameMode { get; set; }
+
+        /// <summary>
+        /// You can also do 1v1 challenge
+        /// </summary>
+        public MatchType MatchType { get; set; }
     }
 }

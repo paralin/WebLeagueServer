@@ -320,7 +320,7 @@ namespace WLNetwork.Controllers
             var match = new MatchGame(User.steam.steamid, new MatchCreateOptions
             {
                 GameMode = chal.GameMode,
-                MatchType = MatchType.Captains,
+                MatchType = chal.MatchType,
                 OpponentSID = other.User.steam.steamid
             });
             Match = match;
@@ -330,7 +330,11 @@ namespace WLNetwork.Controllers
                 new MatchPlayer(other.User) {IsCaptain = true, Team = MatchTeam.Dire},
                 new MatchPlayer(User) {IsCaptain = true, Team = MatchTeam.Radiant}
             });
-            MatchGame.TSSetupQueue.Enqueue(match);
+            if (chal.MatchType == MatchType.OneVsOne)
+            {
+                log.Debug("Launching 1v1 match automatically!");
+                match.StartSetup();
+            }
         }
 
         /// <summary>
@@ -417,10 +421,13 @@ namespace WLNetwork.Controllers
         [Authorize("startGames")]
         public string StartChallenge(Challenge target)
         {
+            if (target == null) return "You need some info start a challenge.";
             if (Match != null) return "You are already in a match.";
             if (Challenge != null) return "Waiting for a challenge response already...";
             if (User != null && User.authItems.Contains("spectateOnly")) return "You are spectator and cannot play matches.";
             if (User != null && User.authItems.Contains("challengeOnly")) return "You are limited to joining challenge pools only.";
+            if (target.MatchType == 0) target.MatchType = MatchType.Captains;
+            target.GameMode = target.MatchType == MatchType.OneVsOne ? GameMode.SOLOMID : GameMode.CM;
             target.ChallengerSID = User.steam.steamid;
             target.ChallengerName = User.steam.personaname;
             if (target.ChallengedSID == null) return "You didn't specify a person to challenge.";
@@ -435,7 +442,7 @@ namespace WLNetwork.Controllers
             tcont.Challenge = target;
             tcont.challengeTimer.Start();
             Challenge = target;
-            ChatChannel.GlobalSystemMessage(string.Format("{0} challenged {1} to a Captain's match!", User.profile.name, tcont.User.profile.name));
+            ChatChannel.GlobalSystemMessage(string.Format("{0} challenged {1} to a {2} match!", User.profile.name, tcont.User.profile.name, (target.MatchType == MatchType.OneVsOne ? "1v1" : "captains")));
             return null;
         }
 

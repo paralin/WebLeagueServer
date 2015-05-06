@@ -14,6 +14,7 @@ using WLNetwork.Bots.DOTABot;
 using WLNetwork.Bots.DOTABot.Enums;
 using WLNetwork.Matches;
 using WLNetwork.Matches.Enums;
+using WLNetwork.Utils;
 
 namespace WLNetwork.Bots
 {
@@ -39,8 +40,11 @@ namespace WLNetwork.Bots
 
         public LobbyBot bot;
 
+        private MatchSetupDetails Details;
+
         public BotInstance(MatchSetupDetails details)
         {
+            Details = details;
             bot = new LobbyBot(details, new WlBotExtension(details, this));
             bot.LobbyUpdate += (lobby, differences) =>
             {
@@ -155,6 +159,19 @@ namespace WLNetwork.Bots
 
         public void StartMatch()
         {
+            if (bot.dota.Lobby == null)
+            {
+                log.Fatal("StartMatch called but bot isn't in a lobby!");
+                return;
+            }
+
+            // Kick anyone in team slots that isn't supposed to be there
+            foreach (var member in from member in bot.dota.Lobby.members let plyr = Details.Players.FirstOrDefault(m => m.SID == "" + member.id) where plyr == null || (plyr.Team != MatchTeam.Dire && member.team == DOTA_GC_TEAM.DOTA_GC_TEAM_BAD_GUYS) || (plyr.Team != MatchTeam.Radiant && member.team == DOTA_GC_TEAM.DOTA_GC_TEAM_GOOD_GUYS) select member)
+            {
+                log.Warn("Kicking player "+member.id+" for being on team "+member.team+" when they shouldn't.");
+                bot.dota.KickPlayerFromLobby(member.id.ToAccountID());
+            }
+
             bot.StartGame();
         }
 

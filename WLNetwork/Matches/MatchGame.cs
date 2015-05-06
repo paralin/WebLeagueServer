@@ -47,8 +47,6 @@ namespace WLNetwork.Matches
         public BotController controller = null;
         private List<string> ChannelNames = new List<string>(); 
 
-        public static ConcurrentQueue<MatchGame> TSSetupQueue = new ConcurrentQueue<MatchGame>(); 
-
         /// <summary>
         ///     This is for two picks in captains, set to true at start so first pick is just 1
         /// </summary>
@@ -98,7 +96,6 @@ namespace WLNetwork.Matches
             MatchesController.Games.Add(this);
             log.Info("MATCH RESTORE [" + match.Id + "] [" + Info.Owner + "] [" + Info.GameMode + "] [" + Info.MatchType + "]");
 
-            TSSetupQueue.Enqueue(this);
             _activeMatch = match;
             SaveActiveGame ();
         }
@@ -155,7 +152,6 @@ namespace WLNetwork.Matches
             MatchesController.Games.Add(this);
             //note: Don't add to public games as it's not started yet
             log.Info("MATCH CREATE [" + Id + "] [" + owner + "] [" + options.GameMode + "] [" + options.MatchType + "]");
-            TSSetupQueue.Enqueue(this);
         }
 
         /// <summary>
@@ -539,12 +535,13 @@ namespace WLNetwork.Matches
                         .Select(x => new MatchResultPlayer(x))
                         .ToArray(),
                 Result = outcome,
-                MatchCounted = countMatch,
+                MatchCounted = countMatch && Info.MatchType != MatchType.OneVsOne,
                 RatingDire = 0,
-                RatingRadiant = 0
+                RatingRadiant = 0,
+                MatchType = Info.MatchType
             };
 
-            if (countMatch)
+            if (countMatch && Info.MatchType != MatchType.OneVsOne)
                 RatingCalculator.CalculateRatingDelta(result);
 
             if (match != null) result.Match = match;
@@ -575,11 +572,26 @@ namespace WLNetwork.Matches
                                                     " with an abandon and -25 rating.");
                 #endif
                 var completeMsg = "Match " + Id.ToString().Substring(0, 4) + " (MatchID " + Setup.Details.MatchId +
-                                  ") completed with " +
+                                  ") completed with ";
+                if(Info.MatchType != MatchType.OneVsOne) completeMsg +=
                                   (outcome == EMatchOutcome.k_EMatchOutcome_DireVictory
                                       ? "dire victory."
                                       : "radiant victory.");
-                if (result.StreakEndedRating > 0)
+                else
+                {
+                    var direplyr = Setup.Details.Players.FirstOrDefault(m => m.Team == MatchTeam.Dire);
+                    var radplyr = Setup.Details.Players.FirstOrDefault(m => m.Team == MatchTeam.Radiant);
+                    if (direplyr == null || radplyr == null)
+                        completeMsg += ".... an unknown 1v1 victory! I'm sure it was glorious!";
+                    else
+                    {
+                        completeMsg += (outcome == EMatchOutcome.k_EMatchOutcome_RadVictory ? radplyr : direplyr).Name +
+                                       "'s crushing victory over " +
+                                       (outcome == EMatchOutcome.k_EMatchOutcome_RadVictory ? direplyr : radplyr).Name +
+                                       "!";
+                    }
+                }
+                if (result.StreakEndedRating > 0 && Info.MatchType != MatchType.OneVsOne)
                 {
                     var max = result.EndedWinStreaks.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
                     var plyr = (Players.FirstOrDefault(m => m.SID == max));

@@ -12,6 +12,7 @@ using WLNetwork.Properties;
 using XSockets.Core.XSocket.Helpers;
 using System;
 using MongoDB.Bson.Serialization.Attributes;
+using MatchType = WLNetwork.Matches.Enums.MatchType;
 
 namespace WLNetwork.Matches
 {
@@ -56,6 +57,11 @@ namespace WLNetwork.Matches
         ///     Rating change for radiant
         /// </summary>
         public int RatingRadiant { get; set; }
+
+        /// <summary>
+        ///     Match type
+        /// </summary>
+        public MatchType MatchType { get; set; }
 
         /// <summary>
         ///     Rating change overall
