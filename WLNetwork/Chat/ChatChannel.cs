@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
@@ -37,7 +38,7 @@ namespace WLNetwork.Chat
             Permanent = perm;
             Name = name;
             Leavable = leavable;
-            Members = new ObservableDictionary<string, ChatMember>();
+            Members = new ObservableCollection<string>();
             Members.CollectionChanged += MembersOnCollectionChanged;
             Channels[Id] = this;
             log.DebugFormat("CREATED [{0}] ({1})", Name, Id);
@@ -71,7 +72,7 @@ namespace WLNetwork.Chat
         /// <summary>
         ///     Online members of the channel.
         /// </summary>
-        public ObservableDictionary<string, ChatMember> Members { get; set; }
+        public ObservableCollection<string> Members { get; set; }
 
         /// <summary>
         ///     Handle the collection update event.
@@ -82,15 +83,15 @@ namespace WLNetwork.Chat
         {
             if (e.OldItems != null)
             {
-                IEnumerable<KeyValuePair<string, ChatMember>> memb = e.OldItems.OfType<KeyValuePair<string, ChatMember>>();
-                KeyValuePair<string, ChatMember>[] chatMembers = memb.ToArray();
-                var msg = new ChatMemberRm(Id.ToString(), chatMembers.Select(m => m.Value).ToArray());
-                if (e.Action != NotifyCollectionChangedAction.Replace)
-                    foreach (var nm in chatMembers)
-                    {
-                        log.DebugFormat("PARTED [{0}] ({1}) {{{2}}}", Name, Id, nm.Value.Name);
-                    }
-                foreach (var mm in Members.Keys.ToArray())
+                var old = e.OldItems.OfType<string>();
+                var msg = new ChatMemberRm(Id.ToString(), old.ToArray());
+                foreach (var oldm in old)
+                {
+                    ChatMember nm = null;
+                    if(MemberDB.Members.TryGetValue(oldm, out nm) && nm != null)
+                        log.DebugFormat("PARTED [{0}] {{{2}}}", Name, Id, nm.Name);
+                }
+                foreach (var mm in Members)
                 {
                     ChatController.InvokeTo(
                         m => m.ConnectionContext.IsAuthenticated && m.User != null && m.User.steam.steamid == mm,
@@ -99,18 +100,18 @@ namespace WLNetwork.Chat
             }
             if (e.NewItems != null)
             {
-                IEnumerable<KeyValuePair<string, ChatMember>> memb = e.NewItems.OfType<KeyValuePair<string, ChatMember>>();
-                KeyValuePair<string, ChatMember>[] chatMembers = memb.ToArray();
-                var msg = new ChatMemberUpd(Id.ToString(), chatMembers.Select(m => m.Value).ToArray());
-                if (e.Action != NotifyCollectionChangedAction.Replace)
-                    foreach (var nm in chatMembers)
-                    {
-                        log.DebugFormat("JOINED [{0}] ({1}) {{{2}}}", Name, Id, nm.Value.Name);
-                    }
-                foreach (var mm in Members.Keys.ToArray())
+                var memb = e.NewItems.OfType<string>().ToArray();
+                var msg = new ChatMemberAdd(Id.ToString(), memb);
+                foreach (var newm in memb)
+                {
+                    ChatMember nm = null;
+                    if (MemberDB.Members.TryGetValue(newm, out nm) && nm != null)
+                        log.DebugFormat("JOINED [{0}] ({1}) {{{2}}}", Name, Id, nm.Name);
+                }
+                foreach (var mm in Members.ToArray())
                 {
                     ChatController.InvokeTo(m => m.ConnectionContext.IsAuthenticated && m.User != null && m.User.steam.steamid == mm, msg,
-                        ChatMemberUpd.Msg);
+                        ChatMemberAdd.Msg);
                 }
             }
             if (Members.Count == 0) Close(true);
@@ -121,7 +122,7 @@ namespace WLNetwork.Chat
         /// </summary>
         public void Close(bool noModifyMembers = false)
         {
-            ChatMember[] oldMembers = Members.Values.ToArray();
+            string[] oldMembers = Members.ToArray();
             if (!noModifyMembers)
                 Members.Clear();
             foreach (
@@ -129,7 +130,7 @@ namespace WLNetwork.Chat
                     oldMembers.Select(
                         member =>
                             ChatController.Find(
-                                m => m.ConnectionContext.IsAuthenticated && m.User.steam.steamid == member.SteamID))
+                                m => m.ConnectionContext.IsAuthenticated && m.User.steam.steamid == member))
                         .SelectMany(sox => sox))
             {
                 so.Channels.Remove(this);
@@ -149,26 +150,31 @@ namespace WLNetwork.Chat
         /// <summary>
         ///     Send a message to the channel.
         /// </summary>
-        /// <param name="member">the sender</param>
+        /// <param name="memberid">the sender steamid</param>
         /// <param name="text">message</param>
-        public void TransmitMessage(ChatMember member, string text, bool service = false)
+        public void TransmitMessage(string memberid, string text, bool service = false)
         {
-            if (member == null && !service)
+            ChatMember member = null;
+            if (memberid != "system")
             {
-                log.ErrorFormat("Message transmit request with no member! Ignoring...");
-                return;
+                member = MemberDB.Members[memberid];
+                if (member == null && !service)
+                {
+                    log.ErrorFormat("Message transmit request with no member! Ignoring...");
+                    return;
+                }
+                if (member != null && Members.All(m => m != member.SteamID))
+                {
+                    log.ErrorFormat("Message transmit with member not in the channel! Ignoring....");
+                    return;
+                }
             }
-            if (member != null && Members.Values.All(m => m.SteamID != member.SteamID))
-            {
-                log.ErrorFormat("Message transmit with member not in the channel! Ignoring....");
-                return;
-            }
-            var msg = new ChatMessage {Text = text, Member = member != null ? member.ID : "system", Id = Id.ToString(), Auto = service};
-            foreach (var mm in Members.Values)
+            var msg = new ChatMessage { Text = text, Member = memberid, Id = Id.ToString(), Auto = service };
+            foreach (var mm in Members)
             {
                 var mm1 = mm;
                 ChatController.InvokeTo(
-                    m => m.ConnectionContext.IsAuthenticated && m.User != null && m.User.steam.steamid == mm1.ID,
+                    m => m.ConnectionContext.IsAuthenticated && m.User != null && m.User.steam.steamid == mm1,
                     msg, ChatMessage.Msg);
             }
         }
@@ -198,7 +204,7 @@ namespace WLNetwork.Chat
             if (!Channels.TryGetValue(id, out chan)) return null;
             if (chan.ChannelType != ChannelType.Public && chan.Name != "main")
                 throw new JoinCreateException("That channel is not joinable this way.");
-            chan.Members.Add(member.ID, member);
+            chan.Members.Add(member.SteamID);
             return chan;
         }
 
@@ -208,8 +214,8 @@ namespace WLNetwork.Chat
         /// <param name="message"></param>
         public static void GlobalSystemMessage(string message)
         {
-            log.Debug("[GLOBAL MESSAGE] "+message);
-            Channels.Values.First(m=>m.Name == "main").TransmitMessage(null, message, true);
+            log.Debug("[GLOBAL MESSAGE] " + message);
+            Channels.Values.First(m => m.Name == "main").TransmitMessage(null, message, true);
         }
 
         /// <summary>
@@ -225,7 +231,7 @@ namespace WLNetwork.Chat
             if (chan == null)
             {
                 chan = new ChatChannel(name, chanType);
-                chan.Members.Add(member.ID, member);
+                chan.Members.Add(member.SteamID);
             }
             return chan;
         }

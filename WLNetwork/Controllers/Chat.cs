@@ -4,20 +4,19 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Timers;
 using log4net;
 using MongoDB.Driver.Builders;
 using MongoDB.Driver.Linq;
 using WLNetwork.Chat;
+using WLNetwork.Chat.Enums;
 using WLNetwork.Chat.Exceptions;
 using WLNetwork.Chat.Methods;
+using WLNetwork.Database;
 using WLNetwork.Model;
 using XSockets.Core.Common.Socket.Attributes;
 using XSockets.Core.Common.Socket.Event.Arguments;
-using XSockets.Core.XSocket;
 using XSockets.Core.XSocket.Helpers;
-using Timer = System.Timers.Timer;
 
 namespace WLNetwork.Controllers
 {
@@ -42,8 +41,14 @@ namespace WLNetwork.Controllers
             {
                 log.Debug("CONNECTED [" + ConnectionContext.PersistentId + "]");
                 StartPingTimer();
+                SendMemberList();
+                ReloadUser();
+                if (member != null)
+                {
+                    member.State = UserState.ONLINE;
+                    member.StateDesc = "Online";
+                }
                 JoinOrCreate(new JoinCreateRequest() { Name = "main" });
-                LoadChatChannels();
             };
             OnAuthorizationFailed +=
                 (sender, args) =>
@@ -82,6 +87,7 @@ namespace WLNetwork.Controllers
         {
             log.Debug("DISCONNECTED [" + ConnectionContext.PersistentId + "]" +
                       (ConnectionContext.IsAuthenticated ? " [" + User.steam.steamid + "]" : ""));
+            if(member != null) member.State = UserState.OFFLINE;
             if (pingTimer != null)
             {
                 pingTimer.Stop();
@@ -98,10 +104,18 @@ namespace WLNetwork.Controllers
             Channels.Clear();
         }
 
+        /// <summary>
+        /// Complete member list snapshot
+        /// </summary>
+        private void SendMemberList()
+        {
+            this.Invoke(new GlobalMemberSnapshot(MemberDB.Members.Values.ToArray()), GlobalMemberSnapshot.Msg);
+        }
+
         private void SaveChatChannels()
         {
             User.channels = Channels.Where(m=>m.Leavable && m.ChannelType == ChannelType.Public).Select(m => m.Name).ToArray();
-             Database.Mongo.Users.Update(Query<User>.EQ(m=>m.Id, User.Id), Update<User>.Set(m=>m.channels, User.channels));
+             Mongo.Users.Update(Query<User>.EQ(m=>m.Id, User.Id), Update<User>.Set(m=>m.channels, User.channels));
         }
 
         private void LoadChatChannels()
@@ -126,7 +140,7 @@ namespace WLNetwork.Controllers
             ChatChannel chan = Channels.FirstOrDefault(m => m.Id.ToString() == message.Channel);
             if (chan == null) return;
             log.DebugFormat("[{0}] {1}: \"{2}\"", chan.Name, User.profile.name, message.Text);
-            chan.TransmitMessage(chan.Members.Values.FirstOrDefault(m => m.SteamID == User.steam.steamid), message.Text);
+            chan.TransmitMessage(User.steam.steamid, message.Text);
         }
 
         private static object joinLock = new object();
@@ -137,7 +151,7 @@ namespace WLNetwork.Controllers
             if (member == null) return "Unable to create chat member";
             if (req.OneToOne)
             {
-                if (Channels.Any(m => m.ChannelType == ChannelType.OneToOne && m.Members.Values.Any(x => x.SteamID == req.Name)))
+                if (Channels.Any(m => m.ChannelType == ChannelType.OneToOne && m.Members.Contains(req.Name)))
                     return "You already are in a private chat with that person.";
                 if (req.Name == this.User.steam.steamid) return "You can't have a private chat with yourself.";
                 var user = this.Find(m => m.User != null && m.User.steam.steamid == req.Name).FirstOrDefault();
@@ -151,8 +165,8 @@ namespace WLNetwork.Controllers
                             User.profile.name.Substring(0, Math.Min(5, User.profile.name.Length)) + " + " +
                             user.User.profile.name.Substring(0, Math.Min(5, user.User.profile.name.Length)),
                             ChannelType.OneToOne);
-                    chan.Members.Add(member.ID, member);
-                    chan.Members.Add(user.member.ID, user.member);
+                    chan.Members.Add(member.ID);
+                    chan.Members.Add(user.member.ID);
                     Channels.Add(chan);
                     user.Channels.Add(chan);
                 }
@@ -197,11 +211,21 @@ namespace WLNetwork.Controllers
         public void ReloadUser()
         {
             if (User == null) return;
-            bool overava = User.vouch != null && !string.IsNullOrEmpty(User.vouch.avatar);
-            member = new ChatMember(User.steam.steamid, User, overava ? User.vouch.avatar : User.steam.avatarfull);
-            foreach (ChatChannel chat in Channels)
+
+            ChatMember memb = null;
+            if (MemberDB.Members.TryGetValue(User.steam.steamid, out memb) && memb != null)
             {
-                chat.Members[member.ID] = member;
+                member = memb;
+            }
+            else
+            {
+                MemberDB.UpdateTimer.Stop();
+                MemberDB.UpdateDB();
+                MemberDB.UpdateTimer.Start();
+                if (!MemberDB.Members.TryGetValue(User.steam.steamid, out memb) || memb == null)
+                {
+                    log.Warn("Unable to find ChatMember for user " + User.profile.name + "!");
+                }
             }
         }
     }

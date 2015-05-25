@@ -1,27 +1,51 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using WLNetwork.Annotations;
+using WLNetwork.Chat.Enums;
 using WLNetwork.Model;
 
 namespace WLNetwork.Chat
 {
     /// <summary>
-    ///     Member of a chat.
+    ///    Global user state 
     /// </summary>
-    public class ChatMember
+    public class ChatMember : INotifyPropertyChanged
     {
+        private bool _disablePropertyChanged = false;
+
         /// <summary>
         ///     Create a chat member.
         /// </summary>
         /// <param name="user">user</param>
-        public ChatMember(string id, User user, string avatar = null)
+        public ChatMember(User user)
         {
-            ID = id;
+            _disablePropertyChanged = true;
+
+            UpdateFromUser(user);
+
+            // On default
+            State = UserState.OFFLINE;
+            StateDesc = "Offline";
+
+            _disablePropertyChanged = false;
+        }
+
+        /// <summary>
+        /// Update from a user and return if changed
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public void UpdateFromUser(User user)
+        {
+            ID = user.steam.steamid;
             SteamID = user.steam.steamid;
             UID = user.Id;
             Name = user.profile.name;
             Rating = user.profile.rating;
             WinStreak = user.profile.winStreak;
-            Avatar = avatar;
+            Avatar = user.steam.avatarfull;
 
             if (user.authItems.Contains("admin"))
                 MemberType = ChatMemberType.Admin;
@@ -33,42 +57,156 @@ namespace WLNetwork.Chat
                 MemberType = ChatMemberType.Normal;
         }
 
-        public string ID { get; set; }
+        private string _id;
+        private string _steamId;
+        private string _uid;
+        private string _name;
+        private string _avatar;
+        private uint _rating;
+        private uint _winStreak;
+        private UserState _state;
+        private string _stateDesc;
+        private ChatMemberType _memberType;
+
+        /// <summary>
+        /// ID, basically steam id
+        /// </summary>
+        public string ID
+        {
+            get { return _id; }
+            set
+            {
+                if (value == _id) return;
+                _id = value;
+                OnPropertyChanged();
+            }
+        }
 
         /// <summary>
         ///     Steam ID
         /// </summary>
-        public string SteamID { get; set; }
+        public string SteamID
+        {
+            get { return _steamId; }
+            set
+            {
+                if (value == _steamId) return;
+                _steamId = value;
+                OnPropertyChanged();
+            }
+        }
 
         /// <summary>
         ///     User ID
         /// </summary>
-        public string UID { get; set; }
+        public string UID
+        {
+            get { return _uid; }
+            set
+            {
+                if (value == _uid) return;
+                _uid = value;
+                OnPropertyChanged();
+            }
+        }
 
         /// <summary>
         ///     Name of the member.
         /// </summary>
-        public string Name { get; set; }
+        public string Name
+        {
+            get { return _name; }
+            set
+            {
+                if (value == _name) return;
+                _name = value;
+                OnPropertyChanged();
+            }
+        }
 
         /// <summary>
         ///     Avatar image URL.
         /// </summary>
-        public string Avatar { get; set; }
+        public string Avatar
+        {
+            get { return _avatar; }
+            set
+            {
+                if (value == _avatar) return;
+                _avatar = value;
+                OnPropertyChanged();
+            }
+        }
 
         /// <summary>
         ///     Rating
         /// </summary>
-        public uint Rating { get; set; }
+        public uint Rating
+        {
+            get { return _rating; }
+            set
+            {
+                if (value == _rating) return;
+                _rating = value;
+                OnPropertyChanged();
+            }
+        }
 
         /// <summary>
         ///     Current win streak
         /// </summary>
-        public uint WinStreak { get; set; }
+        public uint WinStreak
+        {
+            get { return _winStreak; }
+            set
+            {
+                if (value == _winStreak) return;
+                _winStreak = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// Current user state
+        /// </summary>
+        public UserState State
+        {
+            get { return _state; }
+            set
+            {
+                if (value == _state) return;
+                _state = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// Current state description
+        /// </summary>
+        public string StateDesc
+        {
+            get { return _stateDesc; }
+            set
+            {
+                if (value == _stateDesc) return;
+                _stateDesc = value;
+                OnPropertyChanged();
+            }
+        }
 
         /// <summary>
         ///     Member type for visibility in the player list
         /// </summary>
-        public ChatMemberType MemberType { get; set; }
+        public ChatMemberType MemberType
+        {
+            get { return _memberType; }
+            set
+            {
+                if (value == _memberType) return;
+                _memberType = value;
+                OnPropertyChanged();
+            }
+        }
 
         public enum ChatMemberType : int
         {
@@ -76,6 +214,15 @@ namespace WLNetwork.Chat
             Normal = 0,
             Moderator = 1,
             Admin = 2
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            if (_disablePropertyChanged) return;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

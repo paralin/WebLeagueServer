@@ -1,33 +1,38 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace WLNetwork.Chat.Methods
 {
     /// <summary>
-    ///     Add or update some chat memebers.
+    ///     Add a member to a chat
     /// </summary>
-    public class ChatMemberUpd
+    public class ChatMemberAdd
     {
-        public const string Msg = "chatmemberupd";
+        public const string Msg = "chatmemberadd";
 
         /// <summary>
         ///     Add/update some members.
         /// </summary>
-        /// <param name="members"></param>
-        public ChatMemberUpd(string id, params ChatMember[] members)
+        /// <param name="id">Chat ID</param>
+        /// <param name="members">Members to add</param>
+        public ChatMemberAdd(string id, params string[] members)
         {
             this.id = id;
             this.members = members;
         }
 
         /// <summary>
-        ///     ID of the chat
+        ///     Members steamids to add
         /// </summary>
-        public string id { get; set; }
+        public string[] members { get; set; }
 
         /// <summary>
-        ///     Members to add/update
+        /// Chat ID
         /// </summary>
-        public ChatMember[] members { get; set; }
+        public string id { get; set; }
     }
 
     public class ChatMemberRm
@@ -35,29 +40,23 @@ namespace WLNetwork.Chat.Methods
         public const string Msg = "chatmemberrm";
 
         /// <summary>
-        ///     Create a remove op with some members.
+        ///     Remove a global member
         /// </summary>
         /// <param name="mems"></param>
-        public ChatMemberRm(string id, params ChatMember[] mems)
+        public ChatMemberRm(string id, params string[] members)
         {
             this.id = id;
-            members = new string[mems.Length];
-            int i = 0;
-            foreach (ChatMember mem in mems)
-            {
-                members[i] = mem.ID;
-                i++;
-            }
+            this.members = members;
         }
-
-        /// <summary>
-        ///     ID of the chat
-        /// </summary>
-        public string id { get; set; }
 
         /// <summary>
         ///     Member steamids
         /// </summary>
         public string[] members { get; set; }
+
+        /// <summary>
+        /// Chat ID
+        /// </summary>
+        public string id { get; set; }
     }
 }

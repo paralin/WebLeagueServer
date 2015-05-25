@@ -214,9 +214,9 @@ namespace WLNetwork.Controllers
             if (playersNeeded <= 0) return "Your match is already full.";
             var channel = ChatChannel.Channels.Values.FirstOrDefault(m => m.Name.ToLower() == options.ChatName);
             if(channel == null) return "Can't find chat \""+options.ChatName+"\"...";
-            foreach(var player in channel.Members.Values.Where(m=>Match.Players.All(x => x.SID != m.SteamID)))
+            foreach(var player in channel.Members.Where(m=>Match.Players.All(x => x.SID != m)))
             {
-                ChatMember player1 = player;
+                ChatMember player1 = MemberDB.Members[player];
                 var cont = this.Find(m => m.User != null && m.User.steam.steamid == player1.SteamID).FirstOrDefault();
                 if (cont == null) continue;
                 cont.JoinMatch(new MatchJoinOptions() {Id = Match.Id});
