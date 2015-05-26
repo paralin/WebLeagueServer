@@ -51,7 +51,7 @@ namespace WLNetwork.Chat
 
             if(Leagues == null || !logic.Compare(Leagues, user.leagues).AreEqual)
                 Leagues = user.leagues;
-            if (LeagueProfiles != user.profile.leagues)
+            if (!logic.Compare(LeagueProfiles, user.profile.leagues).AreEqual)
                 LeagueProfiles = user.profile.leagues;
 
             if (user.authItems.Contains("admin"))
