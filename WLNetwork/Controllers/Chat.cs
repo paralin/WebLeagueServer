@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -87,7 +88,11 @@ namespace WLNetwork.Controllers
         {
             log.Debug("DISCONNECTED [" + ConnectionContext.PersistentId + "]" +
                       (ConnectionContext.IsAuthenticated ? " [" + User.steam.steamid + "]" : ""));
-            if(member != null) member.State = UserState.OFFLINE;
+            if (member != null)
+            {
+                member.StateDesc = "Offline";
+                member.State = UserState.OFFLINE;
+            }
             if (pingTimer != null)
             {
                 pingTimer.Stop();
@@ -195,6 +200,10 @@ namespace WLNetwork.Controllers
             }
         }
 
+        /// <summary>
+        /// Leave a chat
+        /// </summary>
+        /// <param name="req"></param>
         public void Leave(LeaveRequest req)
         {
             if (req == null || req.Id == null || User == null) return;
@@ -208,9 +217,39 @@ namespace WLNetwork.Controllers
             else if(chan.ChannelType == ChannelType.OneToOne) chan.Close();
         }
 
+        /// <summary>
+        /// Recheck chats
+        /// </summary>
+        private void RecheckChats()
+        {
+            if (member == null || member.Leagues == null) return;
+            var leagueChans = Channels.Where(m => m.ChannelType == ChannelType.League);
+            foreach (var league in leagueChans.ToArray())
+            {
+                if (!member.Leagues.Contains(league.Name))
+                {
+                    league.Members.Remove(User.steam.steamid);
+                    Channels.Remove(league);
+                }
+            }
+            foreach (var league in member.Leagues)
+            {
+                if (Channels.All(m => m.Name != league))
+                {
+                    lock (joinLock)
+                    {
+                        ChatChannel chan = ChatChannel.JoinOrCreate(league, member, ChannelType.League);
+                        if (chan != null)
+                            Channels.Add(chan);
+                    }
+                }
+            }
+        }
+
         public void ReloadUser()
         {
             if (User == null) return;
+            ChatMember oldMember = member;
 
             ChatMember memb = null;
             if (MemberDB.Members.TryGetValue(User.steam.steamid, out memb) && memb != null)
@@ -226,6 +265,25 @@ namespace WLNetwork.Controllers
                 {
                     log.Warn("Unable to find ChatMember for user " + User.profile.name + "!");
                 }
+            }
+            if (memb != null && oldMember != memb)
+            {
+                if(oldMember != null) oldMember.PropertyChanged -= MemberPropertyChanged;
+                memb.PropertyChanged += MemberPropertyChanged;
+            }
+            RecheckChats();
+        }
+
+        /// <summary>
+        /// Watch changes on the member.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="propertyChangedEventArgs"></param>
+        private void MemberPropertyChanged(object sender, PropertyChangedEventArgs propertyChangedEventArgs)
+        {
+            if (propertyChangedEventArgs.PropertyName == "Leagues")
+            {
+                RecheckChats();
             }
         }
     }

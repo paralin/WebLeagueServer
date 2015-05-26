@@ -9,6 +9,7 @@ using WLNetwork.Matches;
 using XSockets.Core.Common.Socket;
 using XSockets.Plugin.Framework;
 using WLNetwork.Database;
+using WLNetwork.Leagues;
 
 namespace WLNetwork
 {
@@ -34,6 +35,7 @@ namespace WLNetwork
             log.Info("There are " + HeroCache.Heros.Values.Count + " heros in the system.");
             log.Info("There are " + MemberDB.Members.Count+" members in the system.");
             log.Info("There are " + BotDB.Bots.Count+" bots in the system.");
+            log.Info("There are " + LeagueDB.Leagues.Count + " leagues in the system.");
 
             Console.CancelKeyPress += delegate { shutdown = true; };
             using (var container = Composable.GetExport<IXSocketServerContainer>())

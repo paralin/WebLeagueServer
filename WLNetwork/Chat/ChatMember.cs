@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using KellermanSoftware.CompareNetObjects;
 using WLNetwork.Annotations;
 using WLNetwork.Chat.Enums;
 using WLNetwork.Model;
@@ -39,13 +41,18 @@ namespace WLNetwork.Chat
         /// <returns></returns>
         public void UpdateFromUser(User user)
         {
+            CompareLogic logic = new CompareLogic();
+
             ID = user.steam.steamid;
             SteamID = user.steam.steamid;
             UID = user.Id;
             Name = user.profile.name;
-            Rating = user.profile.rating;
-            WinStreak = user.profile.winStreak;
             Avatar = user.steam.avatarfull;
+
+            if(Leagues == null || !logic.Compare(Leagues, user.leagues).AreEqual)
+                Leagues = user.leagues;
+            if (LeagueProfiles != user.profile.leagues)
+                LeagueProfiles = user.profile.leagues;
 
             if (user.authItems.Contains("admin"))
                 MemberType = ChatMemberType.Admin;
@@ -67,6 +74,8 @@ namespace WLNetwork.Chat
         private UserState _state;
         private string _stateDesc;
         private ChatMemberType _memberType;
+        private string[] _leagues;
+        private Dictionary<string, LeagueProfile> _leagueProfiles;
 
         /// <summary>
         /// ID, basically steam id
@@ -139,34 +148,6 @@ namespace WLNetwork.Chat
         }
 
         /// <summary>
-        ///     Rating
-        /// </summary>
-        public uint Rating
-        {
-            get { return _rating; }
-            set
-            {
-                if (value == _rating) return;
-                _rating = value;
-                OnPropertyChanged();
-            }
-        }
-
-        /// <summary>
-        ///     Current win streak
-        /// </summary>
-        public uint WinStreak
-        {
-            get { return _winStreak; }
-            set
-            {
-                if (value == _winStreak) return;
-                _winStreak = value;
-                OnPropertyChanged();
-            }
-        }
-
-        /// <summary>
         /// Current user state
         /// </summary>
         public UserState State
@@ -204,6 +185,34 @@ namespace WLNetwork.Chat
             {
                 if (value == _memberType) return;
                 _memberType = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// Leagues the user is in
+        /// </summary>
+        public string[] Leagues
+        {
+            get { return _leagues; }
+            set
+            {
+                if (Equals(value, _leagues)) return;
+                _leagues = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// League profiles
+        /// </summary>
+        public Dictionary<string, LeagueProfile> LeagueProfiles
+        {
+            get { return _leagueProfiles; }
+            set
+            {
+                if (Equals(value, _leagueProfiles)) return;
+                _leagueProfiles = value;
                 OnPropertyChanged();
             }
         }

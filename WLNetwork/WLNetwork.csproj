@@ -159,6 +159,7 @@
     <Compile Include="Bots\DOTABot\Bot.cs" />
     <Compile Include="Bots\DOTABot\Enums\Events.cs" />
     <Compile Include="Env.cs" />
+    <Compile Include="Leagues\LeagueDB.cs" />
     <Compile Include="Matches\Challenge.cs" />
     <Compile Include="Matches\Enums\CaptainsStatus.cs" />
     <Compile Include="Matches\Enums\GameMode.cs" />
@@ -187,6 +188,7 @@
     <Compile Include="Model\Chat.cs" />
     <Compile Include="Matches\Methods\MatchMethodOptions.cs" />
     <Compile Include="Model\HeroInfo.cs" />
+    <Compile Include="Model\League.cs" />
     <Compile Include="Model\User.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\Annotations.cs" />
@@ -219,5 +221,6 @@
     </None>
     <None Include="XSocketsNET\ServerExample\ReadMe.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
 </Project>

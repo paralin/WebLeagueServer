@@ -20,6 +20,11 @@ namespace WLNetwork.Model
         ///     If captains, opponent SID
         /// </summary>
         public string OpponentSID { get; set; }
+
+        /// <summary>
+        /// League ID
+        /// </summary>
+        public string League { get; set; }
     }
 
     public class MatchJoinOptions

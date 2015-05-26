@@ -25,6 +25,11 @@ namespace WLNetwork.Matches
         public string ChallengedName { get; set; }
 
         /// <summary>
+        /// League ID
+        /// </summary>
+        public string League { get; set; }
+
+        /// <summary>
         ///     Game mode
         /// </summary>
         public GameMode GameMode { get; set; }

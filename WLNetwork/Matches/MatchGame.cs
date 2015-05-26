@@ -132,7 +132,7 @@ namespace WLNetwork.Matches
         ///     Create a new game with options
         /// </summary>
         /// <param name="options"></param>
-        public MatchGame(string owner, MatchCreateOptions options)
+        public MatchGame(string owner, MatchCreateOptions options, string league, uint leagueseason)
         {
             Id = Guid.NewGuid();
             Info = new MatchGameInfo
@@ -144,7 +144,9 @@ namespace WLNetwork.Matches
                 Owner = owner,
                 GameMode = options.GameMode,
                 Opponent = options.OpponentSID,
-                CaptainStatus = CaptainsStatus.DirePick
+                CaptainStatus = CaptainsStatus.DirePick,
+                League = league,
+                LeagueSeason = leagueseason
             };
             pickedAlready = true;
             Players = new ObservableRangeCollection<MatchPlayer>();
@@ -538,7 +540,9 @@ namespace WLNetwork.Matches
                 MatchCounted = countMatch && Info.MatchType != MatchType.OneVsOne,
                 RatingDire = 0,
                 RatingRadiant = 0,
-                MatchType = Info.MatchType
+                MatchType = Info.MatchType,
+                League = Info.League,
+                LeagueSeason = Info.LeagueSeason
             };
 
             if (countMatch && Info.MatchType != MatchType.OneVsOne)
@@ -719,6 +723,16 @@ namespace WLNetwork.Matches
         public GameMode GameMode { get; set; }
         public string Opponent { get; set; }
         public CaptainsStatus CaptainStatus { get; set; }
+
+        /// <summary>
+        /// League ID
+        /// </summary>
+        public string League { get; set; }
+
+        /// <summary>
+        /// Season
+        /// </summary>
+        public uint LeagueSeason { get; set; }
     }
 
     public static class MatchGameExt

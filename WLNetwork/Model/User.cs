@@ -1,4 +1,5 @@
-﻿using System.Security.Principal;
+﻿using System.Collections.Generic;
+using System.Security.Principal;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace WLNetwork.Model
@@ -35,6 +36,7 @@ namespace WLNetwork.Model
         public string[] channels { get; set; }
         public string[] tsuniqueids { get; set; }
         public string tsonetimeid { get; set; }
+        public string[] leagues { get; set; }
     }
 
     [BsonIgnoreExtraElements]
@@ -77,10 +79,24 @@ namespace WLNetwork.Model
     public class Profile
     {
         public string name { get; set; }
+
+        /// <summary>
+        /// Leagues. key is leagueid:seasonid
+        /// </summary>
+        public Dictionary<string, LeagueProfile> leagues { get; set; }
+    }
+
+    /// <summary>
+    /// A profile for a certain league
+    /// </summary>
+    [BsonIgnoreExtraElements]
+    public class LeagueProfile
+    {
         public uint rating { get; set; }
         public uint wins { get; set; }
         public uint losses { get; set; }
         public uint abandons { get; set; }
         public uint winStreak { get; set; }
+        public uint lossStreak { get; set; }
     }
 }

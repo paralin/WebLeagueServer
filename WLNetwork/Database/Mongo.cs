@@ -22,6 +22,7 @@ namespace WLNetwork.Database
         public static MongoCollection<MatchResult> Results;
         public static MongoCollection<ActiveMatch> ActiveMatches;
         public static MongoCollection<HeroInfo> Heros;
+        public static MongoCollection<League> Leagues;
 
         static Mongo()
         {
@@ -48,6 +49,7 @@ namespace WLNetwork.Database
             Results = Database.GetCollection<MatchResult>("matchResults");
             ActiveMatches = Database.GetCollection<ActiveMatch>("activeMatches");
             Heros = Database.GetCollection<HeroInfo>("heros");
+            Leagues = Database.GetCollection<League>("leagues");
         }
     }
 }

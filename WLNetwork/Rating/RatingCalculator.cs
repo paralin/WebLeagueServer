@@ -11,7 +11,7 @@ namespace WLNetwork.Rating
         /// <summary>
         ///     Base MMR for new players
         /// </summary>
-        private const int BaseMmr = 1200;
+        public const int BaseMmr = 1200;
 
         /// <summary>
         ///     Minimum MMR archievable by a player

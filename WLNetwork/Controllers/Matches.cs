@@ -7,6 +7,7 @@ using log4net;
 using MongoDB.Driver.Builders;
 using WLNetwork.Chat;
 using WLNetwork.Database;
+using WLNetwork.Leagues;
 using WLNetwork.Matches;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Matches.Methods;
@@ -185,12 +186,17 @@ namespace WLNetwork.Controllers
         public string CreateMatch(MatchCreateOptions options)
         {
             LeaveMatch();
+            if (User == null) return "You are not logged in.";
             if (options == null) return "You didn't give any options for the match.";
             if (Match != null) return "You are already in a match you cannot leave.";
-            if (User != null && User.authItems.Contains("spectateOnly")) return "You are limited to spectating only.";
-            if (User != null && User.authItems.Contains("challengeOnly")) return "You are limited to joining challenge pools only. You cannot create challenges/startgames.";
+            if (User.authItems.Contains("spectateOnly")) return "You are limited to spectating only.";
+            if (User.authItems.Contains("challengeOnly")) return "You are limited to joining challenge pools only. You cannot create challenges/startgames.";
+            if (!User.leagues.Contains(options.League)) return "You are not in the league '" + options.League + "'!";
+            League league = null;
+            if (!LeagueDB.Leagues.TryGetValue(options.League, out league)) return "Can't find league " + options.League + "!";
+            if (league.Archived || !league.IsActive) return "The league '" + league.Name + "' is currently inactive, you cannot create matches.";
             options.MatchType = MatchType.StartGame;
-            var match = new MatchGame(User.steam.steamid, options);
+            var match = new MatchGame(User.steam.steamid, options, league.Id, league.CurrentSeason);
             Match = match;
             match.Players.Add(new MatchPlayer(User));
             ChatChannel.GlobalSystemMessage(User.profile.name+" created a new match.");
@@ -316,13 +322,27 @@ namespace WLNetwork.Controllers
             other.Challenge = null;
             ChatChannel.GlobalSystemMessage(User.profile.name+(resp.accept ? " accepted the challenge." : " declined the challenge."));
             if (!resp.accept) return;
+
+            League league = null;
+            if (!LeagueDB.Leagues.TryGetValue(chal.League, out league))
+            {
+                log.ErrorFormat("Unable to find league {0} for challenge created by {1}.", chal.League, chal.ChallengerName);
+                return;
+            }
+
+            if (!league.IsActive || league.Archived)
+            {
+                log.ErrorFormat("League {0} isn't active / is archived.", league.Name);
+                return;
+            }
+
             //Create the match
             var match = new MatchGame(User.steam.steamid, new MatchCreateOptions
             {
                 GameMode = chal.GameMode,
                 MatchType = chal.MatchType,
                 OpponentSID = other.User.steam.steamid
-            });
+            }, chal.League, league.CurrentSeason);
             Match = match;
             other.Match = match;
             match.Players.AddRange(new[]
@@ -421,11 +441,14 @@ namespace WLNetwork.Controllers
         [Authorize("startGames")]
         public string StartChallenge(Challenge target)
         {
+            //todo: Allow challenges without a league
+            if (User == null) return "You are not logged in.";
             if (target == null) return "You need some info start a challenge.";
             if (Match != null) return "You are already in a match.";
             if (Challenge != null) return "Waiting for a challenge response already...";
-            if (User != null && User.authItems.Contains("spectateOnly")) return "You are spectator and cannot play matches.";
-            if (User != null && User.authItems.Contains("challengeOnly")) return "You are limited to joining challenge pools only.";
+            if (User.authItems.Contains("spectateOnly")) return "You are spectator and cannot play matches.";
+            if (User.authItems.Contains("challengeOnly")) return "You are limited to joining challenge pools only.";
+            if (!User.leagues.Contains(target.League)) return "You are not in the league '" + target.League + "!";
             if (target.MatchType == 0) target.MatchType = MatchType.Captains;
             target.GameMode = target.MatchType == MatchType.OneVsOne ? GameMode.SOLOMID : GameMode.CM;
             target.ChallengerSID = User.steam.steamid;
@@ -437,6 +460,7 @@ namespace WLNetwork.Controllers
             if (tcont.Match != null) return "That player is already in a match.";
             if (tcont.Challenge != null) return "That player is already waiting for a challenge.";
             if (tcont.User.authItems.Contains("spectateOnly")) return "That player is a spectator and cannot play matches.";
+            if (!tcont.User.leagues.Contains(target.League)) return "That player is not in the league '" + target.League + "!";
             target.ChallengedName = tcont.User.steam.personaname;
             target.ChallengedSID = tcont.User.steam.steamid;
             tcont.Challenge = target;

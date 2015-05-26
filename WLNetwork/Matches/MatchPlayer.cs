@@ -1,6 +1,14 @@
-﻿using Dota2.GC.Dota.Internal;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Dota2.GC.Dota.Internal;
+using log4net;
+using Microsoft.Win32;
+using MongoDB.Driver;
+using MongoDB.Driver.Builders;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Model;
+using WLNetwork.Rating;
 
 namespace WLNetwork.Matches
 {
@@ -9,7 +17,8 @@ namespace WLNetwork.Matches
     /// </summary>
     public class MatchPlayer
     {
-        public MatchPlayer(User user = null)
+        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        public MatchPlayer(User user = null, string leagueid = null, int leagueseason = 0)
         {
             if (user != null)
             {
@@ -17,8 +26,29 @@ namespace WLNetwork.Matches
                 Name = user.profile.name;
                 Avatar = user.steam.avatarfull;
                 Team = MatchTeam.Dire;
-                Rating = user.profile.rating;
-                WinStreak = user.profile.winStreak;
+                if (leagueid != null)
+                {
+                    if (!user.leagues.Contains(leagueid))
+                    {
+                        log.ErrorFormat("MatchPlayer created with a user {0} not in the league {1}.", user.profile.name, leagueid);
+                    }
+                    else
+                    {
+                        LeagueProfile prof = null;
+                        if (user.profile.leagues == null)
+                            user.profile.leagues = new Dictionary<string, LeagueProfile>();
+                        if (!user.profile.leagues.TryGetValue(leagueid + ":" + leagueseason, out prof) || prof == null)
+                        {
+                            prof = new LeagueProfile();
+                            prof.rating = RatingCalculator.BaseMmr;
+                            user.profile.leagues[leagueid + ":" + leagueseason] = prof;
+                            Database.Mongo.Users.Update(Query<User>.EQ(m => m.Id, user.Id),
+                                Update<User>.Set(m => m.profile.leagues, user.profile.leagues));
+                        }
+                        Rating = prof.rating;
+                        WinStreak = prof.winStreak;
+                    }
+                }
             }
         }
 
