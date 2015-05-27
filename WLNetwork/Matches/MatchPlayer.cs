@@ -25,7 +25,7 @@ namespace WLNetwork.Matches
                 SID = user.steam.steamid;
                 Name = user.profile.name;
                 Avatar = user.steam.avatarfull;
-                Team = MatchTeam.Dire;
+                Team = MatchTeam.Unassigned;
                 if (leagueid != null)
                 {
                     if (!user.leagues.Contains(leagueid))

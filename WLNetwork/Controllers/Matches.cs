@@ -198,7 +198,7 @@ namespace WLNetwork.Controllers
             options.MatchType = MatchType.StartGame;
             var match = new MatchGame(User.steam.steamid, options, league.Id, league.CurrentSeason);
             Match = match;
-            match.Players.Add(new MatchPlayer(User));
+            match.Players.Add(new MatchPlayer(User, league.Id, (int)league.CurrentSeason) {IsCaptain = true});
             ChatChannel.GlobalSystemMessage(User.profile.name+" created a new match.");
             return null;
         }
@@ -244,7 +244,10 @@ namespace WLNetwork.Controllers
             if (User.authItems.Contains("spectateOnly")) return "You cannot start matches, you can spectate only.";
             if (Match.Info.Owner != User.steam.steamid) return "You are not the host of this game.";
             if (Match.Setup != null || Match.Info.Status == MatchStatus.Teams)
-                return "The match is already being set up.";
+            {
+                if (Match.Info.Status == MatchStatus.Lobby) return FinalizeMatch();
+                else return "The match is already being set up.";
+            }
             if (Match.Info.MatchType == MatchType.Captains)
             {
 				if (Match.Players.Count(m=>m.Team != MatchTeam.Spectate) < 10) return "You need at least 10 players to start the challenge.";

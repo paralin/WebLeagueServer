@@ -155,6 +155,7 @@ namespace WLNetwork.Chat
         public void TransmitMessage(string memberid, string text, bool service = false)
         {
             ChatMember member = null;
+            if (memberid == null) memberid = "system";
             if (memberid != "system")
             {
                 member = MemberDB.Members[memberid];

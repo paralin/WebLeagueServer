@@ -121,17 +121,23 @@ namespace WLNetwork.Matches
                 }
 
 
-                var radUpdate = Update<User>.Inc(p => p.profile.leagues[idstr].rating, RatingRadiant);
-                var direUpdate = Update<User>.Inc(p => p.profile.leagues[idstr].rating, RatingDire);
+                var radUpdate = Update.Inc("profile.leagues." + idstr + ".rating", RatingRadiant);
+                var direUpdate = Update.Inc("profile.leagues." + idstr + ".rating", RatingDire);
                 if (Result == EMatchOutcome.k_EMatchOutcome_RadVictory)
                 {
-                    radUpdate.Inc(p => p.profile.leagues[idstr].wins, 1).Inc(p => p.profile.leagues[idstr].winStreak, 1);
-                    direUpdate.Set(p=>p.profile.leagues[idstr].winStreak, 0u).Inc(p => p.profile.leagues[idstr].losses, 1);
+                    radUpdate = radUpdate.Inc("profile.leagues." + idstr + ".wins", 1)
+                        .Inc("profile.leagues." + idstr + ".winStreak", 1);
+                    direUpdate = direUpdate.Set("profile.leagues." + idstr + ".winStreak", 0u)
+                        .Inc("profile.leagues." + idstr + ".losses", 1);
                 }
                 else if (Result == EMatchOutcome.k_EMatchOutcome_DireVictory)
                 {
-                    radUpdate.Set(m => m.profile.leagues[idstr].winStreak, 0u).Inc(p => p.profile.leagues[idstr].losses, 1);
-                    direUpdate.Inc(p => p.profile.leagues[idstr].wins, 1).Inc(p=>p.profile.leagues[idstr].winStreak, 1);
+                    radUpdate =
+                        radUpdate.Set("profile.leagues." + idstr + ".winStreak", 0)
+                            .Inc("profile.leagues." + idstr + ".losses", 1);
+                    direUpdate =
+                        direUpdate.Inc("profile.leagues." + idstr + ".wins", 1)
+                            .Inc("profile.leagues." + idstr + ".winStreak", 1);
                 }
 
                 Mongo.Users.Update(
