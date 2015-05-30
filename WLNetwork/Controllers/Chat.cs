@@ -49,7 +49,6 @@ namespace WLNetwork.Controllers
                     member.State = UserState.ONLINE;
                     member.StateDesc = "Online";
                 }
-                JoinOrCreate(new JoinCreateRequest() { Name = "main" });
             };
             OnAuthorizationFailed +=
                 (sender, args) =>
@@ -123,13 +122,6 @@ namespace WLNetwork.Controllers
              Mongo.Users.Update(Query<User>.EQ(m=>m.Id, User.Id), Update<User>.Set(m=>m.channels, User.channels));
         }
 
-        private void LoadChatChannels()
-        {
-            if (User == null) return;
-            if (User.channels == null) User.channels = new string[0];
-            foreach (var chan in User.channels)
-                JoinOrCreate(new JoinCreateRequest() {Name = chan.ToLower()});
-        }
 
         private void ChatChannelOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
@@ -179,6 +171,7 @@ namespace WLNetwork.Controllers
             }
             else
             {
+#if ENABLE_PUBLIC
                 req.Name = Regex.Replace(req.Name, @"[^\w\s]", string.Empty).Trim();
                 if (string.IsNullOrEmpty(req.Name)) return "That chat name is completely invalid.";
                 if (Channels.Any(m => m.Name.ToLower() == req.Name.ToLower()))
@@ -197,6 +190,9 @@ namespace WLNetwork.Controllers
                 {
                     return ex.Message;
                 }
+#else
+                return "Public channels are disabled.";
+#endif
             }
         }
 

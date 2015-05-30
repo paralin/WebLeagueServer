@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Timers;
 using Dota2.GC.Dota.Internal;
 using log4net;
 using SteamKit2;
@@ -16,13 +17,19 @@ namespace WLNetwork.Bots
 {
     public class BotController
     {
-        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public BotInstance instance;
         private MatchSetupDetails game;
+        private Timer matchResultTimeout;
 
         public BotController(MatchSetupDetails game)
         {
+            matchResultTimeout = new Timer(5000);
+            matchResultTimeout.Elapsed += MatchResultTimeout;
+
             this.game = game;
+            log = LogManager.GetLogger("BotController "+game.Id.ToString().Split('-')[0]);
+
             instance = new BotInstance(game);
             instance.StateUpdate += StateUpdate;
             instance.PlayerReady += PlayerReady;
@@ -38,6 +45,35 @@ namespace WLNetwork.Bots
             instance.HeroId += HeroId;
 			instance.LobbyReady += LobbyReady;
 			instance.LobbyPlaying += LobbyPlaying;
+        }
+
+        private void MatchResultTimeout(object sender, ElapsedEventArgs elapsedEventArgs)
+        {
+            matchResultTimeout.Stop();
+            if (outcomeProcessed) return;
+            log.Debug("DOTA2 GC is taking a long time to set match_outcome, checking match history...");
+            if (game.MatchId == 0)
+            {
+                log.Warn("Postgame with unknown match id, waiting for match_outcome instead...");
+            }
+            else instance.FetchMatchResult(game.MatchId, match =>
+            {
+                if (outcomeProcessed) return;
+                if (match == null)
+                {
+                    log.Warn("No match result, waiting for match_outcome...");
+                }
+                else
+                {
+                    outcomeProcessed = true;
+                    log.Debug("Fetched match result with outcome good_guys_win="+match.good_guys_win+".");
+                    MatchGame g = game.GetGame();
+                    if (g != null)
+                    {
+                        g.ProcessMatchResult(match.good_guys_win ? EMatchOutcome.k_EMatchOutcome_RadVictory : EMatchOutcome.k_EMatchOutcome_DireVictory, match);
+                    }
+                }
+            });
         }
 
         void LobbyPlaying (object sender, EventArgs e)
@@ -231,6 +267,7 @@ namespace WLNetwork.Bots
                 {
                     g.Info.Status = WLNetwork.Matches.Enums.MatchStatus.Complete;
                     g.Info = g.Info;
+                    matchResultTimeout.Start();
                 }
                 else g.Setup = g.Setup;
             }
@@ -247,6 +284,7 @@ namespace WLNetwork.Bots
             if (outcomeProcessed || game.MatchId == 0)
                 return;
             outcomeProcessed = true;
+            matchResultTimeout.Start();
             if (game.Bot == null) return;
             MatchGame g = game.GetGame();
             if (g != null)
