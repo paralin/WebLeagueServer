@@ -263,7 +263,7 @@ namespace WLNetwork.Bots
             MatchGame g = game.GetGame();
             if (g != null)
             {
-                if (args.Status == CSODOTALobby.State.POSTGAME)
+                if (args.State == DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME)
                 {
                     g.Info.Status = WLNetwork.Matches.Enums.MatchStatus.Complete;
                     g.Info = g.Info;
