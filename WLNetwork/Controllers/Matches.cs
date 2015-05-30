@@ -199,37 +199,7 @@ namespace WLNetwork.Controllers
             var match = new MatchGame(User.steam.steamid, options, league.Id, league.CurrentSeason);
             Match = match;
             match.Players.Add(new MatchPlayer(User, league.Id, (int)league.CurrentSeason) {IsCaptain = true});
-            ChatChannel.GlobalSystemMessage(User.profile.name+" created a new match.");
-            return null;
-        }
-
-        /// <summary>
-        ///     Admin command to fill the current match with players from a chat
-        /// </summary>
-        /// <param name="options">Match options</param>
-        /// <returns>Error else null</returns>
-        [Authorize("admin")]
-        public string FillChatPlayers(FillChatPlayersOptions options)
-        {
-            if (options == null) return "You didn't give any options for the fill.";
-            if (string.IsNullOrWhiteSpace(options.ChatName)) return "You didn't specify a chat name.";
-            options.ChatName = options.ChatName.ToLower().Replace('\n', ' ');
-            if (Match == null) return "You must be in a match.";
-            int playersNeeded = 10-Match.Players.Count;
-            int origPlayersNeeded = playersNeeded;
-            if (playersNeeded <= 0) return "Your match is already full.";
-            var channel = ChatChannel.Channels.Values.FirstOrDefault(m => m.Name.ToLower() == options.ChatName);
-            if(channel == null) return "Can't find chat \""+options.ChatName+"\"...";
-            foreach(var player in channel.Members.Where(m=>Match.Players.All(x => x.SID != m)))
-            {
-                ChatMember player1 = MemberDB.Members[player];
-                var cont = this.Find(m => m.User != null && m.User.steam.steamid == player1.SteamID).FirstOrDefault();
-                if (cont == null) continue;
-                cont.JoinMatch(new MatchJoinOptions() {Id = Match.Id});
-                playersNeeded--;
-                if (playersNeeded <= 0) break;
-            }
-            ChatChannel.GlobalSystemMessage(User.profile.name+" pulled "+origPlayersNeeded+" players into their match.");
+            ChatChannel.SystemMessage(league.Id, User.profile.name+" created a new match.");
             return null;
         }
 
@@ -323,7 +293,7 @@ namespace WLNetwork.Controllers
             Challenge = null;
             if (other == null) return;
             other.Challenge = null;
-            ChatChannel.GlobalSystemMessage(User.profile.name+(resp.accept ? " accepted the challenge." : " declined the challenge."));
+            ChatChannel.SystemMessage(chal.League, User.profile.name+(resp.accept ? " accepted the challenge." : " declined the challenge."));
             if (!resp.accept) return;
 
             League league = null;
@@ -382,7 +352,7 @@ namespace WLNetwork.Controllers
 
             Challenge = null;
 
-            ChatChannel.GlobalSystemMessage(User.profile.name + " canceled his challenge.");
+            ChatChannel.SystemMessage(tchallenge.League, User.profile.name + " canceled his challenge.");
         }
 
         /// <summary>
@@ -469,7 +439,8 @@ namespace WLNetwork.Controllers
             tcont.Challenge = target;
             tcont.challengeTimer.Start();
             Challenge = target;
-            ChatChannel.GlobalSystemMessage(string.Format("{0} challenged {1} to a {2} match!", User.profile.name, tcont.User.profile.name, (target.MatchType == MatchType.OneVsOne ? "1v1" : "captains")));
+            ChatChannel.SystemMessage(target.League,
+                $"{User.profile.name} challenged {tcont.User.profile.name} to a {(target.MatchType == MatchType.OneVsOne ? "1v1" : "captains")} match!");
             return null;
         }
 

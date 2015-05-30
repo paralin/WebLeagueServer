@@ -158,7 +158,7 @@ namespace WLNetwork.Bots
                 game.FirstBloodHappened = true;
                 game.TransmitUpdate();
                 g.SaveActiveGame();
-                ChatChannel.GlobalSystemMessage("First blood was just spilled in match "+game.Id.ToString().Substring(0, 4)+"!");
+                if(g.Info.League != null) ChatChannel.SystemMessage(g.Info.League, "First blood was just spilled in match " + game.Id.ToString().Substring(0, 4) + "!");
             }
         }
 

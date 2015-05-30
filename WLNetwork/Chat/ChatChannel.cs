@@ -212,11 +212,12 @@ namespace WLNetwork.Chat
         /// <summary>
         /// Send a global system message.
         /// </summary>
+        /// <param name="league"></param>
         /// <param name="message"></param>
-        public static void GlobalSystemMessage(string message)
+        public static void SystemMessage(string league, string message)
         {
-            log.Debug("[GLOBAL MESSAGE] " + message);
-            Channels.Values.First(m => m.Name == "main").TransmitMessage(null, message, true);
+            log.Debug($"[SYSTEM MESSAGE] [{league}] {message}");
+            Channels.Values.FirstOrDefault(m => m.Name == league)?.TransmitMessage(null, message, true);
         }
 
         /// <summary>
