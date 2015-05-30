@@ -320,8 +320,8 @@ namespace WLNetwork.Controllers
             other.Match = match;
             match.Players.AddRange(new[]
             {
-                new MatchPlayer(other.User) {IsCaptain = true, Team = MatchTeam.Dire},
-                new MatchPlayer(User) {IsCaptain = true, Team = MatchTeam.Radiant}
+                new MatchPlayer(other.User, league.Id, (int)league.CurrentSeason) {IsCaptain = true, Team = MatchTeam.Dire},
+                new MatchPlayer(User, league.Id, (int)league.CurrentSeason) {IsCaptain = true, Team = MatchTeam.Radiant}
             });
             if (chal.MatchType == MatchType.OneVsOne)
             {
@@ -378,7 +378,7 @@ namespace WLNetwork.Controllers
             if (match.PlayerForbidden(User.steam.steamid))
                 return "Can't join as you've been kicked from that startgame.";
             Match = match;
-            match.Players.Add(new MatchPlayer(User) {Team = options.Spec ? MatchTeam.Spectate : MatchTeam.Unassigned});
+            match.Players.Add(new MatchPlayer(User, match.Info.League, (int)match.Info.LeagueSeason) {Team = options.Spec ? MatchTeam.Spectate : MatchTeam.Unassigned});
             return null;
         }
 
