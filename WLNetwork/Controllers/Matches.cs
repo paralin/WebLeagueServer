@@ -191,7 +191,7 @@ namespace WLNetwork.Controllers
             if (Match != null) return "You are already in a match you cannot leave.";
             if (User.authItems.Contains("spectateOnly")) return "You are limited to spectating only.";
             if (User.authItems.Contains("challengeOnly")) return "You are limited to joining challenge pools only. You cannot create challenges/startgames.";
-            if (!User.leagues.Contains(options.League)) return "You are not in the league '" + options.League + "'!";
+            if (!User.vouch.leagues.Contains(options.League)) return "You are not in the league '" + options.League + "'!";
             League league = null;
             if (!LeagueDB.Leagues.TryGetValue(options.League, out league)) return "Can't find league " + options.League + "!";
             if (league.Archived || !league.IsActive) return "The league '" + league.Name + "' is currently inactive, you cannot create matches.";
@@ -421,7 +421,7 @@ namespace WLNetwork.Controllers
             if (Challenge != null) return "Waiting for a challenge response already...";
             if (User.authItems.Contains("spectateOnly")) return "You are spectator and cannot play matches.";
             if (User.authItems.Contains("challengeOnly")) return "You are limited to joining challenge pools only.";
-            if (!User.leagues.Contains(target.League)) return "You are not in the league '" + target.League + "!";
+            if (!User.vouch.leagues.Contains(target.League)) return "You are not in the league '" + target.League + "!";
             if (target.MatchType == 0) target.MatchType = MatchType.Captains;
             target.GameMode = target.MatchType == MatchType.OneVsOne ? GameMode.SOLOMID : GameMode.CM;
             target.ChallengerSID = User.steam.steamid;
@@ -433,7 +433,7 @@ namespace WLNetwork.Controllers
             if (tcont.Match != null) return "That player is already in a match.";
             if (tcont.Challenge != null) return "That player is already waiting for a challenge.";
             if (tcont.User.authItems.Contains("spectateOnly")) return "That player is a spectator and cannot play matches.";
-            if (!tcont.User.leagues.Contains(target.League)) return "That player is not in the league '" + target.League + "!";
+            if (!tcont.User.vouch.leagues.Contains(target.League)) return "That player is not in the league '" + target.League + "!";
             target.ChallengedName = tcont.User.steam.personaname;
             target.ChallengedSID = tcont.User.steam.steamid;
             tcont.Challenge = target;

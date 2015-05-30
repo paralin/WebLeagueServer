@@ -36,7 +36,6 @@ namespace WLNetwork.Model
         public string[] channels { get; set; }
         public string[] tsuniqueids { get; set; }
         public string tsonetimeid { get; set; }
-        public string[] leagues { get; set; }
     }
 
     [BsonIgnoreExtraElements]
@@ -48,6 +47,7 @@ namespace WLNetwork.Model
         public string teamname { get; set; }
         public string teamavatar { get; set; }
         public string avatar { get; set; }
+        public string[] leagues { get; set; }
     }
 
     [BsonIgnoreExtraElements]

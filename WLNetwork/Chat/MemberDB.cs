@@ -90,10 +90,13 @@ namespace WLNetwork.Chat
                         exist.UpdateFromUser(user);
                     }
                 }
-                foreach (ChatMember member in Members.Values.Where(x => users.All(m => m.steam.steamid != x.SteamID)))
+                foreach (ChatMember member in Members.Values.Where(x => users.All(m => m.steam.steamid != x.SteamID)).ToArray())
                 {
                     Members.Remove(member.SteamID);
                     log.Debug("MEMBER REMOVED [" + member.SteamID + "] [" + member.Name + "]");
+
+                    // Find any online members with this steam id
+                    Chat.Find(m => m.User != null && m.User.steam.steamid == member.SteamID).FirstOrDefault()?.Close();
                 }
             }
             catch (Exception ex)

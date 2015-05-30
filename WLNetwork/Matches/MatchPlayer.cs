@@ -28,7 +28,7 @@ namespace WLNetwork.Matches
                 Team = MatchTeam.Unassigned;
                 if (leagueid != null)
                 {
-                    if (!user.leagues.Contains(leagueid))
+                    if (!user.vouch.leagues.Contains(leagueid))
                     {
                         log.ErrorFormat("MatchPlayer created with a user {0} not in the league {1}.", user.profile.name, leagueid);
                     }

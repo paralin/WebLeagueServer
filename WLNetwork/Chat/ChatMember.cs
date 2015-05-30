@@ -49,8 +49,8 @@ namespace WLNetwork.Chat
             Name = user.profile.name;
             Avatar = user.steam.avatarfull;
 
-            if(Leagues == null || !logic.Compare(Leagues, user.leagues).AreEqual)
-                Leagues = user.leagues;
+            if(Leagues == null || !logic.Compare(Leagues, user.vouch.leagues).AreEqual)
+                Leagues = user.vouch.leagues;
             if (!logic.Compare(LeagueProfiles, user.profile.leagues).AreEqual)
                 LeagueProfiles = user.profile.leagues;
 
