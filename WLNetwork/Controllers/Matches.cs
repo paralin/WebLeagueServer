@@ -391,6 +391,13 @@ namespace WLNetwork.Controllers
             if (Match == null) return "You are not currently in a match.";
             if (User == null) return "You are not signed in and thus cannot be in a match.";
             MatchPlayer me = Match.Players.FirstOrDefault(m => m.SID == User.steam.steamid);
+
+            if (me == null)
+            {
+                Match = null;
+                return null;
+            }
+
             bool isOwner = Match.Info.Owner == User.steam.steamid || me.IsCaptain;
             if (me.Team < MatchTeam.Spectate && ((Match.Info.Status > MatchStatus.Lobby && isOwner) || (Match.Info.Status > MatchStatus.Players && !isOwner))) return "You cannot leave matches in progress.";
             if (isOwner)
