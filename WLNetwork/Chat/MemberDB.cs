@@ -89,6 +89,9 @@ namespace WLNetwork.Chat
                         // Check user and trigger any state updates
                         exist.UpdateFromUser(user);
                     }
+
+                    var cont = Chat.Find(m => m.User != null && m.User.Id == user.Id).FirstOrDefault();
+                    if(cont != null) cont.User = user;
                 }
                 foreach (ChatMember member in Members.Values.Where(x => users.All(m => m.steam.steamid != x.SteamID)).ToArray())
                 {

@@ -14,7 +14,7 @@ namespace WLNetwork.Controllers
                 if (!ConnectionContext.IsAuthenticated) return null;
                 return ((UserIdentity)ConnectionContext.User.Identity).User;
             }
-            protected set
+            set
             {
                 if (!ConnectionContext.IsAuthenticated) return;
                 ((UserIdentity)ConnectionContext.User.Identity).User = value;
