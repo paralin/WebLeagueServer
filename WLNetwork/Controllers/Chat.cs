@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Timers;
 using log4net;
 using MongoDB.Driver.Builders;
 using MongoDB.Driver.Linq;
@@ -32,7 +31,6 @@ namespace WLNetwork.Controllers
 
         public ObservableCollection<ChatChannel> Channels = new ObservableCollection<ChatChannel>();
         private ChatMember member;
-        private Timer pingTimer = null;
         
         public Chat()
         {
@@ -41,7 +39,6 @@ namespace WLNetwork.Controllers
             OnOpen += (sender, args) =>
             {
                 log.Debug("CONNECTED [" + ConnectionContext.PersistentId + "]");
-                StartPingTimer();
                 SendMemberList();
                 ReloadUser();
                 if (member != null)
@@ -54,14 +51,6 @@ namespace WLNetwork.Controllers
                 (sender, args) =>
                     log.Warn("Failed authorize for " + args.MethodName + " [" + ConnectionContext.PersistentId +
                              "]" + (ConnectionContext.IsAuthenticated ? " [" + User.steam.steamid + "]" : ""));
-        }
-
-        private void StartPingTimer()
-        {
-            if (pingTimer != null) return;
-            pingTimer = new Timer(5000);
-            pingTimer.Elapsed += (sender, args) => this.Invoke("ping");
-            pingTimer.Start();
         }
 
         [AllowAnonymous]
@@ -91,12 +80,6 @@ namespace WLNetwork.Controllers
             {
                 member.StateDesc = "Offline";
                 member.State = UserState.OFFLINE;
-            }
-            if (pingTimer != null)
-            {
-                pingTimer.Stop();
-                pingTimer.Dispose();
-                pingTimer = null;
             }
             if (!ConnectionContext.IsAuthenticated || User == null) return;
             SaveChatChannels();
@@ -254,9 +237,7 @@ namespace WLNetwork.Controllers
             }
             else
             {
-                MemberDB.UpdateTimer.Stop();
                 MemberDB.UpdateDB();
-                MemberDB.UpdateTimer.Start();
                 if (!MemberDB.Members.TryGetValue(User.steam.steamid, out memb) || memb == null)
                 {
                     log.Warn("Unable to find ChatMember for user " + User.profile.name + "!");

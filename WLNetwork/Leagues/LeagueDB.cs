@@ -64,7 +64,9 @@ namespace WLNetwork.Leagues
 
         private static void UpdateTimerOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
         {
+            UpdateTimer.Stop();
             UpdateDB();
+            UpdateTimer.Start();
         }
 
         /// <summary>

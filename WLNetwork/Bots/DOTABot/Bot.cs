@@ -499,6 +499,7 @@ namespace WLNetwork.Bots.DOTABot
                 fsm = null;
             }
             reconnect = false;
+            reconnectTimer.Dispose();
             DisconnectAndCleanup();
             user = null;
             client = null;

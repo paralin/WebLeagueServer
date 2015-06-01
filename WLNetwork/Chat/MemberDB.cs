@@ -62,7 +62,9 @@ namespace WLNetwork.Chat
 
         private static void UpdateTimerOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
         {
+            UpdateTimer.Stop();
             UpdateDB();
+            UpdateTimer.Start();
         }
 
         /// <summary>
