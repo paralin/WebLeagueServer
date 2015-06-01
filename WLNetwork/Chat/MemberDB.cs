@@ -38,7 +38,7 @@ namespace WLNetwork.Chat
 
         static MemberDB()
         {
-            UpdateTimer = new Timer(5000);
+            UpdateTimer = new Timer(15000);
             UpdateTimer.Elapsed += UpdateTimerOnElapsed;
 
             UpdateDB();
@@ -62,20 +62,23 @@ namespace WLNetwork.Chat
 
         private static void UpdateTimerOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
         {
-            UpdateTimer.Stop();
             UpdateDB();
-            UpdateTimer.Start();
         }
+
+        private static bool alreadyUpdating = false;
 
         /// <summary>
         ///     Check for differences in the DB
         /// </summary>
         internal static void UpdateDB()
         {
-            MongoCursor<User> users =
-                Mongo.Users.FindAs<User>(Query.NE("vouch", BsonNull.Value));
+            if(alreadyUpdating) return;
+            alreadyUpdating = true;
+            UpdateTimer.Stop();
             try
             {
+                MongoCursor<User> users =
+                    Mongo.Users.FindAs<User>(Query.NE("vouch", BsonNull.Value));
                 foreach (User user in users)
                 {
                     ChatMember exist = null;
@@ -109,6 +112,8 @@ namespace WLNetwork.Chat
             {
                 log.Error("Mongo connection failure? ", ex);
             }
+            alreadyUpdating = false;
+            UpdateTimer.Start();
         }
 
         /// <summary>

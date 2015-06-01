@@ -43,7 +43,7 @@ namespace WLNetwork.Leagues
 
         static LeagueDB()
         {
-            UpdateTimer = new Timer(10000);
+            UpdateTimer = new Timer(20000);
             UpdateTimer.Elapsed += UpdateTimerOnElapsed;
 
             UpdateDB();
