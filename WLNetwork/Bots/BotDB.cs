@@ -43,7 +43,9 @@ namespace WLNetwork.Bots
 
         private static void UpdateTimerOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
         {
+            UpdateTimer.Stop();
             UpdateDB();
+            UpdateTimer.Start();
         }
 
         private static Bot FindAvailableBot()

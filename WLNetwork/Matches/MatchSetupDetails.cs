@@ -79,5 +79,10 @@ namespace WLNetwork.Matches
         /// Ticket ID
         /// </summary>
         public uint TicketID { get; set; }
+
+        /// <summary>
+        /// Server region
+        /// </summary>
+        public uint Region { get; set; }
     }
 }

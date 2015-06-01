@@ -103,20 +103,16 @@ namespace WLNetwork.Bots
                 else if (lobby.game_state == DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME)
                     log.Debug(JObject.FromObject(lobby).ToString(Formatting.Indented));
 
-				if(lobby.state == CSODOTALobby.State.RUN) if(LobbyPlaying != null) LobbyPlaying(this, EventArgs.Empty);
+                if(lobby.state == CSODOTALobby.State.RUN) if(LobbyPlaying != null) LobbyPlaying(this, EventArgs.Empty);
 
-                var membRegex = new Regex("(members[)([0-9]+)(])");
-                foreach (var diff in differences.Differences.Where(m => m.PropertyName.Contains("hero_id")))
+
+                if(HeroId != null)
                 {
-                    var match = membRegex.Match(diff.PropertyName);
-                    if (match.Success)
-                    {
-                        int idx = int.Parse(match.Groups[1].Value.Split('[')[1]);
-                        var memb = lobby.members[idx];
-                        if (HeroId != null) HeroId(this, new PlayerHeroArgs() { hero_id = memb.hero_id, steam_id = memb.id });
-                    }
+                  foreach(var memb in lobby.members)
+                  {
+                    if (memb.hero_id != 0) HeroId(this, new PlayerHeroArgs() { hero_id = memb.hero_id, steam_id = memb.id });
+                  }
                 }
-
                 if (MatchStatus != null)
                     MatchStatus(this, new MatchStateArgs {State = lobby.game_state, Status = lobby.state});
                 if (differences.Differences.Any(m => m.PropertyName == ".match_id"))

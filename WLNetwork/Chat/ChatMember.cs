@@ -250,7 +250,7 @@ namespace WLNetwork.Chat
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             if (_disablePropertyChanged) return;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            if(PropertyChanged != null) PropertyChanged.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

@@ -38,7 +38,7 @@ namespace WLNetwork.Chat
 
         static MemberDB()
         {
-            UpdateTimer = new Timer(5000);
+            UpdateTimer = new Timer(15000);
             UpdateTimer.Elapsed += UpdateTimerOnElapsed;
 
             UpdateDB();
@@ -65,15 +65,20 @@ namespace WLNetwork.Chat
             UpdateDB();
         }
 
+        private static bool alreadyUpdating = false;
+
         /// <summary>
         ///     Check for differences in the DB
         /// </summary>
         internal static void UpdateDB()
         {
-            MongoCursor<User> users =
-                Mongo.Users.FindAs<User>(Query.NE("vouch", BsonNull.Value));
+            if(alreadyUpdating) return;
+            alreadyUpdating = true;
+            UpdateTimer.Stop();
             try
             {
+                MongoCursor<User> users =
+                    Mongo.Users.FindAs<User>(Query.NE("vouch", BsonNull.Value));
                 foreach (User user in users)
                 {
                     ChatMember exist = null;
@@ -99,13 +104,16 @@ namespace WLNetwork.Chat
                     log.Debug("MEMBER REMOVED [" + member.SteamID + "] [" + member.Name + "]");
 
                     // Find any online members with this steam id
-                    Chat.Find(m => m.User != null && m.User.steam.steamid == member.SteamID).FirstOrDefault()?.Close();
+                    var memb = Chat.Find(m => m.User != null && m.User.steam.steamid == member.SteamID).FirstOrDefault();
+                    if(memb != null) memb.Close();
                 }
             }
             catch (Exception ex)
             {
                 log.Error("Mongo connection failure? ", ex);
             }
+            alreadyUpdating = false;
+            UpdateTimer.Start();
         }
 
         /// <summary>

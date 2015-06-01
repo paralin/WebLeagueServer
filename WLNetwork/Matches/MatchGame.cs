@@ -131,7 +131,7 @@ namespace WLNetwork.Matches
         ///     Create a new game with options
         /// </summary>
         /// <param name="options"></param>
-        public MatchGame(string owner, MatchCreateOptions options, string league, uint leagueseason, uint leagueTicket)
+        public MatchGame(string owner, MatchCreateOptions options, string league, uint leagueseason, uint leagueTicket, uint leagueRegion)
         {
             Id = Guid.NewGuid();
             Info = new MatchGameInfo
@@ -146,7 +146,8 @@ namespace WLNetwork.Matches
                 CaptainStatus = CaptainsStatus.DirePick,
                 League = league,
                 LeagueSeason = leagueseason,
-                LeagueTicket = leagueTicket
+                LeagueTicket = leagueTicket,
+                LeagueRegion = leagueRegion
             };
             pickedAlready = true;
             Players = new ObservableRangeCollection<MatchPlayer>();
@@ -238,7 +239,8 @@ namespace WLNetwork.Matches
                 GameMode = Info.GameMode,
                 Password = RandomPassword.CreateRandomPassword(9),
                 Players = Players.ToArray(),
-                TicketID = Info.LeagueTicket
+                TicketID = Info.LeagueTicket,
+                Region = Info.LeagueRegion
             });
             Info.Status = MatchStatus.Lobby;
             Info = Info;
@@ -552,6 +554,8 @@ namespace WLNetwork.Matches
             if (match != null) result.Match = match;
 
             #if ENABLE_LEAVER_PENALTY
+            var me = Match.Players.FirstOrDefault(m=>m.SID == User.steam.steamid);
+            if (me != null && me.IsCaptain) return "You are not the host of this game.";
             result.ApplyRating(true);
             #else
             result.ApplyRating(false);
@@ -629,7 +633,7 @@ namespace WLNetwork.Matches
                         reason = "unknown match result, admin will confirm result and apply rating";
                         break;
                 }
-                if(Info.League != null) ChatChannel.SystemMessage(Info.League, $"Match not counted due to {reason}.");
+                if(Info.League != null) ChatChannel.SystemMessage(Info.League, string.Format("Match not counted due to {0}.", reason));
             }
 
             if (match != null || _alreadyAttemptedMatchResult || Setup == null || Setup.Details == null || controller == null || controller.instance == null || Setup.Details.MatchId == 0)
@@ -682,7 +686,7 @@ namespace WLNetwork.Matches
             // Announce win streaks
             foreach (var plyr in Players.Where(m => m.Team == MatchTeam.Dire || m.Team == MatchTeam.Radiant).Where(plyr => plyr.WinStreak >= Settings.Default.MinWinStreakForAnnounce))
             {
-                ChatChannel.SystemMessage(Info.League, $"{plyr.Name} has a {plyr.WinStreak} win streak!");
+                ChatChannel.SystemMessage(Info.League, string.Format("{0} has a {1} win streak!", plyr.Name, plyr.WinStreak));
             }
         }
 
@@ -737,6 +741,8 @@ namespace WLNetwork.Matches
         public uint LeagueSeason { get; set; }
 
         public uint LeagueTicket { get; set; }
+
+        public uint LeagueRegion { get; set; }
     }
 
     public static class MatchGameExt

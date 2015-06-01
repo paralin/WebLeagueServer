@@ -44,6 +44,11 @@ namespace WLNetwork.Model
         /// Seasons
         /// </summary>
         public List<LeagueSeason> Seasons { get; set; }
+
+        /// <summary>
+        /// Region
+        /// </summary>
+        public uint Region { get; set; }
     }
 
     /// <summary>
@@ -83,5 +88,6 @@ namespace WLNetwork.Model
         /// Ticket number/leagueID for this league season.
         /// </summary>
         public uint Ticket { get; set; }
+
     }
 }

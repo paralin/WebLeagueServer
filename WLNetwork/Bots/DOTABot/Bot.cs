@@ -108,6 +108,7 @@ namespace WLNetwork.Bots.DOTABot
                 .On(Events.LogonFailSteamGuard).Goto(States.DisconnectNoRetry) //.Execute(() => reconnect = false)
                 .On(Events.LogonFailBadCreds).Goto(States.DisconnectNoRetry);
             fsm.In(States.Connected)
+                .ExecuteOnEntry (SetOnlinePresence)
                 .ExecuteOnExit(DisconnectAndCleanup)
                 .On(Events.Disconnected).If(ShouldReconnect).Goto(States.Connecting)
                 .Otherwise().Goto(States.Disconnected);
@@ -123,7 +124,6 @@ namespace WLNetwork.Bots.DOTABot
                 .ExecuteOnEntry(ConnectDota)
                 .On(Events.DotaGCReady).Goto(States.DotaMenu);
 			fsm.In (States.DotaMenu)
-                .ExecuteOnEntry (SetOnlinePresence)
                 .ExecuteOnEntry (CreateLobby);
             fsm.In(States.DotaLobby)
                 .ExecuteOnEntry(EnterLobbyChat)
@@ -188,7 +188,7 @@ namespace WLNetwork.Bots.DOTABot
                 game_mode = (uint) (DOTA_GameMode) setupDetails.GameMode,
                 game_name = gameName,
                 game_version = DOTAGameVersion.GAME_VERSION_CURRENT,
-                server_region = game.Info.MatchType == MatchType.OneVsOne ? 0u : 3u
+                server_region = setupDetails.Region
             };
             if (setupDetails.TicketID != 0) ldetails.leagueid = (uint)setupDetails.TicketID;
             dota.CreateLobby(setupDetails.Password, ldetails);
@@ -499,6 +499,7 @@ namespace WLNetwork.Bots.DOTABot
                 fsm = null;
             }
             reconnect = false;
+            reconnectTimer.Dispose();
             DisconnectAndCleanup();
             user = null;
             client = null;

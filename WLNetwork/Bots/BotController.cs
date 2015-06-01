@@ -121,6 +121,8 @@ namespace WLNetwork.Bots
                 return;
             }
 
+            if(player.Hero != null && player.Hero.Id == playerHeroArgs.hero_id) return;
+
             //Find the hero
             HeroInfo hero;
             if (!HeroCache.Heros.TryGetValue(playerHeroArgs.hero_id, out hero))

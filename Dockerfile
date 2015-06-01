@@ -1,4 +1,4 @@
-FROM mono:4.0.0
+FROM mono:3.8.0
 
 MAINTAINER Christian Stewart <kidovate@gmail.com>
 
