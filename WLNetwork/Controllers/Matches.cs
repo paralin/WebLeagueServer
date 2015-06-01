@@ -381,7 +381,7 @@ namespace WLNetwork.Controllers
                 return "That match is full.";
             if (match.PlayerForbidden(User.steam.steamid))
                 return "Can't join as you've been kicked from that startgame.";
-            if (Env.ENFORCE_TEAMSPEAK && !User.tsonline) return "Please join Teamspeak before joining games.";
+            if (Env.ENFORCE_TEAMSPEAK && !User.tsonline && !options.Spec) return "Please join Teamspeak before joining games.";
             Match = match;
             match.Players.Add(new MatchPlayer(User, match.Info.League, (int)match.Info.LeagueSeason) {Team = options.Spec ? MatchTeam.Spectate : MatchTeam.Unassigned});
             return null;
