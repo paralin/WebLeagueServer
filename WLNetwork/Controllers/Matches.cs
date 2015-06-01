@@ -217,7 +217,7 @@ namespace WLNetwork.Controllers
             if (User == null) return "You are not logged in for some reason.";
             if (User.authItems.Contains("spectateOnly")) return "You cannot start matches, you can spectate only.";
             var me = Match.Players.FirstOrDefault(m=>m.SID == User.steam.steamid);
-            if (me != null && me.IsCaptain) return "You are not the host of this game.";
+            if (me == null || !me.IsCaptain) return "You are not the host of this game.";
             if (Match.Setup != null || Match.Info.Status == MatchStatus.Teams)
             {
                 if (Match.Info.Status == MatchStatus.Lobby) return FinalizeMatch();
@@ -278,7 +278,7 @@ namespace WLNetwork.Controllers
             if (Match == null) return "You are not currently in a match.";
             if (User == null) return "You are not logged in for some reason.";
             var me = Match.Players.FirstOrDefault(m=>m.SID == User.steam.steamid);
-            if (me != null && me.IsCaptain) return "You are not the host of this game.";
+            if (me == null || !me.IsCaptain) return "You are not the host of this game.";
             if (Match.Setup == null || Match.Setup.Details.Status != MatchSetupStatus.Wait ||
                 Match.Players.Any(m => !m.Ready && m.Team < MatchTeam.Spectate)) return "The match cannot be started yet.";
             Match.StartMatch();
