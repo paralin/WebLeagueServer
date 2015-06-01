@@ -197,7 +197,7 @@ namespace WLNetwork.Controllers
             if (!LeagueDB.Leagues.TryGetValue(options.League, out league)) return "Can't find league " + options.League + "!";
             if (league.Archived || !league.IsActive) return "The league '" + league.Name + "' is currently inactive, you cannot create matches.";
             var start = league.Seasons[(int) league.CurrentSeason].Start;
-            if (start > DateTime.UtcNow) return $"The league '{league.Name}' starts in {(start).Humanize()}.";
+            if (start > DateTime.UtcNow) return $"The league '{league.Name}' starts {(start).Humanize()}.";
             if (Env.ENFORCE_TEAMSPEAK && !User.tsonline) return "Please join Teamspeak before joining games.";
             options.MatchType = MatchType.StartGame;
             var match = new MatchGame(User.steam.steamid, options, league.Id, league.CurrentSeason, league.Seasons[(int)league.CurrentSeason].Ticket);
@@ -451,7 +451,7 @@ namespace WLNetwork.Controllers
             League league = null;
             if (!LeagueDB.Leagues.TryGetValue(target.League, out league) || league == null) return $"League {target.League} cannot be found.";
             var start = league.Seasons[(int) league.CurrentSeason].Start;
-            if (start > DateTime.UtcNow && target.MatchType != MatchType.OneVsOne) return $"The league '{league.Name}' starts in {(start).Humanize()}.";
+            if (start > DateTime.UtcNow && target.MatchType != MatchType.OneVsOne) return $"The league '{league.Name}' starts {(start).Humanize()}.";
             target.ChallengedName = tcont.User.steam.personaname;
             target.ChallengedSID = tcont.User.steam.steamid;
             tcont.Challenge = target;
