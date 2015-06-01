@@ -216,8 +216,9 @@ namespace WLNetwork.Chat
         /// <param name="message"></param>
         public static void SystemMessage(string league, string message)
         {
-            log.Debug($"[SYSTEM MESSAGE] [{league}] {message}");
-            Channels.Values.FirstOrDefault(m => m.Name == league)?.TransmitMessage(null, message, true);
+            log.Debug(String.Format("[SYSTEM MESSAGE] [{0}] {1}", league, message));
+            var chan = Channels.Values.FirstOrDefault(m => m.Name == league);
+            if(chan != null) chan.TransmitMessage(null, message, true);
         }
 
         /// <summary>

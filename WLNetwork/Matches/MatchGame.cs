@@ -629,7 +629,7 @@ namespace WLNetwork.Matches
                         reason = "unknown match result, admin will confirm result and apply rating";
                         break;
                 }
-                if(Info.League != null) ChatChannel.SystemMessage(Info.League, $"Match not counted due to {reason}.");
+                if(Info.League != null) ChatChannel.SystemMessage(Info.League, string.Format("Match not counted due to {0}.", reason));
             }
 
             if (match != null || _alreadyAttemptedMatchResult || Setup == null || Setup.Details == null || controller == null || controller.instance == null || Setup.Details.MatchId == 0)
@@ -682,7 +682,7 @@ namespace WLNetwork.Matches
             // Announce win streaks
             foreach (var plyr in Players.Where(m => m.Team == MatchTeam.Dire || m.Team == MatchTeam.Radiant).Where(plyr => plyr.WinStreak >= Settings.Default.MinWinStreakForAnnounce))
             {
-                ChatChannel.SystemMessage(Info.League, $"{plyr.Name} has a {plyr.WinStreak} win streak!");
+                ChatChannel.SystemMessage(Info.League, string.Format("{0} has a {1} win streak!", plyr.Name, plyr.WinStreak));
             }
         }
 

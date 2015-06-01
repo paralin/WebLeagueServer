@@ -99,7 +99,8 @@ namespace WLNetwork.Chat
                     log.Debug("MEMBER REMOVED [" + member.SteamID + "] [" + member.Name + "]");
 
                     // Find any online members with this steam id
-                    Chat.Find(m => m.User != null && m.User.steam.steamid == member.SteamID).FirstOrDefault()?.Close();
+                    var memb = Chat.Find(m => m.User != null && m.User.steam.steamid == member.SteamID).FirstOrDefault();
+                    if(memb != null) memb.Close();
                 }
             }
             catch (Exception ex)
