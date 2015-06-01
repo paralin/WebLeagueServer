@@ -74,5 +74,10 @@ namespace WLNetwork.Matches
         /// The server steam id
         /// </summary>
         public string ServerSteamID { get; set; }
+
+        /// <summary>
+        /// Ticket ID
+        /// </summary>
+        public uint TicketID { get; set; }
     }
 }

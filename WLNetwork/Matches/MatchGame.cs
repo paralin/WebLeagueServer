@@ -45,7 +45,6 @@ namespace WLNetwork.Matches
         private ActiveMatch _activeMatch = null;
         private ConcurrentBag<string> forbidSids = new ConcurrentBag<string>(); 
         public BotController controller = null;
-        private List<string> ChannelNames = new List<string>(); 
 
         /// <summary>
         ///     This is for two picks in captains, set to true at start so first pick is just 1
@@ -132,7 +131,7 @@ namespace WLNetwork.Matches
         ///     Create a new game with options
         /// </summary>
         /// <param name="options"></param>
-        public MatchGame(string owner, MatchCreateOptions options, string league, uint leagueseason)
+        public MatchGame(string owner, MatchCreateOptions options, string league, uint leagueseason, uint leagueTicket)
         {
             Id = Guid.NewGuid();
             Info = new MatchGameInfo
@@ -146,7 +145,8 @@ namespace WLNetwork.Matches
                 Opponent = options.OpponentSID,
                 CaptainStatus = CaptainsStatus.DirePick,
                 League = league,
-                LeagueSeason = leagueseason
+                LeagueSeason = leagueseason,
+                LeagueTicket = leagueTicket
             };
             pickedAlready = true;
             Players = new ObservableRangeCollection<MatchPlayer>();
@@ -237,7 +237,8 @@ namespace WLNetwork.Matches
                 Id = Id,
                 GameMode = Info.GameMode,
                 Password = RandomPassword.CreateRandomPassword(9),
-                Players = Players.ToArray()
+                Players = Players.ToArray(),
+                TicketID = Info.LeagueTicket
             });
             Info.Status = MatchStatus.Lobby;
             Info = Info;
@@ -734,6 +735,8 @@ namespace WLNetwork.Matches
         /// Season
         /// </summary>
         public uint LeagueSeason { get; set; }
+
+        public uint LeagueTicket { get; set; }
     }
 
     public static class MatchGameExt

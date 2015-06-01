@@ -48,6 +48,7 @@ namespace WLNetwork.Chat
             UID = user.Id;
             Name = user.profile.name;
             Avatar = user.steam.avatarfull;
+            TeamspeakOnline = user.tsonline;
 
             if(Leagues == null || !logic.Compare(Leagues, user.vouch.leagues).AreEqual)
                 Leagues = user.vouch.leagues;
@@ -76,6 +77,7 @@ namespace WLNetwork.Chat
         private ChatMemberType _memberType;
         private string[] _leagues;
         private Dictionary<string, LeagueProfile> _leagueProfiles;
+        private bool _teamspeakOnline;
 
         /// <summary>
         /// ID, basically steam id
@@ -217,12 +219,29 @@ namespace WLNetwork.Chat
             }
         }
 
+        /// <summary>
+        /// Chat member type
+        /// </summary>
         public enum ChatMemberType : int
         {
             Spectator = -1,
             Normal = 0,
             Moderator = 1,
             Admin = 2
+        }
+
+        /// <summary>
+        /// Teamspeak online
+        /// </summary>
+        public bool TeamspeakOnline
+        {
+            get { return _teamspeakOnline; }
+            set
+            {
+                if (value == _teamspeakOnline) return;
+                _teamspeakOnline = value;
+                OnPropertyChanged();
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

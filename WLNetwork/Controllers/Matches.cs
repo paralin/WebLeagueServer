@@ -195,8 +195,9 @@ namespace WLNetwork.Controllers
             League league = null;
             if (!LeagueDB.Leagues.TryGetValue(options.League, out league)) return "Can't find league " + options.League + "!";
             if (league.Archived || !league.IsActive) return "The league '" + league.Name + "' is currently inactive, you cannot create matches.";
+            if (Env.ENFORCE_TEAMSPEAK && !User.tsonline) return "Please join Teamspeak before joining games.";
             options.MatchType = MatchType.StartGame;
-            var match = new MatchGame(User.steam.steamid, options, league.Id, league.CurrentSeason);
+            var match = new MatchGame(User.steam.steamid, options, league.Id, league.CurrentSeason, league.Seasons[(int)league.CurrentSeason].Ticket);
             Match = match;
             match.Players.Add(new MatchPlayer(User, league.Id, (int)league.CurrentSeason) {IsCaptain = true});
             ChatChannel.SystemMessage(league.Id, User.profile.name+" created a new match.");
@@ -315,7 +316,7 @@ namespace WLNetwork.Controllers
                 GameMode = chal.GameMode,
                 MatchType = chal.MatchType,
                 OpponentSID = other.User.steam.steamid
-            }, chal.League, league.CurrentSeason);
+            }, chal.League, league.CurrentSeason, league.Seasons[(int)league.CurrentSeason].Ticket);
             Match = match;
             other.Match = match;
             match.Players.AddRange(new[]
@@ -377,6 +378,7 @@ namespace WLNetwork.Controllers
                 return "That match is full.";
             if (match.PlayerForbidden(User.steam.steamid))
                 return "Can't join as you've been kicked from that startgame.";
+            if (Env.ENFORCE_TEAMSPEAK && !User.tsonline) return "Please join Teamspeak before joining games.";
             Match = match;
             match.Players.Add(new MatchPlayer(User, match.Info.League, (int)match.Info.LeagueSeason) {Team = options.Spec ? MatchTeam.Spectate : MatchTeam.Unassigned});
             return null;
@@ -430,6 +432,7 @@ namespace WLNetwork.Controllers
             if (User.authItems.Contains("challengeOnly")) return "You are limited to joining challenge pools only.";
             if (!User.vouch.leagues.Contains(target.League)) return "You are not in the league '" + target.League + "!";
             if (target.MatchType == 0) target.MatchType = MatchType.Captains;
+            if (Env.ENFORCE_TEAMSPEAK && !User.tsonline) return "Please join Teamspeak before joining games.";
             target.GameMode = target.MatchType == MatchType.OneVsOne ? GameMode.SOLOMID : GameMode.CM;
             target.ChallengerSID = User.steam.steamid;
             target.ChallengerName = User.steam.personaname;
@@ -441,6 +444,7 @@ namespace WLNetwork.Controllers
             if (tcont.Challenge != null) return "That player is already waiting for a challenge.";
             if (tcont.User.authItems.Contains("spectateOnly")) return "That player is a spectator and cannot play matches.";
             if (!tcont.User.vouch.leagues.Contains(target.League)) return "That player is not in the league '" + target.League + "!";
+            if (Env.ENFORCE_TEAMSPEAK && !tcont.User.tsonline) return "Please ask your target to join Teamspeak first.";
             target.ChallengedName = tcont.User.steam.personaname;
             target.ChallengedSID = tcont.User.steam.steamid;
             tcont.Challenge = target;

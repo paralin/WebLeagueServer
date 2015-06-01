@@ -190,7 +190,7 @@ namespace WLNetwork.Bots.DOTABot
                 game_version = DOTAGameVersion.GAME_VERSION_CURRENT,
                 server_region = game.Info.MatchType == MatchType.OneVsOne ? 0u : 3u
             };
-            if (Env.TICKET_ID != 0) ldetails.leagueid = (uint)Env.TICKET_ID;
+            if (setupDetails.TicketID != 0) ldetails.leagueid = (uint)setupDetails.TicketID;
             dota.CreateLobby(setupDetails.Password, ldetails);
         }
 
@@ -211,7 +211,7 @@ namespace WLNetwork.Bots.DOTABot
 
         private void DisconnectDota()
         {
-            dota.CloseDota();
+            dota.Stop();
         }
 
         public void leaveLobby(bool kickAll = true)

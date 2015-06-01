@@ -36,6 +36,7 @@ namespace WLNetwork.Model
         public string[] channels { get; set; }
         public string[] tsuniqueids { get; set; }
         public string tsonetimeid { get; set; }
+        public bool tsonline { get; set; }
     }
 
     [BsonIgnoreExtraElements]

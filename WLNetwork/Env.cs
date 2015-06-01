@@ -22,22 +22,11 @@ namespace WLNetwork
                 Environment.Exit(126);
             }
 
-            var tid = System.Environment.GetEnvironmentVariable("TICKET_ID");
-            if (!int.TryParse(tid, out TICKET_ID)){
-                TICKET_ID = 0;
-                log.Fatal("TICKET_ID environment variable missing.");
-            }
-#endif
-
-#if DEBUG
-            if (TICKET_ID == 0)
-            {
-                TICKET_ID = Settings.Default.LeagueTicketID;
-            }
+            ENFORCE_TEAMSPEAK = System.Environment.GetEnvironmentVariable("ENFORCE_TEAMSPEAK") != null;
 #endif
         }
 
         public static string MONGODB_URL;
-        public static int TICKET_ID;
+        public static bool ENFORCE_TEAMSPEAK;
     }
 }
