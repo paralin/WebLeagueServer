@@ -24,7 +24,7 @@ namespace WLNetwork.Bots
 
         public BotController(MatchSetupDetails game)
         {
-            matchResultTimeout = new Timer(5000);
+            matchResultTimeout = new Timer(8000);
             matchResultTimeout.Elapsed += MatchResultTimeout;
 
             this.game = game;
@@ -51,7 +51,7 @@ namespace WLNetwork.Bots
         {
             matchResultTimeout.Stop();
             if (outcomeProcessed) return;
-            log.Debug("DOTA2 GC is taking a long time to set match_outcome, checking match history...");
+            log.Debug("DOTA2 GC has not set match_outcome, checking match history...");
             if (game.MatchId == 0)
             {
                 log.Warn("Postgame with unknown match id, waiting for match_outcome instead...");
@@ -61,7 +61,8 @@ namespace WLNetwork.Bots
                 if (outcomeProcessed) return;
                 if (match == null)
                 {
-                    log.Warn("No match result, waiting for match_outcome...");
+                    log.Warn("No match result, trying again in 10 seconds...");
+                    matchResultTimeout.Start();
                 }
                 else
                 {
@@ -260,23 +261,31 @@ namespace WLNetwork.Bots
             }
         }
 
+        private bool startedResultCheck = false;
         public void MatchStatus(object sender, MatchStateArgs args)
         {
-            if (game.State == args.State) return;
-            game.State = args.State;
-            if (game.Bot == null) return;
-            log.Debug(game.Bot.Username + " -> match_state => " + args.State);
             MatchGame g = game.GetGame();
-            if (g != null)
+            if (g == null) return;
+            if (game.State != args.State)
             {
-                if (args.State == DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME)
-                {
-                    g.Info.Status = WLNetwork.Matches.Enums.MatchStatus.Complete;
-                    g.Info = g.Info;
-                    matchResultTimeout.Start();
-                }
-                else g.Setup = g.Setup;
+                game.State = args.State;
+                g.Setup = g.Setup;
+                if (game.Bot != null)
+                    log.Debug(game.Bot.Username + " -> match_state => " + args.State);
             }
+            g.Setup = g.Setup;
+            if (args.State >= DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME ||
+                args.Status == CSODOTALobby.State.POSTGAME)
+            {
+                g.Info.Status = Matches.Enums.MatchStatus.Complete;
+                g.Info = g.Info;
+                if (!outcomeProcessed && !startedResultCheck)
+                {
+                    startedResultCheck = true;
+                    MatchResultTimeout(this, null);
+                }
+            }
+            else g.Setup = g.Setup;
         }
 
         public void LobbyClear(object sender, EventArgs eventArgs)

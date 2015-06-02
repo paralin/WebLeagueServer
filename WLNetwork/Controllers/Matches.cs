@@ -384,6 +384,7 @@ namespace WLNetwork.Controllers
             MatchGame match = MatchesController.Games.FirstOrDefault( m => m.Id == options.Id && m.Info.Public);
             if (match == null) return "That match can't be found.";
             if (User != null && User.authItems.Contains("challengeOnly") && match.Info.MatchType != MatchType.Captains) return "You are limited to joining challenge pools only.";
+            if (!User.vouch.leagues.Contains(match.Info.League)) return string.Format("You are not in the league '{0}'!", match.Info.League);
             if (match.Info.Status != MatchStatus.Players && !options.Spec)
                 return "Can't join a match that has started.";
             if (match.Info.Status > MatchStatus.Lobby && options.Spec)
