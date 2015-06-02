@@ -286,9 +286,28 @@ namespace WLNetwork.Bots.DOTABot
         {
             var bot = state as LobbyBot;
             if (bot == null) return;
-            while (bot.isRunning && bot.manager != null)
+            int errc = 0;
+            bool quitFromErrors = false;
+            while (bot.isRunning && bot.manager != null && !quitFromErrors)
             {
-                bot.manager.RunWaitCallbacks(TimeSpan.FromSeconds(1));
+                try
+                {
+                    bot.manager.RunWaitCallbacks(TimeSpan.FromSeconds(1));
+                }
+                catch (Exception ex)
+                {
+                    errc++;
+                    bot.log.Error("Error in SteamThread, ", ex);
+                    if (errc > 2)
+                    {
+                        bot.log.Warn("Too many errors, restarting bot...");
+                        quitFromErrors = true;
+                        bot.DisconnectAndCleanup();
+                        bot.isRunning = true;
+                        bot.reconnect = true;
+                        bot.fsm.Fire(Events.Disconnected);
+                    }
+                }
             }
         }
 
