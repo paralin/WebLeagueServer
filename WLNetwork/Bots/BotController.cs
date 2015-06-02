@@ -98,7 +98,7 @@ namespace WLNetwork.Bots
         private DateTime lastReady = DateTime.MinValue;
         void LobbyReady (object sender, EventArgs e)
         {
-            if ((DateTime.UtcNow - lastReady).TotalSeconds < 15) return;
+            if (game.Status == MatchSetupStatus.Wait || (DateTime.UtcNow - lastReady).TotalSeconds < 15) return;
             lastReady = DateTime.UtcNow;
 
 			log.Debug("Bot entered LobbyUI " + game.Bot.Username);
