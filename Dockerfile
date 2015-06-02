@@ -12,5 +12,6 @@ RUN xbuild /property:Configuration=Release /property:OutDir=/usr/src/app/build/
 WORKDIR /usr/src/app/build
 RUN rm -rf /usr/src/app/source
 
-CMD [ "mono",  "./WLNetwork.exe" ]
+CMD while [ 1 ]; do mono ./WLNetwork.exe; break; done
+#CMD [ "mono",  "./WLNetwork.exe" ]
 EXPOSE 8080 4502
