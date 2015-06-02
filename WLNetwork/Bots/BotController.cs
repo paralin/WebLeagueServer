@@ -96,7 +96,7 @@ namespace WLNetwork.Bots
 
         void LobbyReady (object sender, EventArgs e)
         {
-			if (game.Status == MatchSetupStatus.Wait)
+			if (game.Status >= MatchSetupStatus.Wait)
 				return;
 			log.Debug("Bot entered LobbyUI " + game.Bot.Username);
 			game.Status = MatchSetupStatus.Wait;
@@ -147,16 +147,17 @@ namespace WLNetwork.Bots
 
         private void SpectatorCountUpdate(object sender, uint u)
         {
+            if (game.SpectatorCount == u) return;
             game.SpectatorCount = u;
             game.TransmitUpdate();
         }
 
         private void FirstBloodHappened(object sender, EventArgs eventArgs)
         {
+            if (game.FirstBloodHappened) return;
             var g = game.GetGame();
             if (g != null)
             {
-                if (game.FirstBloodHappened) return;
                 game.FirstBloodHappened = true;
                 game.TransmitUpdate();
                 g.SaveActiveGame();
@@ -164,8 +165,11 @@ namespace WLNetwork.Bots
             }
         }
 
+        private bool hasStarted = false;
         private void GameStarted(object sender, EventArgs eventArgs)
         {
+            if (hasStarted) return;
+            hasStarted = true;
             var g =game.GetGame();
             if (g != null)
             {

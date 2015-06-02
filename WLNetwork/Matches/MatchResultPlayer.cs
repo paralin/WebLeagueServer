@@ -17,6 +17,7 @@ namespace WLNetwork.Matches
                 LeaverReason = player.LeaverReason;
                 RatingBefore = player.Rating;
                 WinStreakBefore = player.WinStreak;
+                if(player.Hero != null) HeroId = player.Hero.Id;
             }
         }
 
@@ -59,5 +60,10 @@ namespace WLNetwork.Matches
         ///     Win streak before this match
         /// </summary>
         public uint WinStreakBefore { get; set; }
+
+        /// <summary>
+        /// ID of their hero
+        /// </summary>
+        public uint HeroId { get; set; }
     }
 }
