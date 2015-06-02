@@ -30,6 +30,7 @@ namespace WLNetwork.Controllers
         private MatchGame activeMatch;
         private MatchResult activeResult;
         private bool userped;
+        private DateTime lastPing = DateTime.UtcNow;
 
         public Matches()
         {
@@ -237,6 +238,14 @@ namespace WLNetwork.Controllers
                 Match.StartSetup();
             }
             return null;
+        }
+
+        /// <summary>
+        /// Ping incoming
+        /// </summary>
+        public void Ping()
+        {
+            lastPing = DateTime.UtcNow;
         }
 
         /// <summary>
