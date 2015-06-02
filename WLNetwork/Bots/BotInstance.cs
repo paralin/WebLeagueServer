@@ -113,13 +113,11 @@ namespace WLNetwork.Bots
                     if (memb.hero_id != 0) HeroId(this, new PlayerHeroArgs() { hero_id = memb.hero_id, steam_id = memb.id });
                   }
                 }
-                if (MatchStatus != null)
-                    MatchStatus(this, new MatchStateArgs {State = lobby.game_state, Status = lobby.state});
-                if (differences.Differences.Any(m => m.PropertyName == ".match_id"))
-                    if (MatchId != null) MatchId(this, lobby.match_id);
+                if (MatchStatus != null) MatchStatus(this, new MatchStateArgs {State = lobby.game_state, Status = lobby.state});
+                if (MatchId != null && lobby.match_id != 0) MatchId(this, lobby.match_id);
                 if (lobby.match_outcome != EMatchOutcome.k_EMatchOutcome_Unknown && lobby.match_id != 0 && lobby.game_state > DOTA_GameState.DOTA_GAMERULES_STATE_GAME_IN_PROGRESS)
                     if (MatchOutcome != null) MatchOutcome(this, lobby.match_outcome);
-                if (differences.Differences.Any(m=>m.PropertyName == ".game_state") && lobby.game_state == DOTA_GameState.DOTA_GAMERULES_STATE_HERO_SELECTION)
+                if (lobby.game_state == DOTA_GameState.DOTA_GAMERULES_STATE_HERO_SELECTION)
                     if (GameStarted != null) GameStarted(this, EventArgs.Empty);
                 if(differences.Differences.Any(m=>m.PropertyName == ".first_blood_happened") && lobby.first_blood_happened)
                     if (FirstBloodHappened != null) FirstBloodHappened(this, EventArgs.Empty);
