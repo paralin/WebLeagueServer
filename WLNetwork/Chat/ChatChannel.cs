@@ -91,7 +91,7 @@ namespace WLNetwork.Chat
                     if(MemberDB.Members.TryGetValue(oldm, out nm) && nm != null)
                         log.DebugFormat("PARTED [{0}] {{{2}}}", Name, Id, nm.Name);
                 }
-                foreach (var mm in Members)
+                foreach (var mm in Members.ToArray())
                 {
                     ChatController.InvokeTo(
                         m => m.ConnectionContext.IsAuthenticated && m.User != null && m.User.steam.steamid == mm,
