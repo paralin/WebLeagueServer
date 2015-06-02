@@ -447,7 +447,7 @@ namespace WLNetwork.Controllers
             if (User.authItems.Contains("challengeOnly")) return "You are limited to joining challenge pools only.";
             if (!User.vouch.leagues.Contains(target.League)) return "You are not in the league '" + target.League + "!";
             if (target.MatchType == 0) target.MatchType = MatchType.Captains;
-            if (Env.ENFORCE_TEAMSPEAK && !User.tsonline) return "Please join Teamspeak before joining games.";
+            if (Env.ENFORCE_TEAMSPEAK && !User.tsonline && target.MatchType != MatchType.OneVsOne) return "Please join Teamspeak before joining games.";
             target.GameMode = target.MatchType == MatchType.OneVsOne ? GameMode.SOLOMID : GameMode.CM;
             target.ChallengerSID = User.steam.steamid;
             target.ChallengerName = User.steam.personaname;
@@ -459,7 +459,7 @@ namespace WLNetwork.Controllers
             if (tcont.Challenge != null) return "That player is already waiting for a challenge.";
             if (tcont.User.authItems.Contains("spectateOnly")) return "That player is a spectator and cannot play matches.";
             if (!tcont.User.vouch.leagues.Contains(target.League)) return "That player is not in the league '" + target.League + "!";
-            if (Env.ENFORCE_TEAMSPEAK && !tcont.User.tsonline) return "Please ask your target to join Teamspeak first.";
+            if (Env.ENFORCE_TEAMSPEAK && !tcont.User.tsonline && target.MatchType != MatchType.OneVsOne) return "Please ask your target to join Teamspeak first.";
             League league = null;
             if (!LeagueDB.Leagues.TryGetValue(target.League, out league) || league == null) return String.Format("League {0} cannot be found.", target.League);
             var start = league.Seasons[(int) league.CurrentSeason].Start;
