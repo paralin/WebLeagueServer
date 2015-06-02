@@ -95,10 +95,12 @@ namespace WLNetwork.Bots
 			game.TransmitUpdate();
         }
 
+        private DateTime lastReady = DateTime.MinValue;
         void LobbyReady (object sender, EventArgs e)
         {
-			if (game.Status >= MatchSetupStatus.Wait)
-				return;
+            if ((DateTime.UtcNow - lastReady).TotalSeconds < 15) return;
+            lastReady = DateTime.UtcNow;
+
 			log.Debug("Bot entered LobbyUI " + game.Bot.Username);
 			game.Status = MatchSetupStatus.Wait;
 			game.State = DOTA_GameState.DOTA_GAMERULES_STATE_INIT;
