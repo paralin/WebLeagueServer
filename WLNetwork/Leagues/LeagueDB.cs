@@ -100,7 +100,7 @@ namespace WLNetwork.Leagues
                         }
                     }
                 }
-                foreach (League league in Leagues.Values.Where(x => leagues.All(m => m.Id != x.Id)))
+                foreach (League league in Leagues.Values.Where(x => leagues.All(m => m.Id != x.Id)).ToArray())
                 {
                     Leagues.Remove(league.Id);
                     log.Debug("LEAGUE REMOVED/ARCHIVED [" + league.Id + "] [" + league.Name + "]");
