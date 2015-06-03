@@ -231,6 +231,7 @@ namespace WLNetwork.Bots
 
         public void MatchId(object sender, ulong id)
         {
+            if (id == game.MatchId) return;
             log.Debug("MATCH ID FIXED " +game.Id+ " " + id);
             game.MatchId = id;
         }
