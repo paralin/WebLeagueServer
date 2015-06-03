@@ -1,2 +1,5 @@
 #!/bin/bash
-while [ 1 ]; do mono ./WLNetwork.exe; break; done
+until mono ./WLNetwork.exe; do
+  echo "Server crashed with exit code $?.  RESPAWNING.." >&2
+  sleep 1
+done
