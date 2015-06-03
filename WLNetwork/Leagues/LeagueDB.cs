@@ -75,11 +75,15 @@ namespace WLNetwork.Leagues
         internal static void UpdateDB()
         {
             AnyUpdated = false;
-            MongoCursor<League> leagues = Mongo.Leagues.FindAs<League>(Query.NE("Archived", true));
+            League[] leagues;
+            lock (Mongo.ExclusiveLock)
+            {
+               leagues = Mongo.Leagues.FindAs<League>(Query.NE("Archived", true)).ToArray();
+            }
             CompareLogic logic = new CompareLogic();
             try
             {
-                foreach (League league in leagues)
+                foreach (var league in leagues)
                 {
                     League exist = null;
                     if (!Leagues.TryGetValue(league.Id, out exist))

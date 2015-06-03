@@ -102,6 +102,7 @@ namespace WLNetwork.Bots
             lastReady = DateTime.UtcNow;
 
 			log.Debug("Bot entered LobbyUI " + game.Bot.Username);
+            hasStarted = false;
 			game.Status = MatchSetupStatus.Wait;
 			game.State = DOTA_GameState.DOTA_GAMERULES_STATE_INIT;
 			var match = game.GetGame();

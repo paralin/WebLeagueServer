@@ -98,8 +98,8 @@ namespace WLNetwork.Bots
         /// </summary>
         internal static void UpdateDB()
         {
-            MongoCursor<Bot> bots =
-                Mongo.Bots.FindAs<Bot>(Query.Or(Query.NotExists("Invalid"), Query.EQ("Invalid", false)));
+            Bot[] bots;
+            lock(Mongo.ExclusiveLock) bots = Mongo.Bots.FindAs<Bot>(Query.Or(Query.NotExists("Invalid"), Query.EQ("Invalid", false))).ToArray();
             try
             {
                 foreach (Bot bot in bots)
@@ -117,7 +117,7 @@ namespace WLNetwork.Bots
                         Bots[bot.Id] = bot;
                     }
                 }
-                foreach (Bot bot in Bots.Values.Where(bot => bots.All(m => m.Id != bot.Id)))
+                foreach (Bot bot in Bots.Values.Where(bot => bots.All(m => m.Id != bot.Id)).ToArray())
                 {
                     Bot outBot;
                     Bots.TryRemove(bot.Id, out outBot);

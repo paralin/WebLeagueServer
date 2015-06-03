@@ -24,6 +24,8 @@ namespace WLNetwork.Database
         public static MongoCollection<HeroInfo> Heros;
         public static MongoCollection<League> Leagues;
 
+        public static readonly object ExclusiveLock = new object();
+
         static Mongo()
         {
             if (Client != null)
