@@ -140,25 +140,28 @@ namespace WLNetwork.Matches
                             .Inc("profile.leagues." + idstr + ".winStreak", 1);
                 }
 
-                Mongo.Users.Update(
-                    Query.In("steam.steamid",
-                        Players.Where(m => m.Team == MatchTeam.Radiant && (!punishLeavers || !m.IsLeaver))
-                            .Select(m => new BsonString(m.SID))
-                            .ToArray()),
-                    radUpdate, UpdateFlags.Multi);
-                Mongo.Users.Update(
-                    Query.In("steam.steamid",
-                        Players.Where(m => m.Team == MatchTeam.Dire && (!punishLeavers || !m.IsLeaver))
-                            .Select(m => new BsonString(m.SID))
-                            .ToArray()),
-                    direUpdate, UpdateFlags.Multi);
+                lock (Mongo.ExclusiveLock)
+                {
+                    Mongo.Users.Update(
+                        Query.In("steam.steamid",
+                            Players.Where(m => m.Team == MatchTeam.Radiant && (!punishLeavers || !m.IsLeaver))
+                                .Select(m => new BsonString(m.SID))
+                                .ToArray()),
+                        radUpdate, UpdateFlags.Multi);
+                    Mongo.Users.Update(
+                        Query.In("steam.steamid",
+                            Players.Where(m => m.Team == MatchTeam.Dire && (!punishLeavers || !m.IsLeaver))
+                                .Select(m => new BsonString(m.SID))
+                                .ToArray()),
+                        direUpdate, UpdateFlags.Multi);
+                }
             }
 
-            if(punishLeavers)
-            Mongo.Users.Update(
-                Query.In("steam.steamid",
-                    Players.Where(m => m.IsLeaver).Select(m => new BsonString(m.SID)).ToArray()),
-                Update<User>.Inc(m => m.profile.leagues[idstr].abandons, 1).Inc(m => m.profile.leagues[idstr].rating, -25), UpdateFlags.Multi);
+            if(punishLeavers) lock(Mongo.ExclusiveLock)
+                Mongo.Users.Update(
+                    Query.In("steam.steamid",
+                        Players.Where(m => m.IsLeaver).Select(m => new BsonString(m.SID)).ToArray()),
+                    Update<User>.Inc(m => m.profile.leagues[idstr].abandons, 1).Inc(m => m.profile.leagues[idstr].rating, -25), UpdateFlags.Multi);
 
             foreach (var cont in Matches.Find(m => m.User != null && Players.Any(x => x.SID == m.User.steam.steamid)))
                 cont.ReloadUser();
@@ -169,7 +172,7 @@ namespace WLNetwork.Matches
 
         public void Save()
         {
-            Mongo.Results.Save(this);
+            lock(Mongo.ExclusiveLock) Mongo.Results.Save(this);
         }
     }
 }

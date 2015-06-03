@@ -77,8 +77,11 @@ namespace WLNetwork.Chat
             UpdateTimer.Stop();
             try
             {
-                MongoCursor<User> users =
-                    Mongo.Users.FindAs<User>(Query.NE("vouch", BsonNull.Value));
+                User[] users;
+                lock (Mongo.ExclusiveLock)
+                {
+                    users = Mongo.Users.FindAs<User>(Query.NE("vouch", BsonNull.Value)).ToArray();
+                }
                 foreach (User user in users)
                 {
                     ChatMember exist = null;
