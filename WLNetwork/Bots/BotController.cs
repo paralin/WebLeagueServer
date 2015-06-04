@@ -321,12 +321,12 @@ namespace WLNetwork.Bots
         {
             MatchGame g = game.GetGame();
             if (g == null || outcomeProcessed) return;
-#if USE_API
             if (game.TicketID == 0) MatchResultTimeout(this, null);
             else
             {
                 log.Debug("Attempting API result fetch...");
-                CMsgDOTAMatch mres = null;
+                bool mres = true;
+                bool fetchedSuccess = false;
                 try
                 {
                     using (var httpClient = new HttpClient())
@@ -338,16 +338,8 @@ namespace WLNetwork.Bots
                                         "https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/v001/?key={0}&match_id={1}",
                                         Settings.Default.SteamAPI, game.MatchId));
                         var pars = JObject.Parse(res);
-                        JToken restok;
-                        if (pars.TryGetValue("result", out restok))
-                        {
-                            mres = restok.ToObject<CMsgDOTAMatch>(JsonSerializer.CreateDefault(new JsonSerializerSettings() {MissingMemberHandling = MissingMemberHandling.Error, Error =
-                                (sender, args) =>
-                                {
-                                    log.Warn("JSON error (ignored safely). ", args.ErrorContext.Error);
-                                    args.ErrorContext.Handled = true; // I panicked but then i handled it
-                                } }));
-                        }
+                        mres = pars["result"]["radiant_win"].Value<bool>();
+                        fetchedSuccess = true;
                     }
                 }
                 catch (Exception ex)
@@ -355,21 +347,18 @@ namespace WLNetwork.Bots
                     log.Error("Unable to download match result.", ex);
                 }
                 if (outcomeProcessed) return;
-                if (mres == null)
+                if (!fetchedSuccess)
                 {
                     log.Warn("Match result via api failed, using in-game result fetch...");
                     MatchResultTimeout(this, null);
                 }
                 else
                 {
-                    log.Debug("Successfully fetched result via web api.");
+                    log.Debug("Successfully fetched result via web api, radiant won = "+mres);
                     outcomeProcessed = true;
-                    g.ProcessMatchResult(mres.good_guys_win ? EMatchOutcome.k_EMatchOutcome_RadVictory :  EMatchOutcome.k_EMatchOutcome_DireVictory, mres);
+                    g.ProcessMatchResult(mres ? EMatchOutcome.k_EMatchOutcome_RadVictory :  EMatchOutcome.k_EMatchOutcome_DireVictory, null, true);
                 }
             }
-#else
-            MatchResultTimeout(this, null);
-#endif
         }
 
         public void LobbyClear(object sender, EventArgs eventArgs)
