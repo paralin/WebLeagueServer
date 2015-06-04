@@ -340,7 +340,12 @@ namespace WLNetwork.Bots
                         JToken restok;
                         if (pars.TryGetValue("result", out restok))
                         {
-                            mres = restok.ToObject<CMsgDOTAMatch>();
+                            mres = restok.ToObject<CMsgDOTAMatch>(JsonSerializer.CreateDefault(new JsonSerializerSettings() {MissingMemberHandling = MissingMemberHandling.Error, Error =
+                                (sender, args) =>
+                                {
+                                    log.Warn("JSON error (ignored safely). ", args.ErrorContext.Error);
+                                    args.ErrorContext.Handled = true; // I panicked but then i handled it
+                                } }));
                         }
                     }
                 }
