@@ -41,6 +41,11 @@ namespace WLNetwork.Model
         public uint CurrentSeason { get; set; }
 
         /// <summary>
+        /// Secondary current seasons
+        /// </summary>
+        public List<uint> SecondaryCurrentSeason { get; set; } 
+
+        /// <summary>
         /// Seasons
         /// </summary>
         public List<LeagueSeason> Seasons { get; set; }

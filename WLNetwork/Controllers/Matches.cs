@@ -201,9 +201,9 @@ namespace WLNetwork.Controllers
             if (start > DateTime.UtcNow) return string.Format("The league '{0}' starts in {1}.", league.Name, start.Humanize());
             if (Env.ENFORCE_TEAMSPEAK && !User.tsonline) return "Please join Teamspeak before joining games.";
             options.MatchType = MatchType.StartGame;
-            var match = new MatchGame(User.steam.steamid, options, league.Id, league.CurrentSeason, league.Seasons[(int)league.CurrentSeason].Ticket, league.Region);
+            var match = new MatchGame(User.steam.steamid, options, league.Id, league.CurrentSeason, league.Seasons[(int)league.CurrentSeason].Ticket, league.Region, league.SecondaryCurrentSeason.ToArray());
             Match = match;
-            match.Players.Add(new MatchPlayer(User, league.Id, (int)league.CurrentSeason) {IsCaptain = true});
+            match.Players.Add(new MatchPlayer(User, league.Id, league.CurrentSeason, league.SecondaryCurrentSeason.ToArray()) {IsCaptain = true});
             ChatChannel.SystemMessage(league.Id, User.profile.name+" created a new match.");
             return null;
         }
@@ -330,13 +330,13 @@ namespace WLNetwork.Controllers
                 GameMode = chal.GameMode,
                 MatchType = chal.MatchType,
                 OpponentSID = other.User.steam.steamid
-            }, chal.League, league.CurrentSeason, league.Seasons[(int)league.CurrentSeason].Ticket, league.Region);
+            }, chal.League, league.CurrentSeason, league.Seasons[(int)league.CurrentSeason].Ticket, league.Region, league.SecondaryCurrentSeason.ToArray());
             Match = match;
             other.Match = match;
             match.Players.AddRange(new[]
             {
-                new MatchPlayer(other.User, league.Id, (int)league.CurrentSeason) {IsCaptain = true, Team = MatchTeam.Dire},
-                new MatchPlayer(User, league.Id, (int)league.CurrentSeason) {IsCaptain = true, Team = MatchTeam.Radiant}
+                new MatchPlayer(other.User, league.Id, league.CurrentSeason, league.SecondaryCurrentSeason.ToArray()) {IsCaptain = true, Team = MatchTeam.Dire},
+                new MatchPlayer(User, league.Id, league.CurrentSeason, league.SecondaryCurrentSeason.ToArray()) {IsCaptain = true, Team = MatchTeam.Radiant}
             });
             if (chal.MatchType == MatchType.OneVsOne)
             {
@@ -395,7 +395,7 @@ namespace WLNetwork.Controllers
                 return "Can't join as you've been kicked from that startgame.";
             if (Env.ENFORCE_TEAMSPEAK && !User.tsonline && !options.Spec) return "Please join Teamspeak before joining games.";
             Match = match;
-            match.Players.Add(new MatchPlayer(User, match.Info.League, (int)match.Info.LeagueSeason) {Team = options.Spec ? MatchTeam.Spectate : MatchTeam.Unassigned});
+            match.Players.Add(new MatchPlayer(User, match.Info.League, match.Info.LeagueSeason, match.Info.SecondaryLeagueSeason) {Team = options.Spec ? MatchTeam.Spectate : MatchTeam.Unassigned});
             return null;
         }
 

@@ -18,8 +18,9 @@ namespace WLNetwork.Matches
     public class MatchPlayer
     {
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        public MatchPlayer(User user = null, string leagueid = null, int leagueseason = 0)
+        public MatchPlayer(User user = null, string leagueid = null, uint leagueseason = 0, uint[] additionalSeasons = null)
         {
+            if(additionalSeasons == null) additionalSeasons = new uint[0];
             if (user != null)
             {
                 SID = user.steam.steamid;
@@ -34,19 +35,25 @@ namespace WLNetwork.Matches
                     }
                     else
                     {
-                        LeagueProfile prof = null;
+                        LeagueProfile tprof = null;
                         if (user.profile.leagues == null)
                             user.profile.leagues = new Dictionary<string, LeagueProfile>();
-                        if (!user.profile.leagues.TryGetValue(leagueid + ":" + leagueseason, out prof) || prof == null)
+                        foreach (var season in additionalSeasons.Concat(new[] {leagueseason}))
                         {
-                            prof = new LeagueProfile();
-                            prof.rating = RatingCalculator.BaseMmr;
-                            user.profile.leagues[leagueid + ":" + leagueseason] = prof;
-                            Database.Mongo.Users.Update(Query<User>.EQ(m => m.Id, user.Id),
-                                Update<User>.Set(m => m.profile.leagues, user.profile.leagues));
+                            LeagueProfile prof = null;
+                            if (!user.profile.leagues.TryGetValue(leagueid + ":" + season, out prof) ||
+                                prof == null)
+                            {
+                                prof = new LeagueProfile();
+                                prof.rating = RatingCalculator.BaseMmr;
+                                user.profile.leagues[leagueid + ":" + season] = prof;
+                                Database.Mongo.Users.Update(Query<User>.EQ(m => m.Id, user.Id),
+                                    Update<User>.Set(m => m.profile.leagues, user.profile.leagues));
+                            }
+                            if (season == leagueseason || tprof == null) tprof = prof;
                         }
-                        Rating = prof.rating;
-                        WinStreak = prof.winStreak;
+                        Rating = tprof.rating;
+                        WinStreak = tprof.winStreak;
                     }
                 }
             }

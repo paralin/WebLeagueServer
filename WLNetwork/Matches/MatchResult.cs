@@ -99,9 +99,8 @@ namespace WLNetwork.Matches
         /// </summary>
         public Dictionary<string, uint> EndedWinStreaks { get; set; }
 
-        public void ApplyRating(bool punishLeavers = false)
+        public void ApplyRating(bool punishLeavers, IEnumerable<uint> seasons)
         {
-            string idstr = League + ":" + LeagueSeason;
             if (MatchCounted)
             {
                 EndedWinStreaks = new Dictionary<string, uint>();
@@ -114,54 +113,59 @@ namespace WLNetwork.Matches
                     var max = EndedWinStreaks.Max(m => m.Value);
                     if (max >= Settings.Default.MinWinStreakForRating)
                     {
-                        StreakEndedRating = (uint)Math.Floor((Math.Log10((max-2)*0.02d)+2.0d)*10.0d);
+                        StreakEndedRating = (uint)Math.Floor((Math.Log10((max - 2) * 0.02d) + 2.0d) * 10.0d);
                         if (Result == EMatchOutcome.k_EMatchOutcome_DireVictory) RatingDire += (int)StreakEndedRating;
                         else RatingRadiant += (int)StreakEndedRating;
                     }
                 }
 
 
-                var radUpdate = Update.Inc("profile.leagues." + idstr + ".rating", RatingRadiant);
-                var direUpdate = Update.Inc("profile.leagues." + idstr + ".rating", RatingDire);
-                if (Result == EMatchOutcome.k_EMatchOutcome_RadVictory)
+                foreach (var season in seasons)
                 {
-                    radUpdate = radUpdate.Inc("profile.leagues." + idstr + ".wins", 1)
-                        .Inc("profile.leagues." + idstr + ".winStreak", 1);
-                    direUpdate = direUpdate.Set("profile.leagues." + idstr + ".winStreak", 0u)
-                        .Inc("profile.leagues." + idstr + ".losses", 1);
-                }
-                else if (Result == EMatchOutcome.k_EMatchOutcome_DireVictory)
-                {
-                    radUpdate =
-                        radUpdate.Set("profile.leagues." + idstr + ".winStreak", 0)
-                            .Inc("profile.leagues." + idstr + ".losses", 1);
-                    direUpdate =
-                        direUpdate.Inc("profile.leagues." + idstr + ".wins", 1)
+                    string idstr = League + ":" + season;
+                    var radUpdate = Update.Inc("profile.leagues." + idstr + ".rating", RatingRadiant);
+                    var direUpdate = Update.Inc("profile.leagues." + idstr + ".rating", RatingDire);
+                    if (Result == EMatchOutcome.k_EMatchOutcome_RadVictory)
+                    {
+                        radUpdate = radUpdate.Inc("profile.leagues." + idstr + ".wins", 1)
                             .Inc("profile.leagues." + idstr + ".winStreak", 1);
-                }
+                        direUpdate = direUpdate.Set("profile.leagues." + idstr + ".winStreak", 0u)
+                            .Inc("profile.leagues." + idstr + ".losses", 1);
+                    }
+                    else if (Result == EMatchOutcome.k_EMatchOutcome_DireVictory)
+                    {
+                        radUpdate =
+                            radUpdate.Set("profile.leagues." + idstr + ".winStreak", 0)
+                                .Inc("profile.leagues." + idstr + ".losses", 1);
+                        direUpdate =
+                            direUpdate.Inc("profile.leagues." + idstr + ".wins", 1)
+                                .Inc("profile.leagues." + idstr + ".winStreak", 1);
+                    }
 
-                lock (Mongo.ExclusiveLock)
-                {
-                    Mongo.Users.Update(
-                        Query.In("steam.steamid",
-                            Players.Where(m => m.Team == MatchTeam.Radiant && (!punishLeavers || !m.IsLeaver))
-                                .Select(m => new BsonString(m.SID))
-                                .ToArray()),
-                        radUpdate, UpdateFlags.Multi);
-                    Mongo.Users.Update(
-                        Query.In("steam.steamid",
-                            Players.Where(m => m.Team == MatchTeam.Dire && (!punishLeavers || !m.IsLeaver))
-                                .Select(m => new BsonString(m.SID))
-                                .ToArray()),
-                        direUpdate, UpdateFlags.Multi);
+                    lock (Mongo.ExclusiveLock)
+                    {
+                        Mongo.Users.Update(
+                            Query.In("steam.steamid",
+                                Players.Where(m => m.Team == MatchTeam.Radiant && (!punishLeavers || !m.IsLeaver))
+                                    .Select(m => new BsonString(m.SID))
+                                    .ToArray()),
+                            radUpdate, UpdateFlags.Multi);
+                        Mongo.Users.Update(
+                            Query.In("steam.steamid",
+                                Players.Where(m => m.Team == MatchTeam.Dire && (!punishLeavers || !m.IsLeaver))
+                                    .Select(m => new BsonString(m.SID))
+                                    .ToArray()),
+                            direUpdate, UpdateFlags.Multi);
+                    }
                 }
             }
 
-            if(punishLeavers) lock(Mongo.ExclusiveLock)
+            /*if(punishLeavers) lock(Mongo.ExclusiveLock)
                 Mongo.Users.Update(
                     Query.In("steam.steamid",
                         Players.Where(m => m.IsLeaver).Select(m => new BsonString(m.SID)).ToArray()),
                     Update<User>.Inc(m => m.profile.leagues[idstr].abandons, 1).Inc(m => m.profile.leagues[idstr].rating, -25), UpdateFlags.Multi);
+                    */
 
             foreach (var cont in Matches.Find(m => m.User != null && Players.Any(x => x.SID == m.User.steam.steamid)))
                 cont.ReloadUser();
@@ -172,7 +176,7 @@ namespace WLNetwork.Matches
 
         public void Save()
         {
-            lock(Mongo.ExclusiveLock) Mongo.Results.Save(this);
+            lock (Mongo.ExclusiveLock) Mongo.Results.Save(this);
         }
     }
 }

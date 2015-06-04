@@ -131,7 +131,7 @@ namespace WLNetwork.Matches
         ///     Create a new game with options
         /// </summary>
         /// <param name="options"></param>
-        public MatchGame(string owner, MatchCreateOptions options, string league, uint leagueseason, uint leagueTicket, uint leagueRegion)
+        public MatchGame(string owner, MatchCreateOptions options, string league, uint leagueseason, uint leagueTicket, uint leagueRegion, uint[] secondarySeason)
         {
             Id = Guid.NewGuid();
             Info = new MatchGameInfo
@@ -147,7 +147,8 @@ namespace WLNetwork.Matches
                 League = league,
                 LeagueSeason = leagueseason,
                 LeagueTicket = leagueTicket,
-                LeagueRegion = leagueRegion
+                LeagueRegion = leagueRegion,
+                SecondaryLeagueSeason = secondarySeason
             };
             pickedAlready = true;
             Players = new ObservableRangeCollection<MatchPlayer>();
@@ -240,7 +241,7 @@ namespace WLNetwork.Matches
                 Password = RandomPassword.CreateRandomPassword(9),
                 Players = Players.ToArray(),
                 TicketID = Info.LeagueTicket,
-                Region = Info.LeagueRegion
+                Region = Info.LeagueRegion,
             });
             Info.Status = MatchStatus.Lobby;
             Info = Info;
@@ -559,7 +560,7 @@ namespace WLNetwork.Matches
             if (me != null && me.IsCaptain) return "You are not the host of this game.";
             result.ApplyRating(true);
             #else
-            result.ApplyRating(false);
+            result.ApplyRating(false, Info.SecondaryLeagueSeason.Concat(new [] { Info.LeagueSeason }));
             #endif
 
             result.Save();
@@ -744,6 +745,8 @@ namespace WLNetwork.Matches
         public uint LeagueTicket { get; set; }
 
         public uint LeagueRegion { get; set; }
+
+        public uint[] SecondaryLeagueSeason { get; set; }
     }
 
     public static class MatchGameExt
