@@ -55,6 +55,11 @@ namespace WLNetwork.Bots
                         if (LobbyCleared != null) LobbyCleared(this, EventArgs.Empty);
                         return;
                     }
+                    if (lobby.pass_key != details.Password)
+                    {
+                        log.Warn("Lobby pass key "+lobby.pass_key+" is not the actual pass key "+details.Password+", ignoring update.");
+                        return;
+                    }
                     if (lobby.state == CSODOTALobby.State.UI)
                     {
                         if (LobbyReady != null) LobbyReady(this, EventArgs.Empty);

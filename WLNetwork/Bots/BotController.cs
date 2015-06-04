@@ -295,8 +295,8 @@ namespace WLNetwork.Bots
                     log.Debug(game.Bot.Username + " -> match_state => " + args.State);
             }
             g.Setup = g.Setup;
-            if (args.State >= DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME ||
-                args.Status == CSODOTALobby.State.POSTGAME)
+            if ((args.State >= DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME ||
+                args.Status == CSODOTALobby.State.POSTGAME) && g.Info.Status == Matches.Enums.MatchStatus.Play)
             {
                 g.Info.Status = Matches.Enums.MatchStatus.Complete;
                 g.Info = g.Info;
