@@ -321,6 +321,7 @@ namespace WLNetwork.Bots
         {
             MatchGame g = game.GetGame();
             if (g == null || outcomeProcessed) return;
+#if USE_API
             if (game.TicketID == 0) MatchResultTimeout(this, null);
             else
             {
@@ -366,6 +367,9 @@ namespace WLNetwork.Bots
                     g.ProcessMatchResult(mres.good_guys_win ? EMatchOutcome.k_EMatchOutcome_RadVictory :  EMatchOutcome.k_EMatchOutcome_DireVictory, mres);
                 }
             }
+#else
+            MatchResultTimeout(this, null);
+#endif
         }
 
         public void LobbyClear(object sender, EventArgs eventArgs)
