@@ -82,5 +82,17 @@ namespace WLNetwork.Properties {
                 this["MinWinStreakForRating"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("B14E6AC32F6E54936DE3A6A3AEF1A1F9")]
+        public string SteamAPI {
+            get {
+                return ((string)(this["SteamAPI"]));
+            }
+            set {
+                this["SteamAPI"] = value;
+            }
+        }
     }
 }

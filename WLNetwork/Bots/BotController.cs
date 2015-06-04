@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 using Dota2.GC.Dota.Internal;
 using log4net;
+using Newtonsoft.Json;
 using SteamKit2;
 using WLNetwork.BotEnums;
 using WLNetwork.Chat;
@@ -11,7 +15,10 @@ using WLNetwork.Database;
 using WLNetwork.Matches;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Model;
+using WLNetwork.Properties;
 using WLNetwork.Utils;
+using Timer = System.Timers.Timer;
+using Newtonsoft.Json.Linq;
 
 namespace WLNetwork.Bots
 {
@@ -47,10 +54,19 @@ namespace WLNetwork.Bots
 			instance.LobbyPlaying += LobbyPlaying;
         }
 
+        private int matchResultAttempts = 0;
         private void MatchResultTimeout(object sender, ElapsedEventArgs elapsedEventArgs)
         {
             matchResultTimeout.Stop();
             if (outcomeProcessed) return;
+            if (matchResultAttempts == 2)
+            {
+                log.Error("Unable to fetch match result, giving up.");
+                outcomeProcessed = true;
+                MatchGame g = game.GetGame();
+                if(g != null) g.ProcessMatchResult(EMatchOutcome.k_EMatchOutcome_Unknown, null, true);
+                return;
+            }
             log.Debug("DOTA2 GC has not set match_outcome, checking match history...");
             if (game.MatchId == 0)
             {
@@ -62,6 +78,7 @@ namespace WLNetwork.Bots
                 if (match == null)
                 {
                     log.Warn("No match result, trying again in 10 seconds...");
+                    matchResultAttempts++;
                     matchResultTimeout.Start();
                 }
                 else
@@ -188,7 +205,7 @@ namespace WLNetwork.Bots
 
         private void UnknownPlayer(object sender, ulong player)
         {
-            if (game.Bot == null) return;
+            if (game.Bot == null || game.Status == MatchSetupStatus.Done) return;
             log.Warn("Kicking unknown player "+player);
             instance.bot.dota.KickPlayerFromLobby(player.ToAccountID());
         }
@@ -283,13 +300,67 @@ namespace WLNetwork.Bots
             {
                 g.Info.Status = Matches.Enums.MatchStatus.Complete;
                 g.Info = g.Info;
+
                 if (!outcomeProcessed && !startedResultCheck)
                 {
                     startedResultCheck = true;
-                    MatchResultTimeout(this, null);
+                    Task.Run(() =>
+                    {
+                        Thread.Sleep(1500);
+                        if (!outcomeProcessed) AttemptAPIResult();
+                    });
                 }
             }
             else g.Setup = g.Setup;
+        }
+
+        /// <summary>
+        /// Attempt to fetch from web api
+        /// </summary>
+        private async void AttemptAPIResult()
+        {
+            MatchGame g = game.GetGame();
+            if (g == null || outcomeProcessed) return;
+            if (game.TicketID == 0) MatchResultTimeout(this, null);
+            else
+            {
+                log.Debug("Attempting API result fetch...");
+                CMsgDOTAMatch mres = null;
+                try
+                {
+                    using (var httpClient = new HttpClient())
+                    {
+                        var res =
+                            await
+                                httpClient.GetStringAsync(
+                                    string.Format(
+                                        "https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/v001/?key={0}&match_id={1}",
+                                        Settings.Default.SteamAPI, game.MatchId));
+                        var pars = JObject.Parse(res);
+                        JToken restok;
+                        if (pars.TryGetValue("result", out restok))
+                        {
+                            mres = restok.ToObject<CMsgDOTAMatch>();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.Error("Unable to download match result.", ex);
+                }
+                if (outcomeProcessed) return;
+                if (mres == null)
+                {
+                    log.Warn("Match result via api failed, using in-game result fetch...");
+                    MatchResultTimeout(this, null);
+                }
+                else
+                {
+                    log.Debug("Successfully fetched result via web api.");
+                    outcomeProcessed = true;
+                    g.ProcessMatchResult(mres.good_guys_win ? EMatchOutcome.k_EMatchOutcome_RadVictory :  EMatchOutcome.k_EMatchOutcome_DireVictory, mres);
+                }
+            }
         }
 
         public void LobbyClear(object sender, EventArgs eventArgs)

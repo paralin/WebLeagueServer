@@ -516,7 +516,8 @@ namespace WLNetwork.Matches
         /// <param name="outcome"></param>
         /// <param name="match"></param>
         /// <param name="matchId"></param>
-        public void ProcessMatchResult(EMatchOutcome outcome, CMsgDOTAMatch match = null)
+        /// <param name="noFetchResult">Do not attempt to fetch result again</param>
+        public void ProcessMatchResult(EMatchOutcome outcome, CMsgDOTAMatch match = null, bool noFetchResult = false)
         {
             if (!MatchesController.Games.Contains(this))
                 return;
@@ -636,7 +637,7 @@ namespace WLNetwork.Matches
                 if(Info.League != null) ChatChannel.SystemMessage(Info.League, string.Format("Match not counted due to {0}.", reason));
             }
 
-            if (match != null || _alreadyAttemptedMatchResult || Setup == null || Setup.Details == null || controller == null || controller.instance == null || Setup.Details.MatchId == 0)
+            if (match != null || _alreadyAttemptedMatchResult || Setup == null || Setup.Details == null || controller == null || controller.instance == null || Setup.Details.MatchId == 0 || noFetchResult)
             {
                 Destroy();
             }

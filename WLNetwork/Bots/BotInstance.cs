@@ -100,7 +100,7 @@ namespace WLNetwork.Bots
                         };
                         if (LeaverStatus != null) LeaverStatus(this, args);
                     }
-                    else if (lobby.game_state == DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME)
+                    else if (lobby.game_state >= DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME)
                         log.Debug(JObject.FromObject(lobby).ToString(Formatting.Indented));
 
                     if (lobby.state == CSODOTALobby.State.RUN) if (LobbyPlaying != null) LobbyPlaying(this, EventArgs.Empty);
@@ -114,8 +114,7 @@ namespace WLNetwork.Bots
                     }
                     if (MatchStatus != null) MatchStatus(this, new MatchStateArgs { State = lobby.game_state, Status = lobby.state });
                     if (MatchId != null && lobby.match_id != 0) MatchId(this, lobby.match_id);
-                    if (lobby.match_outcome != EMatchOutcome.k_EMatchOutcome_Unknown && lobby.match_id != 0 && lobby.game_state > DOTA_GameState.DOTA_GAMERULES_STATE_GAME_IN_PROGRESS)
-                        if (MatchOutcome != null) MatchOutcome(this, lobby.match_outcome);
+                    if (lobby.match_outcome != EMatchOutcome.k_EMatchOutcome_Unknown && MatchOutcome != null) MatchOutcome(this, lobby.match_outcome);
                     if (lobby.game_state == DOTA_GameState.DOTA_GAMERULES_STATE_HERO_SELECTION)
                         if (GameStarted != null) GameStarted(this, EventArgs.Empty);
                     if (lobby.first_blood_happened)
