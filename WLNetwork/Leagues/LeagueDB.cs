@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
@@ -89,6 +90,16 @@ namespace WLNetwork.Leagues
                     if (!Leagues.TryGetValue(league.Id, out exist))
                     {
                         log.Debug("LEAGUE ADDED [" + league.Id + "]" + " [" + league.Name + "]");
+
+                        //Check for mandatory (code breaking) fields
+                        var dirty = false;
+                        if (league.SecondaryCurrentSeason == null)
+                        {
+                            league.SecondaryCurrentSeason = new List<uint>();
+                            dirty = true;
+                        }
+                        if (dirty) Mongo.Leagues.Update(Query<League>.EQ(m => m.Id, league.Id), Update<League>.Set(m => m.SecondaryCurrentSeason, league.SecondaryCurrentSeason));
+
                         Leagues[league.Id] = league;
                         AnyUpdated = true;
                     }

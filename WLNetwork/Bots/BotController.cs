@@ -112,11 +112,9 @@ namespace WLNetwork.Bots
 			game.TransmitUpdate();
         }
 
-        private DateTime lastReady = DateTime.MinValue;
         void LobbyReady (object sender, EventArgs e)
         {
-            if (game.Status == MatchSetupStatus.Wait || (DateTime.UtcNow - lastReady).TotalSeconds < 15) return;
-            lastReady = DateTime.UtcNow;
+            if (game.Status == MatchSetupStatus.Wait) return;
 
 			log.Debug("Bot entered LobbyUI " + game.Bot.Username);
             hasStarted = false;
@@ -207,6 +205,8 @@ namespace WLNetwork.Bots
         {
             if (game.Bot == null || game.Status == MatchSetupStatus.Done) return;
             log.Warn("Kicking unknown player "+player);
+            var memb = instance.bot.dota.Lobby.members.FirstOrDefault(m => m.id == player);
+            if(memb != null) instance.bot.SendLobbyMessage("Kicked "+memb.name+" from the lobby.");
             instance.bot.dota.KickPlayerFromLobby(player.ToAccountID());
         }
 
@@ -231,18 +231,42 @@ namespace WLNetwork.Bots
             }
         }
 
+        private bool lobbyReadySent = false;
+        private bool lobbyUnReadySent = false;
         public void PlayerReady(object sender, PlayerReadyArgs playerReadyArgs)
         {
             if (game.Bot == null) return;
+            MatchGame g = game.GetGame(); 
+            bool anyNotReady = false;
             foreach (MatchPlayer plyr in game.Players)
             {
                 plyr.Ready = playerReadyArgs.Players.Any(m => m.IsReady && m.SteamID == plyr.SID);
+                if (!plyr.Ready) anyNotReady = true;
             }
-            MatchGame g = game.GetGame();
             if (g != null)
             {
                 g.Players = g.Players;
                 //also change status
+                if (!anyNotReady)
+                {
+                    if (!lobbyReadySent)
+                    {
+                        lobbyReadySent = true;
+                        var plyr = g.Players.FirstOrDefault(m => m.IsCaptain);
+                        if (plyr != null)
+                            instance.bot.SendLobbyMessage("Lobby is ready, waiting for " + plyr.Name + " to start.");
+                    }
+                }
+                else
+                {
+                    if (lobbyReadySent)
+                    {
+                        var plyr = g.Players.FirstOrDefault(m => !m.Ready);
+                        if(plyr != null)
+                            instance.bot.SendLobbyMessage("Lobby is no longer ready, waiting for " + plyr.Name + " to join "+(plyr.Team == MatchTeam.Dire ? "Dire" : "Radiant")+".");
+                    }
+                    lobbyReadySent = false;
+                }
             }
         }
 

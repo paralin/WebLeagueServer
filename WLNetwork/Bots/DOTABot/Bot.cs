@@ -9,7 +9,6 @@ using Dota2;
 using Dota2.GC.Dota.Internal;
 using KellermanSoftware.CompareNetObjects;
 using log4net;
-using MongoDB.Driver.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SteamKit2;
@@ -31,7 +30,6 @@ namespace WLNetwork.Bots.DOTABot
         private readonly ILog log;
         private readonly Timer reconnectTimer = new Timer(5000);
         private readonly MatchSetupDetails setupDetails;
-        private uint GCVersion;
         private SteamClient client;
         private bool dontRecreateLobby;
         private bool alreadyLeftExisting = false;
@@ -45,7 +43,7 @@ namespace WLNetwork.Bots.DOTABot
 
         private Thread procThread;
         private bool reconnect;
-        private SteamUser user;
+        public SteamUser user;
 
         #endregion
 
@@ -123,11 +121,11 @@ namespace WLNetwork.Bots.DOTABot
             fsm.In(States.DotaConnect)
                 .ExecuteOnEntry(ConnectDota)
                 .On(Events.DotaGCReady).Goto(States.DotaMenu);
-			fsm.In (States.DotaMenu)
-                .ExecuteOnEntry (CreateLobby);
+            fsm.In(States.DotaMenu)
+                .ExecuteOnEntry(CreateLobby);
             fsm.In(States.DotaLobby)
                 .ExecuteOnEntry(EnterLobbyChat)
-                .ExecuteOnEntry(EnterBroadcastChannel)
+                //.ExecuteOnEntry(EnterBroadcastChannel)
                 .On(Events.DotaLeftLobby).Goto(States.DotaMenu).Execute(LeaveChatChannel);
             fsm.Initialize(States.Connecting);
         }
@@ -176,7 +174,7 @@ namespace WLNetwork.Bots.DOTABot
 
             var ldetails = new CMsgPracticeLobbySetDetails
             {
-                allchat = false,
+                allchat = setupDetails.GameMode == GameMode.SOLOMID,
 #if DEBUG
                 allow_cheats = true,
 #else
@@ -316,6 +314,11 @@ namespace WLNetwork.Bots.DOTABot
             return isRunning && reconnect;
         }
 
+        public void SendLobbyMessage(string msg)
+        {
+            dota.SendChannelMessage(lobbyChannelId, msg);
+        }
+
         private void SetOnlinePresence()
         {
             friends.SetPersonaState(EPersonaState.Online);
@@ -379,16 +382,24 @@ namespace WLNetwork.Bots.DOTABot
                 new Callback<DotaGCHandler.GCWelcomeCallback>(c =>
                 {
                     log.Debug("GC welcome, version " + c.Version);
-                    GCVersion = c.Version;
                     fsm.Fire(Events.DotaGCReady);
                 }, manager);
                 new Callback<DotaGCHandler.UnhandledDotaGCCallback>(
                     c => log.Debug("Unknown GC message: " + c.Message.MsgType), manager);
                 new Callback<SteamFriends.FriendsListCallback>(c => log.Debug(c.FriendList), manager);
+                new Callback<DotaGCHandler.JoinChatChannelResponse>(c =>
+                {
+                    log.Debug("Joined chat channel -> "+c.result.channel_name);
+                    if (c.result.channel_name.StartsWith("Lobby_")) lobbyChannelId = c.result.channel_id;
+                }, manager);
+                new Callback<DotaGCHandler.ChatMessage>(c =>
+                {
+                    if (c.result.channel_id != lobbyChannelId) return;
+                    log.Debug("Lobby chat message -> "+c.result.persona_name+": "+c.result.text);
+                }, manager);
                 new Callback<DotaGCHandler.PracticeLobbySnapshot>(c =>
                 {
                     log.DebugFormat("Lobby snapshot received with state: {0}", c.lobby.state);
-                    log.Debug(JsonConvert.SerializeObject(c.lobby));
 
 					if(!dontRecreateLobby && !setupDetails.IsRecovered && c.lobby != null && c.lobby.pass_key != details.Password && c.lobby.pass_key != "")
 					{
@@ -397,13 +408,9 @@ namespace WLNetwork.Bots.DOTABot
 						return;
 					}
 
-                    fsm.Fire(c.lobby.state == CSODOTALobby.State.RUN
-							? Events.DotaEnterLobbyRun
-							: Events.DotaEnterLobbyUI);
+                    if(lobbyChannelId == 0) this.EnterLobbyChat();
 
                     ComparisonResult diffs = Diff.Compare(null, c.lobby);
-                    if (c.lobby.state == CSODOTALobby.State.UI) fsm.FirePriority(Events.DotaEnterLobbyUI);
-                    else if (c.lobby.state == CSODOTALobby.State.RUN) fsm.FirePriority(Events.DotaEnterLobbyRun);
                     if (LobbyUpdate != null) LobbyUpdate(c.lobby, diffs);
                 }, manager);
                 new Callback<DotaGCHandler.PingRequest>(c =>
@@ -411,8 +418,6 @@ namespace WLNetwork.Bots.DOTABot
                     log.Debug("GC Sent a ping request. Sending pong!");
                     dota.Pong();
                 }, manager);
-                new Callback<DotaGCHandler.JoinChatChannelResponse>(
-                    c => log.Debug("Joined chat " + c.result.channel_name), manager);
                 new Callback<DotaGCHandler.ChatMessage>(
                     c => log.DebugFormat("{0} => {1}: {2}", c.result.channel_id, c.result.persona_name, c.result.text),
                     manager);
@@ -455,9 +460,8 @@ namespace WLNetwork.Bots.DOTABot
 						return;
 					}
 
-					fsm.Fire(c.lobby.state == CSODOTALobby.State.RUN
-							? Events.DotaEnterLobbyRun
-							: Events.DotaEnterLobbyUI);
+                    if(lobbyChannelId == 0) this.EnterLobbyChat();
+
                     ComparisonResult diffs = Diff.Compare(c.oldLobby, c.lobby);
                     var dstrings = new List<string>(diffs.Differences.Count);
                     dstrings.AddRange(
@@ -467,11 +471,6 @@ namespace WLNetwork.Bots.DOTABot
                     if (dstrings.Count > 0)
                     {
                         log.Debug("Update: " + string.Join(", ", dstrings));
-                        if (c.lobby != null)
-                        {
-                            if (c.lobby.state == CSODOTALobby.State.UI) fsm.FirePriority(Events.DotaEnterLobbyUI);
-                            else if (c.lobby.state == CSODOTALobby.State.RUN) fsm.FirePriority(Events.DotaEnterLobbyRun);
-                        }
                         if (LobbyUpdate != null) LobbyUpdate(c.lobby, diffs);
                     }
                 }, manager);

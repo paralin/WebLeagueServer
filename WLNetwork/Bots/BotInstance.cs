@@ -41,6 +41,7 @@ namespace WLNetwork.Bots
         public LobbyBot bot;
 
         private MatchSetupDetails Details;
+        private HashSet<string> teamMsgSent = new HashSet<string>(); 
 
         public BotInstance(MatchSetupDetails details)
         {
@@ -64,25 +65,29 @@ namespace WLNetwork.Bots
                     {
                         if (LobbyReady != null) LobbyReady(this, EventArgs.Empty);
                         var args = new PlayerReadyArgs();
-                        IEnumerable<CDOTALobbyMember> members =
-                            lobby.members.Where(
-                                m =>
-                                    m.team == DOTA_GC_TEAM.DOTA_GC_TEAM_BAD_GUYS ||
-                                    m.team == DOTA_GC_TEAM.DOTA_GC_TEAM_GOOD_GUYS);
                         var players = new List<PlayerReadyArgs.Player>();
-                        foreach (CDOTALobbyMember member in members)
+                        foreach (CDOTALobbyMember member in lobby.members.Where(m=>m.id != bot.user.SteamID))
                         {
                             MatchPlayer plyr = details.Players.FirstOrDefault(m => m.SID == member.id + "");
                             if (plyr != null)
+                            {
+                                if (plyr.Team == MatchTeam.Spectate || plyr.Team == MatchTeam.Unassigned) continue;
+                                var ready =
+                                    (member.team == DOTA_GC_TEAM.DOTA_GC_TEAM_BAD_GUYS &&
+                                     plyr.Team == MatchTeam.Dire) ||
+                                    (member.team == DOTA_GC_TEAM.DOTA_GC_TEAM_GOOD_GUYS &&
+                                     plyr.Team == MatchTeam.Radiant);
                                 players.Add(new PlayerReadyArgs.Player
                                 {
-                                    IsReady =
-                                        (member.team == DOTA_GC_TEAM.DOTA_GC_TEAM_BAD_GUYS &&
-                                         plyr.Team == MatchTeam.Dire) ||
-                                        (member.team == DOTA_GC_TEAM.DOTA_GC_TEAM_GOOD_GUYS &&
-                                         plyr.Team == MatchTeam.Radiant),
+                                    IsReady = ready,
                                     SteamID = plyr.SID
                                 });
+                                if (!ready && !teamMsgSent.Contains(plyr.SID) && (plyr.Team == MatchTeam.Dire || plyr.Team == MatchTeam.Radiant))
+                                {
+                                    bot.SendLobbyMessage(plyr.Name + " is on "+(plyr.Team == MatchTeam.Dire ? "Dire" : "Radiant"));
+                                    teamMsgSent.Add(plyr.SID);
+                                }
+                            }
                             else
                             {
                                 if (UnknownPlayer != null)

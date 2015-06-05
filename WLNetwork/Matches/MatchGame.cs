@@ -522,6 +522,9 @@ namespace WLNetwork.Matches
         {
             if (!MatchesController.Games.Contains(this))
                 return;
+
+            if (Info.SecondaryLeagueSeason == null) Info.SecondaryLeagueSeason = new uint[] {};
+
             ulong matchId = Setup.Details.MatchId;
             var countMatch = (outcome == EMatchOutcome.k_EMatchOutcome_DireVictory ||
                               outcome == EMatchOutcome.k_EMatchOutcome_RadVictory);
