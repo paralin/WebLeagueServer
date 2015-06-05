@@ -366,6 +366,10 @@ namespace WLNetwork.Bots
                         fetchedSuccess = true;
                     }
                 }
+                catch (ArgumentNullException)
+                {
+                    log.Warn("Valve doesn't have a web API result.");
+                }
                 catch (Exception ex)
                 {
                     log.Error("Unable to download match result.", ex);
