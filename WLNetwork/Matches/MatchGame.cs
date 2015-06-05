@@ -255,6 +255,11 @@ namespace WLNetwork.Matches
             RebalanceTeams();
              */
             Players = Players;
+            if (Setup != null && Setup.Details != null && Setup.Details.Players != null)
+            {
+                Setup.Details.Players = Players.ToArray();
+                Setup = Setup;
+            }
         }
 
         /// <summary>

@@ -5,10 +5,12 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using log4net;
 using SteamKit2.GC.Dota.Internal;
 using WLNetwork.Chat.Exceptions;
 using WLNetwork.Chat.Methods;
+using WLNetwork.Database;
 using WLNetwork.Utils;
 using XSockets.Core.XSocket.Helpers;
 
@@ -170,7 +172,11 @@ namespace WLNetwork.Chat
                     return;
                 }
             }
-            var msg = new ChatMessage { Text = text, Member = memberid, Id = Id.ToString(), Auto = service };
+            var msg = new ChatMessage { Text = text, Member = memberid, ChatId = Id.ToString(), Auto = service , Date = DateTime.UtcNow, Channel = Name};
+            Task.Run(() =>
+            {
+                lock(Mongo.ExclusiveLock) Mongo.ChatMessages.Insert(msg);
+            });
             foreach (var mm in Members)
             {
                 var mm1 = mm;
