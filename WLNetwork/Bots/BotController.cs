@@ -50,8 +50,8 @@ namespace WLNetwork.Bots
             instance.FirstBloodHappened += FirstBloodHappened;
             instance.SpectatorCountUpdate += SpectatorCountUpdate;
             instance.HeroId += HeroId;
-			instance.LobbyReady += LobbyReady;
-			instance.LobbyPlaying += LobbyPlaying;
+            instance.LobbyReady += LobbyReady;
+            instance.LobbyPlaying += LobbyPlaying;
         }
 
         private int matchResultAttempts = 0;
@@ -59,7 +59,7 @@ namespace WLNetwork.Bots
         {
             matchResultTimeout.Stop();
             if (outcomeProcessed) return;
-            if (matchResultAttempts == 2)
+            if (matchResultAttempts >= 4)
             {
                 log.Error("Unable to fetch match result, giving up.");
                 outcomeProcessed = true;
@@ -330,7 +330,7 @@ namespace WLNetwork.Bots
                     startedResultCheck = true;
                     Task.Run(() =>
                     {
-                        Thread.Sleep(1500);
+                        Thread.Sleep(3000);
                         if (!outcomeProcessed) AttemptAPIResult();
                     });
                 }
