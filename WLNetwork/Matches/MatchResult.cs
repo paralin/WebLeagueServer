@@ -137,7 +137,7 @@ namespace WLNetwork.Matches
 				MatchCounted = true;
 				RatingCalculator.CalculateRatingDelta(this);
 
-				ApplyToUsers (ratingChangeRadiant, ratingChangeDire, newResult, seasons, false, true);
+				ApplyToUsers (ratingChangeRadiant, ratingChangeDire, newResult, seasons, false, true, false);
 				return true;
 			} else if (Result == EMatchResult.Unknown && (newResult == EMatchResult.RadVictory || newResult == EMatchResult.DireVictory)) {
 				ApplyRating(false, seasons, true);
@@ -146,7 +146,7 @@ namespace WLNetwork.Matches
 			return false;
 		}
 
-		private void ApplyToUsers(int ratingRadiant, int ratingDire, EMatchResult result, IEnumerable<uint> seasons, bool punishLeavers = false, bool reverseWL = false)
+		private void ApplyToUsers(int ratingRadiant, int ratingDire, EMatchResult result, IEnumerable<uint> seasons, bool punishLeavers = false, bool reverseWL = false, bool changeWinStreak = true)
 		{
 			foreach (var season in seasons)
 			{
@@ -156,21 +156,24 @@ namespace WLNetwork.Matches
 
 				if (result == EMatchResult.RadVictory)
 				{
-					radUpdate = radUpdate.Inc("profile.leagues." + idstr + ".wins", 1)
-						.Inc("profile.leagues." + idstr + ".winStreak", 1);
-					direUpdate = direUpdate.Set("profile.leagues." + idstr + ".winStreak", 0u)
-						.Inc("profile.leagues." + idstr + ".losses", 1);
+					radUpdate = radUpdate.Inc ("profile.leagues." + idstr + ".wins", 1u);
+					if(changeWinStreak)
+						radUpdate = radUpdate.Inc("profile.leagues." + idstr + ".winStreak", 1u);
+					direUpdate = direUpdate.Inc("profile.leagues." + idstr + ".losses", 1u);
+					if (changeWinStreak)
+						direUpdate = direUpdate.Set ("profile.leagues." + idstr + ".winStreak", 0u);
 					if (reverseWL)
 						direUpdate.Inc ("profile.leagues." + idstr + ".wins", -1);
 				}
 				else if (result == EMatchResult.DireVictory)
 				{
-					radUpdate =
-						radUpdate.Set("profile.leagues." + idstr + ".winStreak", 0)
-							.Inc("profile.leagues." + idstr + ".losses", 1);
+					radUpdate = radUpdate.Inc("profile.leagues." + idstr + ".losses", 1);
+					if (changeWinStreak)
+						radUpdate = radUpdate.Set ("profile.leagues." + idstr + ".winStreak", 0u);
 					direUpdate =
-						direUpdate.Inc("profile.leagues." + idstr + ".wins", 1)
-							.Inc("profile.leagues." + idstr + ".winStreak", 1);
+						direUpdate.Inc ("profile.leagues." + idstr + ".wins", 1);
+					if(changeWinStreak)
+						direUpdate = direUpdate.Inc("profile.leagues." + idstr + ".winStreak", 1u);
 					if (reverseWL)
 						direUpdate.Inc ("profile.leagues." + idstr + ".losses", -1);
 				}

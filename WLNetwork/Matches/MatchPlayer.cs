@@ -52,8 +52,8 @@ namespace WLNetwork.Matches
                             }
                             if (season == leagueseason || tprof == null) tprof = prof;
                         }
-                        Rating = tprof.rating;
-                        WinStreak = tprof.winStreak;
+						Rating = (uint)tprof.rating;
+						WinStreak = (uint)tprof.winStreak;
                     }
                 }
             }
