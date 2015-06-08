@@ -108,23 +108,11 @@ namespace WLNetwork.Matches
             {
                 Info.Status = MatchStatus.Complete;
                 Info = Info;
-                
-                controller.instance.bot.FetchMatchResult(Setup.Details.MatchId, match =>
-                {
-                    if (match == null)
-                    {
-                        log.Warn("Unable to recover match result for "+Info.Id+"!");
-                        _alreadyAttemptedMatchResult = true;
-                        ProcessMatchResult(EMatchOutcome.k_EMatchOutcome_Unknown);
-                    }
-                    else
-                    {
-                        ProcessMatchResult(match.good_guys_win ? EMatchOutcome.k_EMatchOutcome_RadVictory : EMatchOutcome.k_EMatchOutcome_DireVictory, match);
-                    }
-                });
+
+				controller.AttemptAPIResult ();
                 
             }else
-                ProcessMatchResult(EMatchOutcome.k_EMatchOutcome_Unknown);
+                ProcessMatchResult(EMatchResult.Unknown);
         }
 
         /// <summary>
@@ -523,7 +511,7 @@ namespace WLNetwork.Matches
         /// <param name="match"></param>
         /// <param name="matchId"></param>
         /// <param name="noFetchResult">Do not attempt to fetch result again</param>
-        public void ProcessMatchResult(EMatchOutcome outcome, CMsgDOTAMatch match = null, bool noFetchResult = false)
+        public void ProcessMatchResult(EMatchResult outcome)
         {
             if (!MatchesController.Games.Contains(this))
                 return;
@@ -531,15 +519,10 @@ namespace WLNetwork.Matches
             if (Info.SecondaryLeagueSeason == null) Info.SecondaryLeagueSeason = new uint[] {};
 
             ulong matchId = Setup.Details.MatchId;
-            var countMatch = (outcome == EMatchOutcome.k_EMatchOutcome_DireVictory ||
-                              outcome == EMatchOutcome.k_EMatchOutcome_RadVictory);
-            if (outcome == EMatchOutcome.k_EMatchOutcome_NotScored_Leaver)
-            {
-                log.Debug(matchId + " HAS NO KNOWN OUTCOME DUE TO LEAVERS");
-                countMatch = false;
-            }
+            var countMatch = (outcome == EMatchResult.DireVictory ||
+                              outcome == EMatchResult.RadVictory);
 
-            log.Debug("PROCESSING RESULT " + matchId + " WITH OUTCOME " + outcome);
+			log.Debug("PROCESSING RESULT " + matchId + " WITH " + outcome.ToString("G"));
             var result = new MatchResult
             {
                 Id = matchId,
@@ -555,21 +538,22 @@ namespace WLNetwork.Matches
                 RatingRadiant = 0,
                 MatchType = Info.MatchType,
                 League = Info.League,
-                LeagueSeason = Info.LeagueSeason
+                LeagueSeason = Info.LeagueSeason,
+				LeagueSecondarySeasons = Info.SecondaryLeagueSeason ?? new uint[0],
+				TicketId = Info.LeagueTicket
             };
 
-            if (countMatch && Info.MatchType != MatchType.OneVsOne)
-                RatingCalculator.CalculateRatingDelta(result);
+			if (countMatch && Info.MatchType != MatchType.OneVsOne) {
+				RatingCalculator.CalculateRatingDelta (result);
 
-            if (match != null) result.Match = match;
-
-            #if ENABLE_LEAVER_PENALTY
+				#if ENABLE_LEAVER_PENALTY
             var me = Match.Players.FirstOrDefault(m=>m.SID == User.steam.steamid);
             if (me != null && me.IsCaptain) return "You are not the host of this game.";
             result.ApplyRating(true);
-            #else
-            result.ApplyRating(false, Info.SecondaryLeagueSeason.Concat(new [] { Info.LeagueSeason }));
-            #endif
+				#else
+				result.ApplyRating (false, Info.SecondaryLeagueSeason.Concat (new [] { Info.LeagueSeason }));
+				#endif
+			}
 
             result.Save();
 
@@ -593,7 +577,7 @@ namespace WLNetwork.Matches
                 var completeMsg = "Match " + Id.ToString().Substring(0, 4) + " (MatchID " + Setup.Details.MatchId +
                                   ") completed with ";
                 if(Info.MatchType != MatchType.OneVsOne) completeMsg +=
-                                  (outcome == EMatchOutcome.k_EMatchOutcome_DireVictory
+                                  (outcome == EMatchResult.DireVictory
                                       ? "dire victory."
                                       : "radiant victory.");
                 else
@@ -604,9 +588,9 @@ namespace WLNetwork.Matches
                         completeMsg += ".... an unknown 1v1 victory! I'm sure it was glorious!";
                     else
                     {
-                        completeMsg += (outcome == EMatchOutcome.k_EMatchOutcome_RadVictory ? radplyr : direplyr).Name +
+                        completeMsg += (outcome == EMatchResult.RadVictory ? radplyr : direplyr).Name +
                                        "'s crushing victory over " +
-                                       (outcome == EMatchOutcome.k_EMatchOutcome_RadVictory ? direplyr : radplyr).Name +
+                                       (outcome == EMatchResult.RadVictory ? direplyr : radplyr).Name +
                                        "!";
                     }
                 }
@@ -615,7 +599,7 @@ namespace WLNetwork.Matches
                     var max = result.EndedWinStreaks.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
                     var plyr = (Players.FirstOrDefault(m => m.SID == max));
                     if(plyr != null)
-                        completeMsg += " "+(result.Result == EMatchOutcome.k_EMatchOutcome_RadVictory ? "Radiant" : "Dire")+" received a bonus "+result.StreakEndedRating+" rating for ending "+plyr.Name+"'s " + result.EndedWinStreaks[max] + " win streak!";
+                        completeMsg += " "+(result.Result == EMatchResult.RadVictory ? "Radiant" : "Dire")+" received a bonus "+result.StreakEndedRating+" rating for ending "+plyr.Name+"'s " + result.EndedWinStreaks[max] + " win streak!";
                 }
                 if(Info.League != null) ChatChannel.SystemMessage(Info.League, completeMsg);
             
@@ -625,45 +609,18 @@ namespace WLNetwork.Matches
                 var reason = "some unknown reason";
                 switch (outcome)
                 {
-                    case EMatchOutcome.k_EMatchOutcome_RadVictory:
-                    case EMatchOutcome.k_EMatchOutcome_DireVictory:
-                    case EMatchOutcome.k_EMatchOutcome_NotScored_Leaver:
+                    case EMatchResult.RadVictory:
+                    case EMatchResult.DireVictory:
                         reason = "leavers";
                         break;
-                    case EMatchOutcome.k_EMatchOutcome_NotScored_NeverStarted:
-                        reason = "the match never starting";
-                        break;
-                    case EMatchOutcome.k_EMatchOutcome_NotScored_ServerCrash:
-                        reason = "the server crashing";
-                        break;
-                    case EMatchOutcome.k_EMatchOutcome_NotScored_PoorNetworkConditions:
-                        reason = "poor network conditions";
-                        break;
-                    case EMatchOutcome.k_EMatchOutcome_Unknown:
+                    case EMatchResult.Unknown:
                         reason = "unknown match result, admin will confirm result and apply rating";
                         break;
                 }
                 if(Info.League != null) ChatChannel.SystemMessage(Info.League, string.Format("Match not counted due to {0}.", reason));
             }
 
-            if (match != null || _alreadyAttemptedMatchResult || Setup == null || Setup.Details == null || controller == null || controller.instance == null || Setup.Details.MatchId == 0 || noFetchResult)
-            {
-                Destroy();
-            }
-            else
-            {
-                controller.instance.bot.FetchMatchResult(Setup.Details.MatchId, dotaMatch =>
-                {
-                    if (dotaMatch != null)
-                    {
-                        log.Debug("Fetched match data for "+dotaMatch.match_id+" successfully.");
-                        result.Match = dotaMatch;
-                        result.Save();
-                    }
-
-                    Destroy();
-                });
-            }
+            Destroy();
         }
 
         public void AdminDestroy()

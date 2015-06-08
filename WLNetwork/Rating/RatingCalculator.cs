@@ -46,7 +46,7 @@ namespace WLNetwork.Rating
                 if (plyr.RatingBefore == 0) plyr.RatingBefore = BaseMmr;
             }
 
-            if (data.Result > EMatchOutcome.k_EMatchOutcome_DireVictory ||
+            if (data.Result > EMatchResult.DireVictory ||
                 data.Players.Count(m => m.Team == MatchTeam.Dire) == 0 ||
                 data.Players.Count(m => m.Team == MatchTeam.Radiant) == 0)
             {
@@ -72,7 +72,7 @@ namespace WLNetwork.Rating
             //calculate the increments and decrements based on win only
             int incRadiant = 0;
             int incDire = 0;
-            if (data.Result == EMatchOutcome.k_EMatchOutcome_RadVictory)
+            if (data.Result == EMatchResult.RadVictory)
             {
                 incRadiant = (int) Math.Round(radiantFactor.Factor*(1.0 - radiantWinProb));
                 incDire = (int) Math.Round(direFactor.Factor*-direWinProb);

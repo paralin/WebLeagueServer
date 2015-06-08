@@ -64,35 +64,37 @@ namespace WLNetwork.Bots
                 log.Error("Unable to fetch match result, giving up.");
                 outcomeProcessed = true;
                 MatchGame g = game.GetGame();
-                if(g != null) g.ProcessMatchResult(EMatchOutcome.k_EMatchOutcome_Unknown, null, true);
+                if(g != null) g.ProcessMatchResult(EMatchResult.Unknown);
                 return;
             }
-            log.Debug("DOTA2 GC has not set match_outcome, checking match history...");
-            if (game.MatchId == 0)
-            {
-                log.Warn("Postgame with unknown match id, waiting for match_outcome instead...");
-            }
-            else instance.FetchMatchResult(game.MatchId, match =>
-            {
-                if (outcomeProcessed) return;
-                if (match == null)
-                {
-                    log.Warn("No match result, trying again in 10 seconds...");
-                    matchResultAttempts++;
-                    matchResultTimeout.Start();
-                }
-                else
-                {
-                    outcomeProcessed = true;
-                    log.Debug("Fetched match result with outcome good_guys_win="+match.good_guys_win+".");
-                    MatchGame g = game.GetGame();
-                    if (g != null)
-                    {
-                        g.ProcessMatchResult(match.good_guys_win ? EMatchOutcome.k_EMatchOutcome_RadVictory : EMatchOutcome.k_EMatchOutcome_DireVictory, match);
-                    }
-                }
-            });
+
+            log.Debug("DOTA2 GC has not set match_outcome, starting checks...");
+			AttemptAPIResult ();
         }
+
+		void AttemptDetailsResult()
+		{
+			instance.FetchMatchResult(game.MatchId, match =>
+				{
+					if (outcomeProcessed) return;
+					if (match == null)
+					{
+						log.Warn("No match result, trying again in 10 seconds...");
+						matchResultAttempts++;
+						matchResultTimeout.Start();
+					}
+					else
+					{
+						outcomeProcessed = true;
+						log.Debug("Fetched match result with outcome good_guys_win="+match.good_guys_win+".");
+						MatchGame g = game.GetGame();
+						if (g != null)
+						{
+							g.ProcessMatchResult(match.good_guys_win ? EMatchResult.RadVictory : EMatchResult.DireVictory);
+						}
+					}
+				});
+		}
 
         void LobbyPlaying (object sender, EventArgs e)
         {
@@ -331,7 +333,7 @@ namespace WLNetwork.Bots
                     Task.Run(() =>
                     {
                         Thread.Sleep(3000);
-                        if (!outcomeProcessed) AttemptAPIResult();
+						if (!outcomeProcessed) MatchResultTimeout(this, null);
                     });
                 }
             }
@@ -341,11 +343,11 @@ namespace WLNetwork.Bots
         /// <summary>
         /// Attempt to fetch from web api
         /// </summary>
-        private async void AttemptAPIResult()
+		public async void AttemptAPIResult()
         {
             MatchGame g = game.GetGame();
             if (g == null || outcomeProcessed) return;
-            if (game.TicketID == 0) MatchResultTimeout(this, null);
+			if (game.TicketID == 0) AttemptDetailsResult();
             else
             {
                 log.Debug("Attempting API result fetch...");
@@ -378,13 +380,13 @@ namespace WLNetwork.Bots
                 if (!fetchedSuccess)
                 {
                     log.Warn("Match result via api failed, using in-game result fetch...");
-                    MatchResultTimeout(this, null);
+					AttemptDetailsResult ();
                 }
                 else
                 {
                     log.Debug("Successfully fetched result via web api, radiant won = "+mres);
                     outcomeProcessed = true;
-                    g.ProcessMatchResult(mres ? EMatchOutcome.k_EMatchOutcome_RadVictory :  EMatchOutcome.k_EMatchOutcome_DireVictory, null, true);
+                    g.ProcessMatchResult(mres ? EMatchResult.RadVictory :  EMatchResult.DireVictory);
                 }
             }
         }
@@ -405,7 +407,14 @@ namespace WLNetwork.Bots
             MatchGame g = game.GetGame();
             if (g != null)
             {
-                g.ProcessMatchResult(args);
+				EMatchResult res;
+				if (args == EMatchOutcome.k_EMatchOutcome_DireVictory)
+					res = EMatchResult.DireVictory;
+				else if (args == EMatchOutcome.k_EMatchOutcome_RadVictory)
+					res = EMatchResult.RadVictory;
+				else
+					res = EMatchResult.Unknown;
+				g.ProcessMatchResult(res);
             }
         }
     }

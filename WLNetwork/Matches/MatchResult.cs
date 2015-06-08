@@ -13,6 +13,7 @@ using XSockets.Core.XSocket.Helpers;
 using System;
 using MongoDB.Bson.Serialization.Attributes;
 using MatchType = WLNetwork.Matches.Enums.MatchType;
+using WLNetwork.Rating;
 
 namespace WLNetwork.Matches
 {
@@ -36,7 +37,7 @@ namespace WLNetwork.Matches
         /// <summary>
         ///     Match outcome
         /// </summary>
-        public EMatchOutcome Result { get; set; }
+        public EMatchResult Result { get; set; }
 
         /// <summary>
         /// The league ID.
@@ -47,6 +48,12 @@ namespace WLNetwork.Matches
         /// League season ID
         /// </summary>
         public uint LeagueSeason { get; set; }
+
+		/// <summary>
+		/// Secondary league season IDs
+		/// </summary>
+		/// <value>The legaue secondary seasons.</value>
+		public uint[] LeagueSecondarySeasons { get; set; }
 
         /// <summary>
         ///     A version of MatchPlayer minified
@@ -84,9 +91,16 @@ namespace WLNetwork.Matches
         /// </summary>
         public uint StreakEndedRating { get; set; }
 
+		/// <summary>
+		/// Was this game ticketed.
+		/// </summary>
+		/// <value>The ticket ID.</value>
+		public uint TicketId { get; set; }
+
         /// <summary>
-        ///     Match data
+        ///     Match data, we don't care much about this anymore
         /// </summary>
+		[Obsolete]
         public CMsgDOTAMatch Match { get; set; }
 
         /// <summary>
@@ -99,13 +113,94 @@ namespace WLNetwork.Matches
         /// </summary>
         public Dictionary<string, uint> EndedWinStreaks { get; set; }
 
-        public void ApplyRating(bool punishLeavers, IEnumerable<uint> seasons)
+		/// <summary>
+		/// Adjusts the result.
+		/// </summary>
+		/// <param name="newResult">New result.</param>
+		public bool AdjustResult(EMatchResult newResult)
+		{
+			if (LeagueSecondarySeasons == null)
+				LeagueSecondarySeasons = new uint[0];
+
+			var seasons = LeagueSecondarySeasons.Concat (new uint[]{ LeagueSeason });
+			int ratingChangeDire;
+			int ratingChangeRadiant;
+			if ((Result == EMatchResult.DireVictory && newResult == EMatchResult.RadVictory) || (Result == EMatchResult.RadVictory && newResult == EMatchResult.DireVictory)) {
+				ratingChangeDire = (-RatingDire) + RatingRadiant;
+				ratingChangeRadiant = (-RatingRadiant) + RatingDire;
+
+				var rad = RatingRadiant;
+				RatingRadiant = RatingDire;
+				RatingDire = rad;
+
+				Result = newResult;
+				MatchCounted = true;
+				RatingCalculator.CalculateRatingDelta(this);
+
+				ApplyToUsers (ratingChangeRadiant, ratingChangeDire, newResult, seasons, false, true);
+				return true;
+			} else if (Result == EMatchResult.Unknown && (newResult == EMatchResult.RadVictory || newResult == EMatchResult.DireVictory)) {
+				ApplyRating(false, seasons, true);
+				return true;
+			}
+			return false;
+		}
+
+		private void ApplyToUsers(int ratingRadiant, int ratingDire, EMatchResult result, IEnumerable<uint> seasons, bool punishLeavers = false, bool reverseWL = false)
+		{
+			foreach (var season in seasons)
+			{
+				string idstr = League + ":" + season;
+				var radUpdate = Update.Inc("profile.leagues." + idstr + ".rating", ratingRadiant);
+				var direUpdate = Update.Inc("profile.leagues." + idstr + ".rating", ratingDire);
+
+				if (result == EMatchResult.RadVictory)
+				{
+					radUpdate = radUpdate.Inc("profile.leagues." + idstr + ".wins", 1)
+						.Inc("profile.leagues." + idstr + ".winStreak", 1);
+					direUpdate = direUpdate.Set("profile.leagues." + idstr + ".winStreak", 0u)
+						.Inc("profile.leagues." + idstr + ".losses", 1);
+					if (reverseWL)
+						direUpdate.Inc ("profile.leagues." + idstr + ".wins", -1);
+				}
+				else if (result == EMatchResult.DireVictory)
+				{
+					radUpdate =
+						radUpdate.Set("profile.leagues." + idstr + ".winStreak", 0)
+							.Inc("profile.leagues." + idstr + ".losses", 1);
+					direUpdate =
+						direUpdate.Inc("profile.leagues." + idstr + ".wins", 1)
+							.Inc("profile.leagues." + idstr + ".winStreak", 1);
+					if (reverseWL)
+						direUpdate.Inc ("profile.leagues." + idstr + ".losses", -1);
+				}
+
+				lock (Mongo.ExclusiveLock)
+				{
+					Mongo.Users.Update(
+						Query.In("steam.steamid",
+							Players.Where(m => m.Team == MatchTeam.Radiant && (!punishLeavers || !m.IsLeaver))
+							.Select(m => new BsonString(m.SID))
+							.ToArray()),
+						radUpdate, UpdateFlags.Multi);
+					Mongo.Users.Update(
+						Query.In("steam.steamid",
+							Players.Where(m => m.Team == MatchTeam.Dire && (!punishLeavers || !m.IsLeaver))
+							.Select(m => new BsonString(m.SID))
+							.ToArray()),
+						direUpdate, UpdateFlags.Multi);
+				}
+			}
+		}
+
+		public void ApplyRating(bool punishLeavers, IEnumerable<uint> seasons, bool ignoreWinStreaks = false)
         {
             if (MatchCounted)
             {
                 EndedWinStreaks = new Dictionary<string, uint>();
 
-                foreach (var plyr in Players.Where(m => m.Team == (Result == EMatchOutcome.k_EMatchOutcome_RadVictory ? MatchTeam.Dire : MatchTeam.Radiant) && m.WinStreakBefore > 0))
+				if(!ignoreWinStreaks)
+                foreach (var plyr in Players.Where(m => m.Team == (Result == EMatchResult.RadVictory ? MatchTeam.Dire : MatchTeam.Radiant) && m.WinStreakBefore > 0))
                     EndedWinStreaks[plyr.SID] = plyr.WinStreakBefore;
 
                 if (EndedWinStreaks.Values.Count > 0)
@@ -114,58 +209,15 @@ namespace WLNetwork.Matches
                     if (max >= Settings.Default.MinWinStreakForRating)
                     {
                         StreakEndedRating = (uint)Math.Floor((Math.Log10((max - 2) * 0.02d) + 2.0d) * 10.0d);
-                        if (Result == EMatchOutcome.k_EMatchOutcome_DireVictory) RatingDire += (int)StreakEndedRating;
+                        if (Result == EMatchResult.DireVictory) RatingDire += (int)StreakEndedRating;
                         else RatingRadiant += (int)StreakEndedRating;
                     }
                 }
 
 
-                foreach (var season in seasons)
-                {
-                    string idstr = League + ":" + season;
-                    var radUpdate = Update.Inc("profile.leagues." + idstr + ".rating", RatingRadiant);
-                    var direUpdate = Update.Inc("profile.leagues." + idstr + ".rating", RatingDire);
-                    if (Result == EMatchOutcome.k_EMatchOutcome_RadVictory)
-                    {
-                        radUpdate = radUpdate.Inc("profile.leagues." + idstr + ".wins", 1)
-                            .Inc("profile.leagues." + idstr + ".winStreak", 1);
-                        direUpdate = direUpdate.Set("profile.leagues." + idstr + ".winStreak", 0u)
-                            .Inc("profile.leagues." + idstr + ".losses", 1);
-                    }
-                    else if (Result == EMatchOutcome.k_EMatchOutcome_DireVictory)
-                    {
-                        radUpdate =
-                            radUpdate.Set("profile.leagues." + idstr + ".winStreak", 0)
-                                .Inc("profile.leagues." + idstr + ".losses", 1);
-                        direUpdate =
-                            direUpdate.Inc("profile.leagues." + idstr + ".wins", 1)
-                                .Inc("profile.leagues." + idstr + ".winStreak", 1);
-                    }
+				ApplyToUsers (RatingRadiant, RatingDire, Result, seasons, punishLeavers);
 
-                    lock (Mongo.ExclusiveLock)
-                    {
-                        Mongo.Users.Update(
-                            Query.In("steam.steamid",
-                                Players.Where(m => m.Team == MatchTeam.Radiant && (!punishLeavers || !m.IsLeaver))
-                                    .Select(m => new BsonString(m.SID))
-                                    .ToArray()),
-                            radUpdate, UpdateFlags.Multi);
-                        Mongo.Users.Update(
-                            Query.In("steam.steamid",
-                                Players.Where(m => m.Team == MatchTeam.Dire && (!punishLeavers || !m.IsLeaver))
-                                    .Select(m => new BsonString(m.SID))
-                                    .ToArray()),
-                            direUpdate, UpdateFlags.Multi);
-                    }
-                }
             }
-
-            /*if(punishLeavers) lock(Mongo.ExclusiveLock)
-                Mongo.Users.Update(
-                    Query.In("steam.steamid",
-                        Players.Where(m => m.IsLeaver).Select(m => new BsonString(m.SID)).ToArray()),
-                    Update<User>.Inc(m => m.profile.leagues[idstr].abandons, 1).Inc(m => m.profile.leagues[idstr].rating, -25), UpdateFlags.Multi);
-                    */
 
             foreach (var cont in Matches.Find(m => m.User != null && Players.Any(x => x.SID == m.User.steam.steamid)))
                 cont.ReloadUser();
