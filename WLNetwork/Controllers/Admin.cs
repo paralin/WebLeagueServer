@@ -54,11 +54,9 @@ namespace WLNetwork.Controllers
 			var res = Mongo.Results.FindAs<MatchResult> (Query<MatchResult>.EQ (m => m.Id, args.Id)).FirstOrDefault();
 			if (res == null)
 				return "Unable to find that match result.";
-			if (res.RatingDire == 0)
-				return "That result cannot be changed.";
 			if (res.Result == args.Result)
 				return "The result is already set to that.";
-			if (res.Result == EMatchResult.DontCount)
+			if (res.Result == EMatchResult.DontCount && res.MatchType == WLNetwork.Matches.Enums.MatchType.OneVsOne)
 				return "Cannot count this match.";
 			if (res.MatchType == WLNetwork.Matches.Enums.MatchType.OneVsOne) 
 			{
