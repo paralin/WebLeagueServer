@@ -391,7 +391,7 @@ namespace WLNetwork.Controllers
                 return "Can't spectate a match already past the lobby stage.";
             if (!options.Spec && match.Players.Count(m => m.Team != MatchTeam.Spectate) >= 10 && match.Info.MatchType != MatchType.Captains) 
                 return "That match is full.";
-            if (match.PlayerForbidden(User.steam.steamid))
+            if (match.PlayerForbidden(User.steam.steamid) && !options.Spec)
                 return "Can't join as you've been kicked from that startgame.";
             if (Env.ENFORCE_TEAMSPEAK && !User.tsonline && !options.Spec) return "Please join Teamspeak before joining games.";
             Match = match;
