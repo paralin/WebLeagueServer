@@ -74,7 +74,7 @@ namespace WLNetwork.Model
         /// <summary>
         /// Prizepool distribution
         /// </summary>
-        public int[] PrizepoolDist {get;set;}
+        public List<int> PrizepoolDist { get; set; }
 
         /// <summary>
         /// Start date
