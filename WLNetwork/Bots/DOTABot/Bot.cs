@@ -181,7 +181,7 @@ namespace WLNetwork.Bots.DOTABot
                 allow_cheats = false,
 #endif
                 allow_spectating = true,
-                dota_tv_delay = LobbyDotaTVDelay.LobbyDotaTV_10,//game.Info.MatchType == MatchType.OneVsOne ? LobbyDotaTVDelay.LobbyDotaTV_10 : LobbyDotaTVDelay.LobbyDotaTV_120,
+                dota_tv_delay = game.Info.MatchType == MatchType.OneVsOne ? LobbyDotaTVDelay.LobbyDotaTV_10 : LobbyDotaTVDelay.LobbyDotaTV_120,
                 fill_with_bots = false,
                 game_mode = (uint) (DOTA_GameMode) setupDetails.GameMode,
                 game_name = gameName,
