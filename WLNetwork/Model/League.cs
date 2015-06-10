@@ -56,6 +56,7 @@ namespace WLNetwork.Model
     /// <summary>
     /// A season in a league.
     /// </summary>
+    [BsonIgnoreExtraElements]
     public class LeagueSeason
     {
         /// <summary>
