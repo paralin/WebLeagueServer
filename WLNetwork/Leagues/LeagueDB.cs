@@ -77,13 +77,13 @@ namespace WLNetwork.Leagues
         {
             AnyUpdated = false;
             League[] leagues;
-            lock (Mongo.ExclusiveLock)
-            {
-               leagues = Mongo.Leagues.FindAs<League>(Query.NE("Archived", true)).ToArray();
-            }
-            CompareLogic logic = new CompareLogic();
+            var logic = new CompareLogic();
             try
             {
+              lock (Mongo.ExclusiveLock)
+              {
+                 leagues = Mongo.Leagues.FindAs<League>(Query.NE("Archived", true)).ToArray();
+              }
                 foreach (var league in leagues)
                 {
                     League exist = null;

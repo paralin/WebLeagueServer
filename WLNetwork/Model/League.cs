@@ -74,7 +74,7 @@ namespace WLNetwork.Model
         /// <summary>
         /// Prizepool distribution
         /// </summary>
-        //public List<int> PrizepoolDist { get; set; }
+        public List<int> PrizepoolDist { get; set; }
 
         /// <summary>
         /// Start date
@@ -90,6 +90,5 @@ namespace WLNetwork.Model
         /// Ticket number/leagueID for this league season.
         /// </summary>
         public uint Ticket { get; set; }
-
     }
 }
