@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace WLNetwork.Model
@@ -68,16 +65,15 @@ namespace WLNetwork.Model
         public string Name { get; set; }
 
         /// <summary>
-        /// Prizepool
-        /// <example>20,000</example>
-        /// </summary>
-        public uint Prizepool { get; set; }
-
-        /// <summary>
         /// Prizepool currency
         /// <example>€</example>
         /// </summary>
         public string PrizepoolCurrency { get; set; }
+
+        /// <summary>
+        /// Prizepool distribution
+        /// </summary>
+        public int[] PrizepoolDist {get;set;}
 
         /// <summary>
         /// Start date

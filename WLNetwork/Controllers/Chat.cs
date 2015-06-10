@@ -4,13 +4,11 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using log4net;
 using MongoDB.Driver.Builders;
 using MongoDB.Driver.Linq;
 using WLNetwork.Chat;
 using WLNetwork.Chat.Enums;
-using WLNetwork.Chat.Exceptions;
 using WLNetwork.Chat.Methods;
 using WLNetwork.Database;
 using WLNetwork.Model;
@@ -116,7 +114,10 @@ namespace WLNetwork.Controllers
 
         public void SendMessage(Message message)
         {
-			if (message == null || !ConnectionContext.IsAuthenticated || !message.Validate() || User == null) return;
+            if (message == null || !ConnectionContext.IsAuthenticated || !message.Validate() || User == null) {
+              log.WarnFormat("Ignored chat message {0}", message.Text);
+              return;
+            }
             ChatChannel chan = Channels.FirstOrDefault(m => m.Id.ToString() == message.Channel);
             if (chan == null) return;
             log.DebugFormat("[{0}] {1}: \"{2}\"", chan.Name, User.profile.name, message.Text);
