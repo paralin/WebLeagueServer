@@ -155,7 +155,7 @@ namespace WLNetwork.Matches
 
                 RatingDire = RatingRadiant = 0;
 
-                ApplyToUsers(ratingChangeRadiant, ratingChangeDire, Result == EMatchResult.DireVictory ? EMatchResult.RadVictory : EMatchResult.DireVictory, seasons, false, true, false);
+                ApplyToUsers(ratingChangeRadiant, ratingChangeDire, Result == EMatchResult.DireVictory ? EMatchResult.RadVictory : EMatchResult.DireVictory, seasons, false, true, false, false);
 
                 MatchCounted = false;
                 Result = newResult;
@@ -166,7 +166,7 @@ namespace WLNetwork.Matches
             return false;
         }
 
-        private void ApplyToUsers(int ratingRadiant, int ratingDire, EMatchResult result, IEnumerable<uint> seasons, bool punishLeavers = false, bool reverseWL = false, bool changeWinStreak = true)
+        private void ApplyToUsers(int ratingRadiant, int ratingDire, EMatchResult result, IEnumerable<uint> seasons, bool punishLeavers = false, bool reverseWL = false, bool changeWinStreak = true, bool addWL = true)
         {
             foreach (var season in seasons)
             {
@@ -176,10 +176,12 @@ namespace WLNetwork.Matches
 
                 if (result == EMatchResult.RadVictory)
                 {
-                    radUpdate = radUpdate.Inc("profile.leagues." + idstr + ".wins", 1u);
+                    if(addWL)
+                        radUpdate = radUpdate.Inc("profile.leagues." + idstr + ".wins", 1u);
                     if (changeWinStreak)
                         radUpdate = radUpdate.Inc("profile.leagues." + idstr + ".winStreak", 1u);
-                    direUpdate = direUpdate.Inc("profile.leagues." + idstr + ".losses", 1u);
+                    if(addWL)
+                        direUpdate = direUpdate.Inc("profile.leagues." + idstr + ".losses", 1u);
                     if (changeWinStreak)
                         direUpdate = direUpdate.Set("profile.leagues." + idstr + ".winStreak", 0u);
                     if (reverseWL)
@@ -187,11 +189,13 @@ namespace WLNetwork.Matches
                 }
                 else if (result == EMatchResult.DireVictory)
                 {
-                    radUpdate = radUpdate.Inc("profile.leagues." + idstr + ".losses", 1);
+                    if(addWL)
+                        radUpdate = radUpdate.Inc("profile.leagues." + idstr + ".losses", 1);
                     if (changeWinStreak)
                         radUpdate = radUpdate.Set("profile.leagues." + idstr + ".winStreak", 0u);
-                    direUpdate =
-                        direUpdate.Inc("profile.leagues." + idstr + ".wins", 1);
+                    if(addWL)
+                        direUpdate =
+                            direUpdate.Inc("profile.leagues." + idstr + ".wins", 1);
                     if (changeWinStreak)
                         direUpdate = direUpdate.Inc("profile.leagues." + idstr + ".winStreak", 1u);
                     if (reverseWL)
