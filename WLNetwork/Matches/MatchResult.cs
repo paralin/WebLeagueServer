@@ -140,6 +140,8 @@ namespace WLNetwork.Matches
 				ApplyToUsers (ratingChangeRadiant, ratingChangeDire, newResult, seasons, false, true, false);
 				return true;
 			} else if (Result == EMatchResult.Unknown && (newResult == EMatchResult.RadVictory || newResult == EMatchResult.DireVictory)) {
+        Result = newResult;
+				RatingCalculator.CalculateRatingDelta(this);
 				ApplyRating(false, seasons, true);
 				return true;
 			}
