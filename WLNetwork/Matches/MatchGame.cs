@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
@@ -89,8 +88,6 @@ namespace WLNetwork.Matches
 
             controller = new BotController(Setup.Details);
             controller.instance.Start();
-            controller.instance.bot.LobbyNotRecovered +=
-                (sender, args) => LobbyNotRecovered();
 
             MatchesController.Games.Add(this);
             log.Info("MATCH RESTORE [" + match.Id + "] [" + Info.Owner + "] [" + Info.GameMode + "] [" + Info.MatchType + "]");
@@ -102,15 +99,13 @@ namespace WLNetwork.Matches
         /// <summary>
         /// Called when the lobby is not recovered
         /// </summary>
-        private void LobbyNotRecovered()
+        public void LobbyNotRecovered()
         {
-            if (Setup != null && Setup.Details != null && Setup.Details.MatchId != 0)
+            if (Setup?.Details != null && Setup.Details.MatchId != 0)
             {
                 Info.Status = MatchStatus.Complete;
                 Info = Info;
-
-				controller.AttemptAPIResult ();
-                
+                controller.StartAttemptResult();
             }else
                 ProcessMatchResult(EMatchResult.Unknown);
         }
@@ -410,8 +405,8 @@ namespace WLNetwork.Matches
             if (Info.Status == MatchStatus.Play) return;
             if (controller != null)
             {
-                controller.instance.bot.dota.JoinBroadcastChannel();
-                controller.instance.bot.StartGame();
+                controller.instance.bot.DotaGCHandler.JoinBroadcastChannel();
+                controller.instance.StartMatch();
             }
             Setup.Details.Status = MatchSetupStatus.Done;
             Setup = Setup;
