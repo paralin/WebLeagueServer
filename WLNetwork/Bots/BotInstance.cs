@@ -312,11 +312,20 @@ namespace WLNetwork.Bots
                     log.DebugFormat("State {0} => {1}", oldState.ToString("G"), gs.ToString("G"));
                     oldState = gr.GameState.Value;
                 }
-                if (gs >= DOTA_GameState.DOTA_GAMERULES_STATE_HERO_SELECTION && !_hasSentHello)
+                if (gs >= DOTA_GameState.DOTA_GAMERULES_STATE_HERO_SELECTION && !_hasSentHello && !_inst.Details.IsRecovered)
                 {
                     _hasSentHello = true;
-                    Say(string.Format("Hello, welcome to {0} match {1}!", _inst.Details.GetGame().Info.League.ToUpper(), _inst.Details.Id.ToString().Substring(0,4)));
-                    log.DebugFormat("Sent message to all chat.");
+                    try
+                    {
+                        Say(string.Format("This is {0} match ID {1}!",
+                            Leagues.LeagueDB.Leagues[_inst.Details.GetGame().Info.League].Name.Replace("FPL",
+                                "FACEIT.com Pro League"), _inst.Details.Id.ToString().Substring(0, 4)));
+                        log.DebugFormat("Sent message to all chat.");
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Warn("Couldn't send welcome message.", ex);
+                    }
                 }
                 if (!hasSubmittedResult && gs >= DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME &&
                     (gr.GameWinner.Value == GameRules.DOTA_ServerTeam.RADIANT ||

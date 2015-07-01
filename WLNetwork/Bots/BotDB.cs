@@ -76,8 +76,8 @@ namespace WLNetwork.Bots
                     var game = setup.Details.GetGame();
                     if (game != null)
                     {
-                        game.controller = new BotController(setup.Details);
-                        game.controller.instance.Start();
+                        game.SetBotController(new BotController(setup.Details));
+                        game.GetBotController().instance.Start();
                     }
                     return;
                 }

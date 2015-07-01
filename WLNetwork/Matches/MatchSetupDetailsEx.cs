@@ -24,10 +24,10 @@ namespace WLNetwork.Matches
                 MatchSetup setup = game.Setup;
                 if (setup != null)
                 {
-                    if (game.controller != null)
+                    if (game.GetBotController() != null)
                     {
-                        game.controller.instance.Stop(true);
-                        game.controller = null;
+                        game.GetBotController().instance.Stop(true);
+                        game.SetBotController(null);
                     }
                     BotDB.SetupQueue.Remove(setup);
                     game.Setup = null;

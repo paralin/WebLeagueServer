@@ -467,10 +467,12 @@ namespace WLNetwork.Bots.LobbyBot
         {
             cb.Add<DotaGameClient.HandshakeRejected>(rej =>
             {
+                if (GameClient == null) return;
                 log.ErrorFormat("Connection to the game rejected with reason {0}. Attempts {1}/{2}.", rej.reason, _connAttempts, maxAttempts);
             });
             cb.Add<DotaGameClient.SessionStateTransition>(tra =>
             {
+                if (GameClient == null) return;
                 log.Debug("[GameClient] "+tra.OldStatus.ToString("G")+" => "+tra.NewStatus.ToString("G"));
 
                 if (tra.NewStatus == States.PLAY)
@@ -485,6 +487,7 @@ namespace WLNetwork.Bots.LobbyBot
             });
             cb.Add<DotaGameClient.LogMessage>(msg =>
             {
+                if (GameClient == null) return;
                 log.Debug("[GameClient] "+msg.message);
             });
         }

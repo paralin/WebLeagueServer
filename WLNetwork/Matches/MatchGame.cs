@@ -43,7 +43,9 @@ namespace WLNetwork.Matches
         private MatchSetup _setup;
         private ActiveMatch _activeMatch = null;
         private ConcurrentBag<string> forbidSids = new ConcurrentBag<string>(); 
-        public BotController controller = null;
+
+        private BotController controller = null;
+
 
         /// <summary>
         ///     This is for two picks in captains, set to true at start so first pick is just 1
@@ -611,6 +613,9 @@ namespace WLNetwork.Matches
                     case EMatchResult.Unknown:
                         reason = "unknown match result, admin will confirm result and apply rating";
                         break;
+                    case EMatchResult.DontCount:
+                        reason = "admin purging the game";
+                        break;
                 }
                 if(Info.League != null) ChatChannel.SystemMessage(Info.League, string.Format("Match not counted due to {0}.", reason));
             }
@@ -618,12 +623,29 @@ namespace WLNetwork.Matches
             Destroy();
         }
 
+        /// <summary>
+        /// Retreive the bot controller. Needed so it doesn't get serialized to JSON
+        /// </summary>
+        /// <returns></returns>
+        public BotController GetBotController()
+        {
+            return controller;
+        }
+
+        /// <summary>
+        /// Clear bot controller
+        /// </summary>
+        public void SetBotController(BotController controller)
+        {
+            this.controller = controller;
+        }
+
         public void AdminDestroy()
         {
             log.Debug("ADMIN DESTROY " + Id);
-            Matches.InvokeTo(m => m.Match == this,
-                new SystemMsg("Admin Closed Match", "An admin has destroyed the match you were in."), SystemMsg.Msg);
-            this.Destroy();
+            Matches.InvokeTo(m => m.Match == this, new SystemMsg("Admin Closed Match", "An admin has destroyed the match you were in."), SystemMsg.Msg);
+            if(Setup != null) ProcessMatchResult(EMatchResult.DontCount);
+            else Destroy();
         }
 
         /// <summary>
