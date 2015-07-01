@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using System.Timers;
 using Dota2.GC.Dota.Internal;
 using log4net;
-using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SteamKit2;
-using WLNetwork.BotEnums;
+using WLNetwork.Bots.LobbyBot.Enums;
 using WLNetwork.Chat;
 using WLNetwork.Database;
 using WLNetwork.Matches;
@@ -18,7 +18,6 @@ using WLNetwork.Model;
 using WLNetwork.Properties;
 using WLNetwork.Utils;
 using Timer = System.Timers.Timer;
-using Newtonsoft.Json.Linq;
 
 namespace WLNetwork.Bots
 {
@@ -38,7 +37,6 @@ namespace WLNetwork.Bots
             log = LogManager.GetLogger("BotController "+game.Id.ToString().Split('-')[0]);
 
             instance = new BotInstance(game);
-            instance.StateUpdate += StateUpdate;
             instance.PlayerReady += PlayerReady;
             instance.MatchId += MatchId;
             instance.LeaverStatus += LeaverStatus;
@@ -52,6 +50,16 @@ namespace WLNetwork.Bots
             instance.HeroId += HeroId;
 			instance.LobbyReady += LobbyReady;
 			instance.LobbyPlaying += LobbyPlaying;
+            instance.InvalidCreds += InvalidCreds;
+        }
+
+        private void InvalidCreds(object sender, EventArgs eventArgs)
+        {
+            log.Debug("Bot setup failed for " + game.Bot.Username + ", finding another...");
+            game.Bot.InUse = false;
+            game.Bot.Invalid = true;
+            Mongo.Bots.Save(game.Bot);
+            game.Cleanup();
         }
 
         private int matchResultAttempts = 0;
@@ -190,45 +198,22 @@ namespace WLNetwork.Bots
             if (hasStarted) return;
             hasStarted = true;
             var g =game.GetGame();
-            if (g != null)
-            {
-                game.GameStartTime = DateTime.UtcNow;
-                game.ServerSteamID = new SteamID(instance.bot.dota.Lobby.server_id).Render(true);
-                game.TransmitUpdate();
-                g.GameStarted();
-                g.KickSpectators();
-                g.SaveActiveGame();
-            }
+            if (g == null) return;
+            game.GameStartTime = DateTime.UtcNow;
+            game.ServerSteamID = new SteamID(instance.bot.DotaGCHandler.Lobby.server_id).Render(true);
+            game.TransmitUpdate();
+            g.GameStarted();
+            g.KickSpectators();
+            g.SaveActiveGame();
         }
 
         private void UnknownPlayer(object sender, ulong player)
         {
             if (game.Bot == null || game.Status == MatchSetupStatus.Done) return;
             log.Warn("Kicking unknown player "+player);
-            var memb = instance.bot.dota.Lobby.members.FirstOrDefault(m => m.id == player);
+            var memb = instance.bot.DotaGCHandler.Lobby.members.FirstOrDefault(m => m.id == player);
             if(memb != null) instance.bot.SendLobbyMessage("Kicked "+memb.name+" from the lobby.");
-            instance.bot.dota.KickPlayerFromLobby(player.ToAccountID());
-        }
-
-        public void StateUpdate(object sender, States states)
-        {
-            lock (game)
-            {
-                if(game.Bot != null)
-                    log.Debug(game.Bot.Username + " -> state => " + states);
-                switch (states)
-                {
-                    case States.DisconnectNoRetry:
-                    {
-                        log.Debug("Bot setup failed for " + game.Bot.Username + ", finding another...");
-                        game.Bot.InUse = false;
-                        game.Bot.Invalid = true;
-                        Mongo.Bots.Save(game.Bot);
-                        game.Cleanup();
-                        break;
-                    }
-                }
-            }
+            instance.bot.DotaGCHandler.KickPlayerFromLobby(player.ToAccountID());
         }
 
         private bool lobbyReadySent = false;
@@ -325,23 +310,32 @@ namespace WLNetwork.Bots
                 g.Info.Status = Matches.Enums.MatchStatus.Complete;
                 g.Info = g.Info;
 
-                if (!outcomeProcessed && !startedResultCheck)
+                Task.Run(() =>
                 {
-                    startedResultCheck = true;
-                    Task.Run(() =>
-                    {
-                        Thread.Sleep(1500);
-                        if (!outcomeProcessed) AttemptAPIResult();
-                    });
-                }
+                    Thread.Sleep(1500);
+                    StartAttemptResult();
+                });
             }
             else g.Setup = g.Setup;
         }
 
         /// <summary>
+        /// Start attempting to fetch the result
+        /// </summary>
+        public void StartAttemptResult()
+        {
+            if (outcomeProcessed || startedResultCheck) return;
+            startedResultCheck = true;
+            Task.Run(() =>
+            {
+                if (!outcomeProcessed) AttemptAPIResult();
+            });
+        }
+
+        /// <summary>
         /// Attempt to fetch from web api
         /// </summary>
-        private async void AttemptAPIResult()
+        public async void AttemptAPIResult()
         {
             MatchGame g = game.GetGame();
             if (g == null || outcomeProcessed) return;
@@ -400,13 +394,10 @@ namespace WLNetwork.Bots
             if (outcomeProcessed || game.MatchId == 0)
                 return;
             outcomeProcessed = true;
-            matchResultTimeout.Start();
-            if (game.Bot == null) return;
+            startedResultCheck = true;
+            matchResultTimeout.Stop();
             MatchGame g = game.GetGame();
-            if (g != null)
-            {
-                g.ProcessMatchResult(args);
-            }
+            g?.ProcessMatchResult(args);
         }
     }
 }
