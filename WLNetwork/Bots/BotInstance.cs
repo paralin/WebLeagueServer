@@ -178,8 +178,10 @@ namespace WLNetwork.Bots
                         };
                         if (LeaverStatus != null) LeaverStatus(this, args);
                     }
+#if DUMP_LOBBY_POSTGAME
                     else if (lobby.game_state >= DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME)
                         log.Debug(JObject.FromObject(lobby).ToString(Formatting.Indented));
+#endif
 
                     if (lobby.state == CSODOTALobby.State.RUN)
                         if (LobbyPlaying != null) LobbyPlaying(this, EventArgs.Empty);
@@ -313,7 +315,7 @@ namespace WLNetwork.Bots
                 if (gs >= DOTA_GameState.DOTA_GAMERULES_STATE_HERO_SELECTION && !_hasSentHello)
                 {
                     _hasSentHello = true;
-                    Say("Hello, welcome to DOTA!");
+                    Say(string.Format("Hello, welcome to {0} match {1}!", _inst.Details.GetGame().Info.League.ToUpper(), _inst.Details.Id.ToString().Substring(0,4)));
                     log.DebugFormat("Sent message to all chat.");
                 }
                 if (!hasSubmittedResult && gs >= DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME &&
@@ -332,24 +334,32 @@ namespace WLNetwork.Bots
                         if (gr.PauseTeam.Value == GameRules.DOTA_ServerTeam.DIRE ||
                             gr.PauseTeam.Value == GameRules.DOTA_ServerTeam.RADIANT)
                         {
-                            Say("The game is already paused by " +
+                            Say("The game was paused by " +
                                 (gr.PauseTeam.Value == GameRules.DOTA_ServerTeam.RADIANT ? "radiant." : "dire."));
                         }
+#if ENABLE_PAUSE_COMMAND
                         else
                         {
                             Say("Pausing the game by request from " + msg.prefix + "!");
                             _commander.Submit("dota_pause");
                         }
-                    }else if (msg.text.Contains("!whoami"))
+#endif
+                    }
+#if ENABLE_WHOAMI
+                    else if (msg.text.Contains("!whoami"))
                     {
                         Say("You are "+msg.prefix+"!");
-                    }else if (msg.text.Contains("!time"))
+                    }
+#endif
+#if ENABLE_GAMETIME
+                    else if (msg.text.Contains("!time"))
                     {
                         Say("Current game time is "+gr.GameTime.Value+", game started at "+gr.GameStartTime.Value+".");
                     }else if (msg.text.Contains("!timeofday"))
                     {
                         Say("Time of day is: "+gr.NetTimeOfDay.Value);
                     }
+#endif
                 }
                 _state.ChatMessages.Clear();
                 foreach (var msg in _state.ChatEvents)
@@ -357,6 +367,7 @@ namespace WLNetwork.Bots
                     log.Debug("[CHATEVENT] " + msg.type.ToString("G") + ": " + msg.value);
                     switch (msg.type)
                     {
+#if ENABLE_UNNECESSARY_ALLCHAT
                         case DOTA_CHAT_MESSAGE.CHAT_MESSAGE_FIRSTBLOOD:
                             Say("Nice firstblood Kappa.");
                             break;
@@ -370,6 +381,7 @@ namespace WLNetwork.Bots
                         case DOTA_CHAT_MESSAGE.CHAT_MESSAGE_TOWER_KILL:
                             Say("Boom! The tower went down.");
                             break;
+#endif
                     }
                 }
                 _state.ChatEvents.Clear();
