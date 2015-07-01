@@ -402,7 +402,7 @@ namespace WLNetwork.Bots
             if (outcomeProcessed || game.MatchId == 0)
                 return;
             outcomeProcessed = true;
-            matchResultTimeout.Start();
+            matchResultTimeout.Stop();
             if (game.Bot == null) return;
             MatchGame g = game.GetGame();
             if (g != null)
