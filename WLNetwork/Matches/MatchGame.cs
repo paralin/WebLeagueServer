@@ -546,10 +546,8 @@ namespace WLNetwork.Matches
 
             if (countMatch)
             {
-                foreach (
-                    Controllers.Matches c in
-                        Players.Select(player => Matches.Find(m => m.User != null && m.User.steam.steamid == player.SID))
-                            .SelectMany(cont => cont))
+                var plyrsids = Players.Select(m => m.SID);
+                foreach (Controllers.Matches c in Matches.Find(m=>m.User != null && (plyrsids.Contains(m.User.steam.steamid) || m.User.authItems.Contains("admin") || m.User.authItems.Contains("spectateOnly"))))
                 {
                     c.Result = result;
                 }

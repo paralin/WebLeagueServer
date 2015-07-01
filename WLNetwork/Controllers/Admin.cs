@@ -2,15 +2,12 @@ using System.Linq;
 using System.Reflection;
 using Dota2.GC.Dota.Internal;
 using log4net;
+using MongoDB.Driver.Builders;
+using WLNetwork.Database;
 using WLNetwork.Matches;
 using WLNetwork.Matches.Methods;
 using XSockets.Core.Common.Socket.Attributes;
-using WLNetwork.Database;
-using MongoDB;
-using MongoDB.Bson;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
-using MongoDB.Driver.Builders;
+using MatchType = WLNetwork.Matches.Enums.MatchType;
 
 namespace WLNetwork.Controllers
 {
@@ -72,9 +69,9 @@ namespace WLNetwork.Controllers
 				return "Unable to find that match result.";
 			if (res.Result == args.Result)
 				return "The result is already set to that.";
-			if (res.Result == EMatchResult.DontCount && res.MatchType == WLNetwork.Matches.Enums.MatchType.OneVsOne)
+			if (res.Result == EMatchResult.DontCount && res.MatchType == MatchType.OneVsOne)
 				return "Cannot count this match.";
-			if (res.MatchType == WLNetwork.Matches.Enums.MatchType.OneVsOne) 
+			if (res.MatchType == MatchType.OneVsOne) 
 			{
 				res.Result = EMatchResult.DontCount;
 				res.Save ();
