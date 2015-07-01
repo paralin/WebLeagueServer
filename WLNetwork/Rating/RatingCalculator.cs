@@ -104,17 +104,26 @@ namespace WLNetwork.Rating
 
             foreach (var plyr in data.Players.Where(m => m.Team == MatchTeam.Dire || m.Team == MatchTeam.Radiant))
             {
-                double wsf = 1.0 + (0.1*plyr.WinStreakBefore);
-                double f2 = ((double) (elofp - plyr.RatingBefore))/600.0*32.0;
-
                 // If they won
                 if ((plyr.Team == MatchTeam.Dire && !good_guys_win) || (plyr.Team == MatchTeam.Radiant && good_guys_win))
                 {
+                    double wsf = 1.0 + (0.1*((double)plyr.WinStreakBefore));
+                    double f2 = ((double) (elofp - plyr.RatingBefore))/600.0*32.0;
                     plyr.RatingChange = (int) Math.Round((plyr.RatingChange + f2)*wsf);
                 }
                 else
                 {
-                    plyr.RatingChange = (int)Math.Round(Math.Min(-1.0, f2 + (double)plyr.RatingChange));
+                    //plyr.RatingChange = (int)Math.Round(Math.Min(-1.0, f2 + (double)plyr.RatingChange));
+
+                    int f2 = 0;
+                    double fpdiff = (double) (elofp - plyr.RatingBefore);
+                    if (fpdiff < 100)
+                    {
+                        // Lose extra, 15 maximum
+                        f2 = (int) -Math.Round((fpdiff/100.0)*15.0);
+                    }
+
+                    plyr.RatingChange = (int)Math.Min(plyr.RatingChange, f2 + plyr.RatingChange);
                 }
             }
 #endif
