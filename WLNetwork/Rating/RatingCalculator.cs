@@ -92,12 +92,16 @@ namespace WLNetwork.Rating
             // rating of the first place player
             var plyrs =
                 MemberDB.Members.Values.Where(
-                    m => m.LeagueProfiles != null && m.LeagueProfiles.ContainsKey(data.League + ":" + data.LeagueSeason)).ToArray();
+                    m => m.LeagueProfiles != null && m.LeagueProfiles.ContainsKey(data.League + ":" + data.LeagueSeason)).Select(m=>m.LeagueProfiles[data.League+":"+data.LeagueSeason]).ToArray();
 
             int elofp = BaseMmr;
+            //int eloavg = BaseMmr;
+            int elomin = BaseMmr;
             if (plyrs.Any())
             {
-                elofp = plyrs.Max(m => m.LeagueProfiles[data.League + ":" + data.LeagueSeason].rating);
+                elofp = plyrs.Max(m => m.rating);
+                //eloavg = (int)Math.Round(plyrs.Average(m => m.rating));
+                elomin = plyrs.Min(m => m.rating);
             }
 
             var good_guys_win = data.Result == EMatchResult.RadVictory;
@@ -107,23 +111,15 @@ namespace WLNetwork.Rating
                 // If they won
                 if ((plyr.Team == MatchTeam.Dire && !good_guys_win) || (plyr.Team == MatchTeam.Radiant && good_guys_win))
                 {
+                    int f2 = (int)Math.Round(((elofp - plyr.RatingBefore)) / 600.0 * 32.0);
                     double wsf = 1.0 + (0.1*((double)plyr.WinStreakBefore));
-                    double f2 = ((double) (elofp - plyr.RatingBefore))/600.0*32.0;
                     plyr.RatingChange = (int) Math.Round((plyr.RatingChange + f2)*wsf);
                 }
                 else
                 {
                     //plyr.RatingChange = (int)Math.Round(Math.Min(-1.0, f2 + (double)plyr.RatingChange));
-
-                    int f2 = 0;
-                    double fpdiff = (double) (elofp - plyr.RatingBefore);
-                    if (fpdiff < 100)
-                    {
-                        // Lose extra, 15 maximum
-                        f2 = (int) -Math.Round((fpdiff/100.0)*15.0);
-                    }
-
-                    plyr.RatingChange = (int)Math.Min(plyr.RatingChange, f2 + plyr.RatingChange);
+                    int f2 = (int)Math.Round(((double)(plyr.RatingBefore - elomin))/600.0*32.0);
+                    plyr.RatingChange = (int)Math.Min(plyr.RatingChange, (-f2) + plyr.RatingChange);
                 }
             }
 #endif
