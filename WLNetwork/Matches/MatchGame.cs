@@ -529,8 +529,6 @@ namespace WLNetwork.Matches
                         .ToArray(),
                 Result = outcome,
                 MatchCounted = countMatch && Info.MatchType != MatchType.OneVsOne,
-                RatingDire = 0,
-                RatingRadiant = 0,
                 MatchType = Info.MatchType,
                 League = Info.League,
                 LeagueSeason = Info.LeagueSeason,
@@ -541,13 +539,7 @@ namespace WLNetwork.Matches
 			if (countMatch && Info.MatchType != MatchType.OneVsOne) {
 				RatingCalculator.CalculateRatingDelta (result);
 
-				#if ENABLE_LEAVER_PENALTY
-            var me = Match.Players.FirstOrDefault(m=>m.SID == User.steam.steamid);
-            if (me != null && me.IsCaptain) return "You are not the host of this game.";
-            result.ApplyRating(true);
-				#else
-				result.ApplyRating (false, Info.SecondaryLeagueSeason.Concat (new [] { Info.LeagueSeason }));
-				#endif
+				result.ApplyRating (Info.SecondaryLeagueSeason.Concat (new [] { Info.LeagueSeason }));
 			}
 
             result.Save();
@@ -562,13 +554,6 @@ namespace WLNetwork.Matches
                     c.Result = result;
                 }
 
-                #if ENABLE_LEAVER_PENALTY
-                var leavers = Setup.Details.Players.Where(m => m.IsLeaver).ToArray();
-                if (leavers.Length > 0)
-                    ChatChannel.GlobalSystemMessage(" Punishing leaver(s) " +
-                                                    string.Join(", ", leavers.Select(m => m.Name)) +
-                                                    " with an abandon and -25 rating.");
-                #endif
                 var completeMsg = "Match " + Id.ToString().Substring(0, 4) + " (MatchID " + Setup.Details.MatchId +
                                   ") "+(manualResult ? "admin resulted" : "completed")+" with ";
                 if(Info.MatchType != MatchType.OneVsOne) completeMsg +=

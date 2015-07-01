@@ -64,25 +64,9 @@ namespace WLNetwork.Matches
         public bool MatchCounted { get; set; }
 
         /// <summary>
-        ///     Rating change for dire
-        /// </summary>
-        public int RatingDire { get; set; }
-
-        /// <summary>
-        ///     Rating change for radiant
-        /// </summary>
-        public int RatingRadiant { get; set; }
-
-        /// <summary>
         ///     Match type
         /// </summary>
         public MatchType MatchType { get; set; }
-
-        /// <summary>
-        ///     Rating change overall
-        /// </summary>
-        /// <value>The rating delta.</value>
-        public int RatingDelta { get; set; }
 
         /// <summary>
         /// Bonus delta for streak ended, already applied to rating
@@ -112,6 +96,19 @@ namespace WLNetwork.Matches
         public Dictionary<string, uint> EndedWinStreaks { get; set; }
 
         /// <summary>
+        /// Completely undo all changes made by saving the game
+        /// </summary>
+        public void VoidGame(EMatchResult nres, IEnumerable<uint> seasons)
+        {
+            // Reverse rating and don't add w/l but reverse old rating
+            ApplyToUsers(Result, seasons, true, false, false, true);
+            
+            MatchCounted = false;
+            Result = nres;
+            StreakEndedRating = 0;
+        }
+
+        /// <summary>
         /// Adjusts the result.
         /// </summary>
         /// <param name="newResult">New result.</param>
@@ -121,104 +118,75 @@ namespace WLNetwork.Matches
                 LeagueSecondarySeasons = new uint[0];
 
             var seasons = LeagueSecondarySeasons.Concat(new uint[] { LeagueSeason });
-            int ratingChangeDire;
-            int ratingChangeRadiant;
             if ((Result == EMatchResult.DireVictory && newResult == EMatchResult.RadVictory) || (Result == EMatchResult.RadVictory && newResult == EMatchResult.DireVictory))
             {
-                ratingChangeDire = (-RatingDire) + RatingRadiant;
-                ratingChangeRadiant = (-RatingRadiant) + RatingDire;
-
-                var rad = RatingRadiant;
-                RatingRadiant = RatingDire;
-                RatingDire = rad;
+                VoidGame(EMatchResult.Unknown, seasons);
 
                 Result = newResult;
                 MatchCounted = true;
                 RatingCalculator.CalculateRatingDelta(this);
 
-                ApplyToUsers(ratingChangeRadiant, ratingChangeDire, newResult, seasons, false, true, false);
+                ApplyToUsers(newResult, seasons, false, false, true, false);
                 return true;
             }
             else if ((Result == EMatchResult.Unknown || Result == EMatchResult.DontCount) && (newResult == EMatchResult.RadVictory || newResult == EMatchResult.DireVictory))
             {
                 MatchCounted = true;
                 Result = newResult;
+
                 RatingCalculator.CalculateRatingDelta(this);
-                ApplyRating(false, seasons, true);
+
+                ApplyRating(seasons, true);
                 return true;
             }else if ((Result == EMatchResult.DireVictory || Result == EMatchResult.RadVictory) && (newResult == EMatchResult.DontCount || newResult == EMatchResult.Unknown))
             {
-                ratingChangeDire = (-RatingDire);
-                ratingChangeRadiant = (-RatingRadiant);
-
-                RatingDire = RatingRadiant = 0;
-
-                ApplyToUsers(ratingChangeRadiant, ratingChangeDire, Result == EMatchResult.DireVictory ? EMatchResult.RadVictory : EMatchResult.DireVictory, seasons, false, true, false, false);
-
-                MatchCounted = false;
-                Result = newResult;
-                RatingDelta = 0;
-
+                VoidGame(newResult, seasons);
                 return true;
             }
             return false;
         }
 
-        private void ApplyToUsers(int ratingRadiant, int ratingDire, EMatchResult result, IEnumerable<uint> seasons, bool punishLeavers = false, bool reverseWL = false, bool changeWinStreak = true, bool addWL = true)
+        private void ApplyToUsers(EMatchResult result, IEnumerable<uint> seasons, bool reverseWL = false, bool changeWinStreak = true, bool addWL = true, bool reverseRating=false)
         {
-            foreach (var season in seasons)
+            foreach (var player in Players)
             {
-                string idstr = League + ":" + season;
-                var radUpdate = Update.Inc("profile.leagues." + idstr + ".rating", ratingRadiant);
-                var direUpdate = Update.Inc("profile.leagues." + idstr + ".rating", ratingDire);
-
-                if (result == EMatchResult.RadVictory)
+                UpdateBuilder update = new UpdateBuilder();
+                foreach (var season in seasons)
                 {
-                    if(addWL)
-                        radUpdate = radUpdate.Inc("profile.leagues." + idstr + ".wins", 1u);
-                    if (changeWinStreak)
-                        radUpdate = radUpdate.Inc("profile.leagues." + idstr + ".winStreak", 1u);
-                    if(addWL)
-                        direUpdate = direUpdate.Inc("profile.leagues." + idstr + ".losses", 1u);
-                    if (changeWinStreak)
-                        direUpdate = direUpdate.Set("profile.leagues." + idstr + ".winStreak", 0u);
-                    if (reverseWL)
-                        direUpdate.Inc("profile.leagues." + idstr + ".wins", -1);
-                }
-                else if (result == EMatchResult.DireVictory)
-                {
-                    if(addWL)
-                        radUpdate = radUpdate.Inc("profile.leagues." + idstr + ".losses", 1);
-                    if (changeWinStreak)
-                        radUpdate = radUpdate.Set("profile.leagues." + idstr + ".winStreak", 0u);
-                    if(addWL)
-                        direUpdate =
-                            direUpdate.Inc("profile.leagues." + idstr + ".wins", 1);
-                    if (changeWinStreak)
-                        direUpdate = direUpdate.Inc("profile.leagues." + idstr + ".winStreak", 1u);
-                    if (reverseWL)
-                        direUpdate.Inc("profile.leagues." + idstr + ".losses", -1);
-                }
+                    string idstr = League + ":" + season;
+                    string lroot = "profile.leagues." + idstr;
 
+                    update = Update.Inc(lroot + ".rating", (player.RatingChange*(reverseRating ? -1 : 1)));
+
+                    if ((result == EMatchResult.RadVictory && player.Team == MatchTeam.Radiant) || (result == EMatchResult.DireVictory && player.Team == MatchTeam.Dire)) // if they won
+                    {
+                        if (addWL)
+                            update = update.Inc(lroot + ".wins", 1u);
+                        if (changeWinStreak)
+                            update = update.Inc(lroot + ".winStreak", 1u);
+                        if (reverseWL)
+                            update = update.Inc(lroot + ".losses", -1);
+                    }
+                    else if ((result == EMatchResult.DireVictory && player.Team == MatchTeam.Radiant) || (result == EMatchResult.RadVictory && player.Team == MatchTeam.Dire))
+                    {
+                        if (addWL)
+                            update = update.Inc(lroot + ".losses", 1);
+                        if (changeWinStreak)
+                            update = update.Set(lroot + ".winStreak", 0u);
+                        if (reverseWL)
+                            update = update.Inc(lroot + ".wins", -1);
+                    }
+                }
                 lock (Mongo.ExclusiveLock)
                 {
                     Mongo.Users.Update(
-                        Query.In("steam.steamid",
-                            Players.Where(m => m.Team == MatchTeam.Radiant && (!punishLeavers || !m.IsLeaver))
-                            .Select(m => new BsonString(m.SID))
-                            .ToArray()),
-                        radUpdate, UpdateFlags.Multi);
-                    Mongo.Users.Update(
-                        Query.In("steam.steamid",
-                            Players.Where(m => m.Team == MatchTeam.Dire && (!punishLeavers || !m.IsLeaver))
-                            .Select(m => new BsonString(m.SID))
-                            .ToArray()),
-                        direUpdate, UpdateFlags.Multi);
+                        Query.EQ("steam.steamid", player.SID),
+                        update);
                 }
             }
         }
 
-        public void ApplyRating(bool punishLeavers, IEnumerable<uint> seasons, bool ignoreWinStreaks = false)
+        public void ApplyRating(IEnumerable<uint> seasons, bool ignoreWinStreaks = false)
         {
             if (MatchCounted)
             {
@@ -228,19 +196,23 @@ namespace WLNetwork.Matches
                     foreach (var plyr in Players.Where(m => m.Team == (Result == EMatchResult.RadVictory ? MatchTeam.Dire : MatchTeam.Radiant) && m.WinStreakBefore > 0))
                         EndedWinStreaks[plyr.SID] = plyr.WinStreakBefore;
 
-                if (EndedWinStreaks.Values.Count > 0)
+                if (EndedWinStreaks.Values.Count > 0 && !ignoreWinStreaks)
                 {
                     var max = EndedWinStreaks.Max(m => m.Value);
                     if (max >= Settings.Default.MinWinStreakForRating)
                     {
                         StreakEndedRating = (uint)Math.Floor((Math.Log10((max - 2) * 0.02d) + 2.0d) * 10.0d);
-                        if (Result == EMatchResult.DireVictory) RatingDire += (int)StreakEndedRating;
-                        else RatingRadiant += (int)StreakEndedRating;
+                        foreach (
+                            var player in
+                                Players.Where(
+                                    m =>
+                                        (m.Team == MatchTeam.Dire && Result == EMatchResult.DireVictory) ||
+                                        (m.Team == MatchTeam.Radiant && Result == EMatchResult.RadVictory)))
+                            player.RatingChange += (int)StreakEndedRating;
                     }
                 }
 
-
-                ApplyToUsers(RatingRadiant, RatingDire, Result, seasons, punishLeavers);
+                ApplyToUsers(Result, seasons);
 
             }
 

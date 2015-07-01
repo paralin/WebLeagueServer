@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Dota2.GC.Dota.Internal;
+using WLNetwork.Chat;
 using WLNetwork.Matches;
 using WLNetwork.Matches.Enums;
 
@@ -50,8 +51,7 @@ namespace WLNetwork.Rating
                 data.Players.Count(m => m.Team == MatchTeam.Dire) == 0 ||
                 data.Players.Count(m => m.Team == MatchTeam.Radiant) == 0)
             {
-                data.RatingDire = 0;
-                data.RatingRadiant = 0;
+                foreach (var plyr in data.Players) plyr.RatingChange = 0;
                 return;
             }
 
@@ -83,9 +83,41 @@ namespace WLNetwork.Rating
                 incDire = (int) Math.Round(direFactor.Factor*(1.0 - direWinProb));
             }
 
-            data.RatingDire = incDire;
-            data.RatingRadiant = incRadiant;
-            data.RatingDelta = Math.Abs(incDire);
+            foreach (var plyr in data.Players.Where(m => m.Team == MatchTeam.Dire)) plyr.RatingChange = incDire;
+            foreach (var plyr in data.Players.Where(m => m.Team == MatchTeam.Radiant)) plyr.RatingChange = incRadiant;
+
+#if !DISABLE_SECOND_FACTOR
+            //Now apply second factor
+
+            // rating of the first place player
+            var plyrs =
+                MemberDB.Members.Values.Where(
+                    m => m.LeagueProfiles != null && m.LeagueProfiles.ContainsKey(data.League + ":" + data.LeagueSeason)).ToArray();
+
+            int elofp = BaseMmr;
+            if (plyrs.Any())
+            {
+                elofp = plyrs.Max(m => m.LeagueProfiles[data.League + ":" + data.LeagueSeason].rating);
+            }
+
+            var good_guys_win = data.Result == EMatchResult.RadVictory;
+
+            foreach (var plyr in data.Players.Where(m => m.Team == MatchTeam.Dire || m.Team == MatchTeam.Radiant))
+            {
+                double wsf = 1.0 + (0.1*plyr.WinStreakBefore);
+                double f2 = ((double) (elofp - plyr.RatingBefore))/600.0*32.0;
+
+                // If they won
+                if ((plyr.Team == MatchTeam.Dire && !good_guys_win) || (plyr.Team == MatchTeam.Radiant && good_guys_win))
+                {
+                    plyr.RatingChange = (int) Math.Round((plyr.RatingChange + f2)*wsf);
+                }
+                else
+                {
+                    plyr.RatingChange = (int)Math.Round(Math.Min(-1.0, f2 + (double)plyr.RatingChange));
+                }
+            }
+#endif
         }
 
         private struct KFactor
