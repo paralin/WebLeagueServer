@@ -24,6 +24,56 @@
             List of league admins in this lobby.
             </summary>
         </member>
+        <member name="T:Dota2.Datagram.Config.Model.NetworkConfig">
+            <summary>
+            Steam Datagram network config
+            </summary>
+        </member>
+        <member name="P:Dota2.Datagram.Config.Model.NetworkConfig.revision">
+            <summary>
+            Revision of the config
+            </summary>
+        </member>
+        <member name="P:Dota2.Datagram.Config.Model.NetworkConfig.data_centers">
+            <summary>
+            Datacenter definitions
+            </summary>
+        </member>
+        <member name="P:Dota2.Datagram.Config.Model.NetworkConfig.routing_clusters">
+            <summary>
+            Routing cluster definitions
+            </summary>
+        </member>
+        <member name="T:Dota2.Datagram.Config.Model.NetworkDatacenter">
+            <summary>
+            Steam Datagram datacenter definition
+            </summary>
+        </member>
+        <member name="P:Dota2.Datagram.Config.Model.NetworkDatacenter.lat">
+            <summary>
+            Latitude of the datacenter
+            </summary>
+        </member>
+        <member name="P:Dota2.Datagram.Config.Model.NetworkDatacenter.lon">
+            <summary>
+            Longitude of the datacenter
+            </summary>
+        </member>
+        <member name="P:Dota2.Datagram.Config.Model.NetworkDatacenter.address_ranges">
+            <summary>
+            IP address ranges of the datacenter
+            </summary>
+        </member>
+        <member name="T:Dota2.Datagram.Config.Model.NetworkRoutingCluster">
+            <summary>
+            Routing cluster definition
+            </summary>
+        </member>
+        <member name="P:Dota2.Datagram.Config.Model.NetworkRoutingCluster.addresses">
+            <summary>
+            Address range of the cluster
+            </summary>
+        </member>
         <member name="T:Dota2.GC.DotaExtensions">
             <summary>
             General Linq extensions for Dota2.
@@ -43,6 +93,53 @@
             <param name="data">Binary data array.</param>
             <typeparam name="T">The protobuf type to deserialize.</typeparam>
             <returns></returns>
+        </member>
+        <member name="T:Dota2.CDN.DotaCDN">
+            <summary>
+            Interacts with the DOTA 2 CDN
+            </summary>
+        </member>
+        <member name="M:Dota2.CDN.DotaCDN.GetHostname(Dota2.CDN.DotaCDN.CDNType)">
+            <summary>
+            Gets the CDN Hostname for a CDN type
+            </summary>
+            <param name="type">CDN type</param>
+            <returns></returns>
+        </member>
+        <member name="M:Dota2.CDN.DotaCDN.StaticDataPath(Dota2.CDN.DotaCDN.CDNData,Dota2.Base.Data.Games)">
+            <summary>
+            Build the URL to something static in the CDN
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Dota2.CDN.DotaCDN.DatagramNetworkConfig(Dota2.CDN.DotaCDN.CDNType,Dota2.Base.Data.Games)">
+            <summary>
+            Builds the URL to the Steam Datagram network config file.
+            </summary>
+            <param name="type"></param>
+            <param name="game"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Dota2.CDN.DotaCDN.GetNetworkConfig(Dota2.CDN.DotaCDN.CDNType,Dota2.Base.Data.Games)">
+            <summary>
+            Retreive the network config from the DOTA 2 CDN
+            </summary>
+            <returns>Network config on success, null otherwise.</returns>
+        </member>
+        <member name="T:Dota2.CDN.DotaCDN.CDNType">
+            <summary>
+            CDN type
+            </summary>
+        </member>
+        <member name="T:Dota2.CDN.DotaCDN.CDNData">
+            <summary>
+            Known data on the CDN with constant paths
+            </summary>
+        </member>
+        <member name="F:Dota2.CDN.DotaCDN.CDNData.DATAGRAM_NETWORK_CONFIG">
+            <summary>
+            Steam Datagram network config
+            </summary>
         </member>
         <member name="T:Dota2.Engine.DotaGameClient">
             <summary>
