@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Reflection;
+using Dota2.GC.Dota.Internal;
 using log4net;
 using WLNetwork.Matches;
 using WLNetwork.Matches.Methods;
@@ -42,6 +43,21 @@ namespace WLNetwork.Controllers
             if (match == null) return;
             match.AdminDestroy();
         }
+
+        /// <summary>
+        /// Manually result a match
+        /// </summary>
+        /// <param name="args"></param>
+        public void ResultMatch(ResultMatchArgs args)
+        {
+            if (args.Result == EMatchResult.DontCount || args.Result == EMatchResult.Unknown) return;
+            var match = MatchesController.Games.FirstOrDefault(m => m.Id == args.Id);
+            if (match == null) return;
+            if (match.Setup == null || match.Setup.Details.State != DOTA_GameState.DOTA_GAMERULES_STATE_GAME_IN_PROGRESS)
+                return;
+            match.ProcessMatchResult(args.Result, true);
+        }
+
 
         /// <summary>
         /// Changes match result

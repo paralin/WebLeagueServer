@@ -505,10 +505,8 @@ namespace WLNetwork.Matches
         ///     Complete the game
         /// </summary>
         /// <param name="outcome"></param>
-        /// <param name="match"></param>
-        /// <param name="matchId"></param>
-        /// <param name="noFetchResult">Do not attempt to fetch result again</param>
-        public void ProcessMatchResult(EMatchResult outcome)
+        /// <param name="manualResult">was an admin result</param>
+        public void ProcessMatchResult(EMatchResult outcome, bool manualResult = false)
         {
             if (!MatchesController.Games.Contains(this))
                 return;
@@ -519,7 +517,7 @@ namespace WLNetwork.Matches
             var countMatch = (outcome == EMatchResult.DireVictory ||
                               outcome == EMatchResult.RadVictory);
 
-			log.Debug("PROCESSING RESULT " + matchId + " WITH " + outcome.ToString("G"));
+			log.Debug("PROCESSING "+(manualResult ? "ADMIN " : "")+"RESULT " + matchId + " WITH " + outcome.ToString("G"));
             var result = new MatchResult
             {
                 Id = matchId,
@@ -572,7 +570,7 @@ namespace WLNetwork.Matches
                                                     " with an abandon and -25 rating.");
                 #endif
                 var completeMsg = "Match " + Id.ToString().Substring(0, 4) + " (MatchID " + Setup.Details.MatchId +
-                                  ") completed with ";
+                                  ") "+(manualResult ? "admin resulted" : "completed")+" with ";
                 if(Info.MatchType != MatchType.OneVsOne) completeMsg +=
                                   (outcome == EMatchResult.DireVictory
                                       ? "dire victory."

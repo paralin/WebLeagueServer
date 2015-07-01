@@ -11,4 +11,10 @@ namespace WLNetwork.Matches.Methods
     {
         public Guid Id { get; set; }
     }
+
+    public class ResultMatchArgs
+    {
+        public Guid Id { get; set; }
+        public EMatchResult Result { get; set; }
+    }
 }
