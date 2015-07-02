@@ -177,7 +177,7 @@ namespace WLNetwork.Matches
                     string idstr = League + ":" + season;
                     string lroot = "profile.leagues." + idstr;
 
-                    update = Update.Inc(lroot + ".rating", (player.RatingChange*(reverseRating ? -1 : 1)));
+                    update = update.Inc(lroot + ".rating", (player.RatingChange*(reverseRating ? -1 : 1)));
 
                     if ((result == EMatchResult.RadVictory && player.Team == MatchTeam.Radiant) || (result == EMatchResult.DireVictory && player.Team == MatchTeam.Dire)) // if they won
                     {
