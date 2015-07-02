@@ -17,4 +17,9 @@ namespace WLNetwork.Matches.Methods
         public Guid Id { get; set; }
         public EMatchResult Result { get; set; }
     }
+
+    public class RecalculateMatchArgs
+    {
+        public long Id { get; set; }
+    }
 }

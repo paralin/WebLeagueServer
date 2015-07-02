@@ -55,6 +55,23 @@ namespace WLNetwork.Controllers
             match.ProcessMatchResult(args.Result, true);
         }
 
+        /// <summary>
+        /// Recalculate a match result
+        /// </summary>
+        /// <param name="args"></param>
+        public void RecalculateMatch(RecalculateMatchArgs args)
+        {
+            var res = Mongo.Results.FindOneAs<MatchResult>(Query.EQ("_id", args.Id));
+            if (res == null)
+            {
+                log.Warn("Can't find match "+args.Id+", not re-calculating.");
+                return;
+            }
+
+            log.Info("Recalculating result "+args.Id+" on request of admin.");
+            res.RecalculateResult();
+        }
+
 
         /// <summary>
         /// Changes match result

@@ -539,7 +539,7 @@ namespace WLNetwork.Matches
 			if (countMatch && Info.MatchType != MatchType.OneVsOne) {
 				RatingCalculator.CalculateRatingDelta (result);
 
-				result.ApplyRating (Info.SecondaryLeagueSeason.Concat (new [] { Info.LeagueSeason }));
+				result.ApplyRating (Info.SecondaryLeagueSeason.Concat (new [] { Info.LeagueSeason }).ToArray());
 			}
 
             result.Save();

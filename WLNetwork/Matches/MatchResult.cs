@@ -117,7 +117,7 @@ namespace WLNetwork.Matches
             if (LeagueSecondarySeasons == null)
                 LeagueSecondarySeasons = new uint[0];
 
-            var seasons = LeagueSecondarySeasons.Concat(new uint[] { LeagueSeason });
+            var seasons = LeagueSecondarySeasons.Concat(new uint[] { LeagueSeason }).ToArray();
             if ((Result == EMatchResult.DireVictory && newResult == EMatchResult.RadVictory) || (Result == EMatchResult.RadVictory && newResult == EMatchResult.DireVictory))
             {
                 VoidGame(EMatchResult.Unknown, seasons);
@@ -146,7 +146,28 @@ namespace WLNetwork.Matches
             return false;
         }
 
-        private void ApplyToUsers(EMatchResult result, IEnumerable<uint> seasons, bool reverseWL = false, bool changeWinStreak = true, bool addWL = true, bool reverseRating=false)
+        /// <summary>
+        /// Recalculate a match result
+        /// </summary>
+        public void RecalculateResult()
+        {
+            if (Result != EMatchResult.DireVictory && Result != EMatchResult.RadVictory) return;
+
+            if (LeagueSecondarySeasons == null)
+                LeagueSecondarySeasons = new uint[0];
+
+            var seasons = LeagueSecondarySeasons.Concat(new uint[] { LeagueSeason }).ToArray();
+            var res = Result;
+            VoidGame(EMatchResult.Unknown, seasons);
+            Result = res;
+            MatchCounted = true;
+            RatingCalculator.CalculateRatingDelta(this);
+
+            ApplyRating(seasons, true);
+            Save();
+        }
+
+        private void ApplyToUsers(EMatchResult result, uint[] seasons, bool reverseWL = false, bool changeWinStreak = true, bool addWL = true, bool reverseRating=false)
         {
             foreach (var player in Players)
             {
@@ -186,7 +207,7 @@ namespace WLNetwork.Matches
             }
         }
 
-        public void ApplyRating(IEnumerable<uint> seasons, bool ignoreWinStreaks = false)
+        public void ApplyRating(uint[] seasons, bool ignoreWinStreaks = false)
         {
             if (MatchCounted)
             {
