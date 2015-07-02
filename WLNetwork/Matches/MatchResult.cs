@@ -98,7 +98,7 @@ namespace WLNetwork.Matches
         /// <summary>
         /// Completely undo all changes made by saving the game
         /// </summary>
-        public void VoidGame(EMatchResult nres, IEnumerable<uint> seasons)
+        public void VoidGame(EMatchResult nres, uint[] seasons)
         {
             // Reverse rating and don't add w/l but reverse old rating
             ApplyToUsers(Result, seasons, true, false, false, true);
