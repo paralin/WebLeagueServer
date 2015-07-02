@@ -107,7 +107,7 @@ namespace WLNetwork.Rating
             foreach (var plyr in data.Players.Where(m => m.Team == MatchTeam.Dire || m.Team == MatchTeam.Radiant))
             {
                 // If they won
-                int f2 = (int)Math.Round(((double)(plyr.RatingBefore - elomin))/600.0*32.0);
+                int f2 = (int)Math.Round(((double)(elofp - plyr.RatingBefore))/600.0*32.0);
                 if ((plyr.Team == MatchTeam.Dire && !good_guys_win) || (plyr.Team == MatchTeam.Radiant && good_guys_win))
                 {
                     double wsf = 1.0 + (0.1*((double)plyr.WinStreakBefore));
