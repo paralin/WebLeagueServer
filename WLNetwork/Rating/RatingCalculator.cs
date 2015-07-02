@@ -110,7 +110,7 @@ namespace WLNetwork.Rating
                 int f2 = (int)Math.Round(((double)(elofp - plyr.RatingBefore))/600.0*8.0);
                 if ((plyr.Team == MatchTeam.Dire && !good_guys_win) || (plyr.Team == MatchTeam.Radiant && good_guys_win))
                 {
-                    double wsf = 1.0 + (0.1*((double)plyr.WinStreakBefore));
+                    double wsf = Math.Min(1.0 + (0.1*((double)plyr.WinStreakBefore)), 1.4);
                     plyr.RatingChange = (int) Math.Round((plyr.RatingChange + f2)*wsf);
                 }
                 else
