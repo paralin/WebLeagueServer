@@ -530,6 +530,13 @@ namespace WLNetwork.Bots.LobbyBot
             _state.Fire(Trigger.ShutdownRequested);
         }
 
+        public void Dispose()
+        {
+            Stop();
+            ReleaseSteamConnection();
+            _state = null;
+        }
+
         public void FetchMatchResult(ulong match_id, Action<CMsgDOTAMatch> callback)
         {
             // Set timeout

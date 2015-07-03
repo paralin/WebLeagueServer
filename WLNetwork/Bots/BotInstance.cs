@@ -75,6 +75,8 @@ namespace WLNetwork.Bots
                 }
                 else
                 {
+                    bot.LeaveLobby();
+
                     log.Debug("Setting up the lobby with passcode [" + Details.Password + "]...");
 
                     var game = Details.GetGame();
@@ -224,7 +226,7 @@ namespace WLNetwork.Bots
         public void Stop(bool deleteLobby = false)
         {
             if (deleteLobby) bot.LeaveLobby();
-            bot.Stop();
+            bot.Dispose();
         }
 
         public void FetchMatchResult(ulong matchId, Action<CMsgDOTAMatch> cb)
