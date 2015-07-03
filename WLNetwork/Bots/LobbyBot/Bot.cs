@@ -96,6 +96,8 @@ namespace WLNetwork.Bots.LobbyBot
            new Dictionary<ulong, Action<CMsgDOTAMatch>>();
         private ulong MatchId;
 
+        private bool _isRunning;
+
         #endregion
         #region Constructor
 
@@ -137,7 +139,7 @@ namespace WLNetwork.Bots.LobbyBot
                 .SubstateOf(State.Conceived)
                 .Ignore(Trigger.SteamDisconnected)
                 .OnEntryFrom(Trigger.SteamInvalidCreds, () => InvalidCreds?.Invoke(this, EventArgs.Empty))
-                .Permit(Trigger.ConnectRequested, State.Steam);
+                .PermitIf(Trigger.ConnectRequested, State.Steam, () => _isRunning);
 
             _state.Configure(State.RetryConnection)
                 .SubstateOf(State.SignedOff)
@@ -519,6 +521,7 @@ namespace WLNetwork.Bots.LobbyBot
         /// </summary>
         public void Start()
         {
+            _isRunning = true;
             _state.Fire(Trigger.ConnectRequested);
         }
 
@@ -527,6 +530,7 @@ namespace WLNetwork.Bots.LobbyBot
         /// </summary>
         public void Stop()
         {
+            _isRunning = false;
             _state.Fire(Trigger.ShutdownRequested);
         }
 
