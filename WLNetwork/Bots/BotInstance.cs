@@ -75,43 +75,13 @@ namespace WLNetwork.Bots
                 }
                 else
                 {
-                    bot.LeaveLobby();
-
-                    log.Debug("Setting up the lobby with passcode [" + Details.Password + "]...");
-
-                    var game = Details.GetGame();
-                    var gameName = (game.Info.League ?? "FPL").ToUpper();
-                    switch (game.Info.MatchType)
+                    Task.Run(() =>
                     {
-                        case MatchType.Captains:
-                        case MatchType.StartGame:
-                            gameName += " Match " + Details.Id.ToString().Substring(0, 4);
-                            break;
-                        case MatchType.OneVsOne:
-                            var p1 = Details.Players.FirstOrDefault(m => m.Team == MatchTeam.Radiant);
-                            var p2 = Details.Players.FirstOrDefault(m => m.Team == MatchTeam.Dire);
-                            if (p1 != null && p2 != null) gameName += " " + p1.Name + " vs. " + p2.Name;
-                            break;
-                    }
-
-                    var ldetails = new CMsgPracticeLobbySetDetails
-                    {
-                        allchat = Details.GameMode == GameMode.SOLOMID,
-#if DEBUG
-                        allow_cheats = true,
-#else
-                        allow_cheats = false,
-#endif
-                        allow_spectating = true,
-                        dota_tv_delay = game.Info.MatchType == MatchType.OneVsOne ? LobbyDotaTVDelay.LobbyDotaTV_10 : LobbyDotaTVDelay.LobbyDotaTV_120,
-                        fill_with_bots = false,
-                        game_mode = (uint)(DOTA_GameMode)Details.GameMode,
-                        game_name = gameName,
-                        game_version = DOTAGameVersion.GAME_VERSION_CURRENT,
-                        server_region = Details.Region
-                    };
-                    if (Details.TicketID != 0 && Details.GameMode != GameMode.SOLOMID) ldetails.leagueid = (uint)Details.TicketID;
-                    bot.DotaGCHandler.CreateLobby(Details.Password, ldetails);
+                        Thread.Sleep(500);
+                        if (bot.DotaGCHandler.Lobby != null && bot.DotaGCHandler.Lobby.pass_key == details.Password)
+                            return;
+                        CreateLobby();
+                    });
                 }
             };
             bot.LobbyUpdate += (oldLobby, lobby) =>
@@ -211,6 +181,47 @@ namespace WLNetwork.Bots
                     log.Error("Unhandled exception in lobbyUpdate", ex);
                 }
             };
+        }
+
+        public void CreateLobby()
+        {
+            bot.LeaveLobby();
+
+            log.Debug("Setting up the lobby with passcode [" + Details.Password + "]...");
+
+            var game = Details.GetGame();
+            var gameName = (game.Info.League ?? "FPL").ToUpper();
+            switch (game.Info.MatchType)
+            {
+                case MatchType.Captains:
+                case MatchType.StartGame:
+                    gameName += " Match " + Details.Id.ToString().Substring(0, 4);
+                    break;
+                case MatchType.OneVsOne:
+                    var p1 = Details.Players.FirstOrDefault(m => m.Team == MatchTeam.Radiant);
+                    var p2 = Details.Players.FirstOrDefault(m => m.Team == MatchTeam.Dire);
+                    if (p1 != null && p2 != null) gameName += " " + p1.Name + " vs. " + p2.Name;
+                    break;
+            }
+
+            var ldetails = new CMsgPracticeLobbySetDetails
+            {
+                allchat = Details.GameMode == GameMode.SOLOMID,
+#if DEBUG
+                allow_cheats = true,
+#else
+                    allow_cheats = false,
+#endif
+                allow_spectating = true,
+                dota_tv_delay = game.Info.MatchType == MatchType.OneVsOne ? LobbyDotaTVDelay.LobbyDotaTV_10 : LobbyDotaTVDelay.LobbyDotaTV_120,
+                fill_with_bots = false,
+                game_mode = (uint)(DOTA_GameMode)Details.GameMode,
+                game_name = gameName,
+                game_version = DOTAGameVersion.GAME_VERSION_CURRENT,
+                server_region = Details.Region
+            };
+            if (Details.TicketID != 0 && Details.GameMode != GameMode.SOLOMID) ldetails.leagueid = (uint)Details.TicketID;
+            bot.DotaGCHandler.CreateLobby(Details.Password, ldetails);
         }
 
         public void Start()
