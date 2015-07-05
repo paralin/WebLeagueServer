@@ -183,6 +183,7 @@ namespace WLNetwork.Bots.LobbyBot
                 .Permit(Trigger.DotaEnteredLobbyUI, State.DotaLobby)
                 .Permit(Trigger.DotaNoLobby, State.DotaMenu)
                 .OnEntry(()=> _connAttempts = 0)
+#if ENABLE_GAME_CONNECTION
                 .OnEntry(() =>
                 {
                     //Brief delay before starting connection
@@ -192,10 +193,11 @@ namespace WLNetwork.Bots.LobbyBot
                         if(_state.State == State.DotaPlay) StartDotaGameConnection();
                     });
                 })
+#endif
                 .OnExit(ReleaseDotaGameConnection);
         }
-        #endregion
-        #region Bot Specific Implementation
+#endregion
+#region Bot Specific Implementation
         /// <summary>
         /// Join the correct slot
         /// </summary>
@@ -241,8 +243,8 @@ namespace WLNetwork.Bots.LobbyBot
             }
         }
 
-        #endregion
-        #region Internal Methods
+#endregion
+#region Internal Methods
 
         /// <summary>
         /// Start connecting to Steam
@@ -564,6 +566,6 @@ namespace WLNetwork.Bots.LobbyBot
             DotaGCHandler.LeaveLobby();
         }
 
-        #endregion
+#endregion
     }
 }
