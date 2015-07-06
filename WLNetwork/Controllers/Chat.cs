@@ -259,10 +259,7 @@ namespace WLNetwork.Controllers
         /// <param name="propertyChangedEventArgs"></param>
         private void MemberPropertyChanged(object sender, PropertyChangedEventArgs propertyChangedEventArgs)
         {
-            if (propertyChangedEventArgs.PropertyName == "Leagues")
-            {
-                RecheckChats();
-            }
+            RecheckChats();
         }
     }
 }
