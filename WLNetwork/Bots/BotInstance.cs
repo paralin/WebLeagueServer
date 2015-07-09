@@ -387,9 +387,9 @@ namespace WLNetwork.Bots
                 foreach (var msg in _state.ChatEvents)
                 {
                     log.Debug("[CHATEVENT] " + msg.type.ToString("G") + ": " + msg.value);
+#if ENABLE_UNNECESSARY_ALLCHAT
                     switch (msg.type)
                     {
-#if ENABLE_UNNECESSARY_ALLCHAT
                         case DOTA_CHAT_MESSAGE.CHAT_MESSAGE_FIRSTBLOOD:
                             Say("Nice firstblood Kappa.");
                             break;
@@ -403,8 +403,8 @@ namespace WLNetwork.Bots
                         case DOTA_CHAT_MESSAGE.CHAT_MESSAGE_TOWER_KILL:
                             Say("Boom! The tower went down.");
                             break;
-#endif
                     }
+#endif
                 }
                 _state.ChatEvents.Clear();
                 /*foreach (var msg in _state.GameEvents)
