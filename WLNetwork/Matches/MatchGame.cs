@@ -64,7 +64,8 @@ namespace WLNetwork.Matches
             Setup.Details.IsRecovered = true;
             pickedAlready = true;
             Players = new ObservableRangeCollection<MatchPlayer>(match.Details.Players);
-            KickSpectators ();
+            KickSpectators();
+            KickUnassigned();
             Players.CollectionChanged += PlayersOnCollectionChanged;
 
             var ebot = BotDB.Bots.Values.FirstOrDefault(m => m.Username == match.Details.Bot.Username);
