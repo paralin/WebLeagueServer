@@ -17,7 +17,7 @@ WORKDIR /usr/src/app/source
 
 COPY . /usr/src/app/source
 RUN nuget restore -NonInteractive
-RUN xbuild /property:Configuration=Release /property:OutDir=/usr/src/app/build/
+RUN xbuild /property:Configuration=Release /property:PlatformTarget=x86 /property:Platform=x86 /property:OutDir=/usr/src/app/build/
 WORKDIR /usr/src/app/build
 RUN cp /usr/src/app/source/start.bash /usr/src/app/build/ && rm -rf /usr/src/app/source
 
