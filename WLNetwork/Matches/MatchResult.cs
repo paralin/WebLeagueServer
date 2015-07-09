@@ -186,7 +186,7 @@ namespace WLNetwork.Matches
                         if (changeWinStreak)
                             update = update.Inc(lroot + ".winStreak", 1u);
                         if (reverseWL)
-                            update = update.Inc(lroot + ".losses", -1);
+                            update = update.Inc(lroot + ".wins", -1);
                     }
                     else if ((result == EMatchResult.DireVictory && player.Team == MatchTeam.Radiant) || (result == EMatchResult.RadVictory && player.Team == MatchTeam.Dire))
                     {
@@ -195,7 +195,7 @@ namespace WLNetwork.Matches
                         if (changeWinStreak)
                             update = update.Set(lroot + ".winStreak", 0u);
                         if (reverseWL)
-                            update = update.Inc(lroot + ".wins", -1);
+                            update = update.Inc(lroot + ".losses", -1);
                     }
                 }
                 lock (Mongo.ExclusiveLock)
