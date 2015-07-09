@@ -61,6 +61,8 @@ namespace WLNetwork.Chat
                 MemberType = ChatMemberType.Moderator;
             else if (user.authItems.Contains("spectateOnly"))
                 MemberType = ChatMemberType.Spectator;
+            else if (user.authItems.Contains("donator"))
+                MemberType = ChatMemberType.Donator;
             else
                 MemberType = ChatMemberType.Normal;
         }
@@ -226,8 +228,9 @@ namespace WLNetwork.Chat
         {
             Spectator = -1,
             Normal = 0,
-            Moderator = 1,
-            Admin = 2
+            Donator = 5,
+            Moderator = 80,
+            Admin = 90 
         }
 
         /// <summary>
