@@ -51,6 +51,11 @@ namespace WLNetwork.Model
         /// Region
         /// </summary>
         public uint Region { get; set; }
+
+        /// <summary>
+        /// Require teamspeak
+        /// </summary>
+        public bool RequireTeamspeak { get; set; }
     }
 
     /// <summary>

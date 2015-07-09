@@ -199,7 +199,7 @@ namespace WLNetwork.Controllers
             if (league.Archived || !league.IsActive) return "The league '" + league.Name + "' is currently inactive, you cannot create matches.";
             var start = league.Seasons[(int) league.CurrentSeason].Start;
             if (start > DateTime.UtcNow) return string.Format("The league '{0}' starts in {1}.", league.Name, start.Humanize());
-            if (Env.ENFORCE_TEAMSPEAK && !User.tsonline) return "Please join Teamspeak before joining games.";
+			if (league.RequireTeamspeak && !User.tsonline) return "Please join Teamspeak before joining games.";
             options.MatchType = MatchType.StartGame;
             var match = new MatchGame(User.steam.steamid, options, league.Id, league.CurrentSeason, league.Seasons[(int)league.CurrentSeason].Ticket, league.Region, league.SecondaryCurrentSeason.ToArray());
             Match = match;
@@ -393,7 +393,8 @@ namespace WLNetwork.Controllers
                 return "That match is full.";
             if (match.PlayerForbidden(User.steam.steamid) && !options.Spec)
                 return "Can't join as you've been kicked from that startgame.";
-            if (Env.ENFORCE_TEAMSPEAK && !User.tsonline && !options.Spec) return "Please join Teamspeak before joining games.";
+			var league = LeagueDB.Leagues [match.Info.League];
+			if (league != null && league.RequireTeamspeak && !User.tsonline && !options.Spec) return "Please join Teamspeak before joining games.";
             Match = match;
             match.Players.Add(new MatchPlayer(User, match.Info.League, match.Info.LeagueSeason, match.Info.SecondaryLeagueSeason) {Team = options.Spec ? MatchTeam.Spectate : MatchTeam.Unassigned});
             return null;
@@ -443,11 +444,13 @@ namespace WLNetwork.Controllers
             if (target == null) return "You need some info start a challenge.";
             if (Match != null) return "You are already in a match.";
             if (Challenge != null) return "Waiting for a challenge response already...";
+            League league = null;
+            if (!LeagueDB.Leagues.TryGetValue(target.League, out league) || league == null) return String.Format("League {0} cannot be found.", target.League);
             if (User.authItems.Contains("spectateOnly")) return "You are spectator and cannot play matches.";
             if (User.authItems.Contains("challengeOnly")) return "You are limited to joining challenge pools only.";
             if (!User.vouch.leagues.Contains(target.League)) return "You are not in the league '" + target.League + "!";
             if (target.MatchType == 0) target.MatchType = MatchType.Captains;
-            if (Env.ENFORCE_TEAMSPEAK && !User.tsonline && target.MatchType != MatchType.OneVsOne) return "Please join Teamspeak before joining games.";
+			if (league.RequireTeamspeak && !User.tsonline && target.MatchType != MatchType.OneVsOne) return "Please join Teamspeak before joining games.";
             target.GameMode = target.MatchType == MatchType.OneVsOne ? GameMode.SOLOMID : GameMode.CM;
             target.ChallengerSID = User.steam.steamid;
             target.ChallengerName = User.profile.name;
@@ -459,9 +462,7 @@ namespace WLNetwork.Controllers
             if (tcont.Challenge != null) return "That player is already waiting for a challenge.";
             if (tcont.User.authItems.Contains("spectateOnly")) return "That player is a spectator and cannot play matches.";
             if (!tcont.User.vouch.leagues.Contains(target.League)) return "That player is not in the league '" + target.League + "!";
-            if (Env.ENFORCE_TEAMSPEAK && !tcont.User.tsonline && target.MatchType != MatchType.OneVsOne) return "Please ask your target to join Teamspeak first.";
-            League league = null;
-            if (!LeagueDB.Leagues.TryGetValue(target.League, out league) || league == null) return String.Format("League {0} cannot be found.", target.League);
+			if (league.RequireTeamspeak && !tcont.User.tsonline && target.MatchType != MatchType.OneVsOne) return "Please ask your target to join Teamspeak first.";
             var start = league.Seasons[(int) league.CurrentSeason].Start;
             if (start > DateTime.UtcNow && target.MatchType != MatchType.OneVsOne) return String.Format("The league '{0}' starts in {1}.", league.Name, start.Humanize());
             target.ChallengedName = tcont.User.profile.name;

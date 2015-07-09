@@ -21,12 +21,9 @@ namespace WLNetwork
                 log.Fatal("MONGODB_URL environment variable missing.");
                 Environment.Exit(126);
             }
-
-            ENFORCE_TEAMSPEAK = System.Environment.GetEnvironmentVariable("ENFORCE_TEAMSPEAK") != null;
 #endif
         }
 
         public static string MONGODB_URL;
-        public static bool ENFORCE_TEAMSPEAK;
     }
 }
