@@ -56,6 +56,11 @@ namespace WLNetwork.Model
         /// Require teamspeak
         /// </summary>
         public bool RequireTeamspeak { get; set; }
+
+        /// <summary>
+        /// Motd messages
+        /// </summary>
+        public string[] MotdMessages { get; set; }
     }
 
     /// <summary>

@@ -11,6 +11,7 @@ using WLNetwork.Chat;
 using WLNetwork.Chat.Enums;
 using WLNetwork.Chat.Methods;
 using WLNetwork.Database;
+using WLNetwork.Leagues;
 using WLNetwork.Model;
 using XSockets.Core.Common.Socket.Attributes;
 using XSockets.Core.Common.Socket.Event.Arguments;
@@ -221,6 +222,10 @@ namespace WLNetwork.Controllers
                         ChatChannel chan = ChatChannel.JoinOrCreate(league, member, ChannelType.League);
                         if (chan != null)
                             Channels.Add(chan);
+                        League leaguel;
+                        if (LeagueDB.Leagues.TryGetValue(league, out leaguel) && leaguel.MotdMessages != null)
+                            foreach (var msg in leaguel.MotdMessages)
+                                ChatChannel.SystemMessage(league, "MOTD: "+msg, User.steam.steamid);
                     }
                 }
             }

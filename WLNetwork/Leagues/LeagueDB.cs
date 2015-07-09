@@ -77,7 +77,7 @@ namespace WLNetwork.Leagues
         {
             AnyUpdated = false;
             League[] leagues;
-            var logic = new CompareLogic();
+            var logic = new CompareLogic() {Config = new ComparisonConfig() { MaxDifferences = 100 } };
             try
             {
               lock (Mongo.ExclusiveLock)
@@ -111,6 +111,10 @@ namespace WLNetwork.Leagues
                         {
                             Leagues[league.Id] = league;
                             log.Debug("LEAGUE UPDATED [" + league.Id + "] " + res.DifferencesString);
+                            if (res.Differences.Any(m => m.PropertyName.Contains("Motd")) && league.MotdMessages != null)
+                            {
+                                ChatChannel.TransmitMOTD(league.Id, league);
+                            }
                             AnyUpdated = true;
                         }
                     }

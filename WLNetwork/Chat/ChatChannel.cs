@@ -11,6 +11,7 @@ using SteamKit2.GC.Dota.Internal;
 using WLNetwork.Chat.Exceptions;
 using WLNetwork.Chat.Methods;
 using WLNetwork.Database;
+using WLNetwork.Model;
 using WLNetwork.Utils;
 using XSockets.Core.XSocket.Helpers;
 
@@ -154,7 +155,8 @@ namespace WLNetwork.Chat
         /// </summary>
         /// <param name="memberid">the sender steamid</param>
         /// <param name="text">message</param>
-        public void TransmitMessage(string memberid, string text, bool service = false)
+        /// <param name="filterToId">Filter the message to a single user</param>
+        public void TransmitMessage(string memberid, string text, bool service = false, string filterToId = null)
         {
             ChatMember member = null;
             if (memberid == null) memberid = "system";
@@ -177,7 +179,7 @@ namespace WLNetwork.Chat
             {
                 lock(Mongo.ExclusiveLock) Mongo.ChatMessages.Insert(msg);
             });
-            foreach (var mm in Members)
+            foreach (var mm in Members.Where(m=> filterToId == null || m == filterToId))
             {
                 var mm1 = mm;
                 ChatController.InvokeTo(
@@ -220,11 +222,13 @@ namespace WLNetwork.Chat
         /// </summary>
         /// <param name="league"></param>
         /// <param name="message"></param>
-        public static void SystemMessage(string league, string message)
+        /// <param name="filterToId">filter to send to just 1 steam id</param>
+        public static void SystemMessage(string league, string message, string filterToId=null)
         {
-            log.Debug(String.Format("[SYSTEM MESSAGE] [{0}] {1}", league, message));
+            if(filterToId == null)
+                log.Debug(String.Format("[SYSTEM MESSAGE] [{0}] {1}", league, message));
             var chan = Channels.Values.FirstOrDefault(m => m.Name == league);
-            if(chan != null) chan.TransmitMessage(null, message, true);
+            chan?.TransmitMessage(null, message, true, filterToId);
         }
 
         /// <summary>
@@ -244,6 +248,19 @@ namespace WLNetwork.Chat
                 if (!chan.Members.Contains(member.SteamID)) chan.Members.Add(member.SteamID);
             }
             return chan;
+        }
+
+        /// <summary>
+        /// Sends all MOTD messages to a channel
+        /// </summary>
+        /// <param name="id"></param>
+        public static void TransmitMOTD(string id, League league)
+        {
+            log.Debug(String.Format("[MOTD] [{0}] Transmitting messages.", id));
+            var chan = Channels.Values.FirstOrDefault(m => m.Name == id);
+
+            foreach(var msg in league.MotdMessages)
+                chan?.TransmitMessage(null, "MOTD: "+msg, true);
         }
     }
 
