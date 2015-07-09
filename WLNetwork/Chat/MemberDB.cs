@@ -13,6 +13,7 @@ using WLNetwork.Database;
 using WLNetwork.Model;
 using WLNetwork.Utils;
 using XSockets.Core.XSocket.Helpers;
+using System.Collections.Generic;
 
 namespace WLNetwork.Chat
 {
@@ -55,9 +56,9 @@ namespace WLNetwork.Chat
         private static void MembersOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
         {
             if(args.OldItems != null)
-                Chat.InvokeTo(m=>m.User != null, new GlobalMemberRm(args.OldItems.OfType<ChatMember>().Select(m=>m.SteamID).ToArray()), GlobalMemberRm.Msg);
+                Chat.InvokeTo(m=>m.User != null, new GlobalMemberRm(args.OldItems.OfType<KeyValuePair<string, ChatMember>>().Select(m=>m.Value.SteamID).ToArray()), GlobalMemberRm.Msg);
             if(args.NewItems != null)
-                Chat.InvokeTo(m=>m.User != null, new GlobalMemberSnapshot(args.NewItems.OfType<ChatMember>().ToArray()), GlobalMemberSnapshot.Msg);
+                Chat.InvokeTo(m=>m.User != null, new GlobalMemberSnapshot(args.NewItems.OfType<KeyValuePair<string, ChatMember>>().Select(m=>m.Value).ToArray()), GlobalMemberSnapshot.Msg);
         }
 
         private static void UpdateTimerOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
