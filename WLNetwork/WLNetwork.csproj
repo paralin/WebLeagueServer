@@ -190,6 +190,22 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="Rating\RatingCalculator.cs" />
+    <Compile Include="Stateless\DynamicTriggerBehaviour.cs" />
+    <Compile Include="Stateless\Enforce.cs" />
+    <Compile Include="Stateless\IgnoredTriggerBehaviour.cs" />
+    <Compile Include="Stateless\ParameterConversion.cs" />
+    <Compile Include="Stateless\ParameterConversionResources.Designer.cs" />
+    <Compile Include="Stateless\StateConfiguration.cs" />
+    <Compile Include="Stateless\StateConfigurationResources.Designer.cs" />
+    <Compile Include="Stateless\StateMachine.cs" />
+    <Compile Include="Stateless\StateMachineResources.Designer.cs" />
+    <Compile Include="Stateless\StateReference.cs" />
+    <Compile Include="Stateless\StateRepresentation.cs" />
+    <Compile Include="Stateless\StateRepresentationResources.Designer.cs" />
+    <Compile Include="Stateless\Transition.cs" />
+    <Compile Include="Stateless\TransitioningTriggerBehaviour.cs" />
+    <Compile Include="Stateless\TriggerBehaviour.cs" />
+    <Compile Include="Stateless\TriggerWithParameters.cs" />
     <Compile Include="Utils\Diff.cs" />
     <Compile Include="Utils\IPEndpointEx.cs" />
     <Compile Include="Utils\ObservableDictionary.cs" />
@@ -212,10 +228,12 @@
       <Project>{d51354a5-eefd-4584-b79b-16889f10ecfd}</Project>
       <Name>Dota2</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Dependencies\stateless\Stateless\Stateless.csproj">
-      <Project>{a15eec02-60ec-4705-a58b-a6ecd55a9628}</Project>
-      <Name>Stateless</Name>
-    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Stateless\ParameterConversionResources.resx" />
+    <EmbeddedResource Include="Stateless\StateConfigurationResources.resx" />
+    <EmbeddedResource Include="Stateless\StateMachineResources.resx" />
+    <EmbeddedResource Include="Stateless\StateRepresentationResources.resx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
