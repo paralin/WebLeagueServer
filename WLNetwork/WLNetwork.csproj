@@ -208,7 +208,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Dota2\Dota2\Dota2.csproj">
+    <ProjectReference Include="..\Dependencies\Dota2\Dota2\Dota2.csproj">
       <Project>{d51354a5-eefd-4584-b79b-16889f10ecfd}</Project>
       <Name>Dota2</Name>
     </ProjectReference>
