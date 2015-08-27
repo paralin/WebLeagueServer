@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+#if USE_GAME_ENGINE
 using Dota2.Engine.Control;
 using Dota2.Engine.Game;
 using Dota2.Engine.Game.Entities.Dota;
+#endif
 using Dota2.GC.Dota.Internal;
 using log4net;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using SteamKit2;
 using WLNetwork.Bots.Data;
 using WLNetwork.Bots.LobbyBot;
@@ -53,7 +53,11 @@ namespace WLNetwork.Bots
 
             log = LogManager.GetLogger(details.Bot.Username);
 
-            bot = new Bot(new SteamUser.LogOnDetails() { Username = details.Bot.Username, Password = details.Bot.Password }, contrs: new BotGameController(this));
+            bot = new Bot(new SteamUser.LogOnDetails() { Username = details.Bot.Username, Password = details.Bot.Password }
+#if USE_GAME_ENGINE
+            , contrs: new BotGameController(this)
+#endif
+            );
             bot.InvalidCreds += (sender, args) =>
             {
                 log.Warn("Steam reports invalid creds for " + details.Bot.Username + "!");
@@ -269,7 +273,8 @@ namespace WLNetwork.Bots
             bot.DotaGCHandler.LaunchLobby();
         }
 
-        #region Client Controller
+#if USE_GAME_ENGINE
+#region Client Controller
 
         /// <summary>
         /// Controls a spectator bot
@@ -415,6 +420,7 @@ namespace WLNetwork.Bots
                 _state.GameEvents.Clear();
             }
         }
-        #endregion
+#endregion
+#endif
     }
 }
