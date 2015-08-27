@@ -7,9 +7,9 @@ using MongoDB.Driver.Builders;
 using WLNetwork.Database;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Properties;
-using XSockets.Core.XSocket.Helpers;
 using System;
 using MongoDB.Bson.Serialization.Attributes;
+using WLNetwork.Clients;
 using MatchType = WLNetwork.Matches.Enums.MatchType;
 using WLNetwork.Rating;
 
@@ -18,9 +18,6 @@ namespace WLNetwork.Matches
     [BsonIgnoreExtraElements]
     public class MatchResult
     {
-        private static readonly Controllers.Matches Matches = new Controllers.Matches();
-        private static readonly Controllers.Chat Chats = new Controllers.Chat();
-
         /// <summary>
         ///     Match ID
         /// </summary>
@@ -237,11 +234,12 @@ namespace WLNetwork.Matches
 
             }
 
-            foreach (var cont in Matches.Find(m => m.User != null && Players.Any(x => x.SID == m.User.steam.steamid)))
-                cont.ReloadUser();
-
-            foreach (var cont in Chats.Find(m => m.User != null && Players.Any(x => x.SID == m.User.steam.steamid)))
-                cont.ReloadUser();
+            foreach (var client in Players)
+            {
+                BrowserClient cli;
+                if (!BrowserClient.ClientsBySteamID.TryGetValue(client.SID, out cli)) continue;
+                cli.ReloadUser();
+            }
         }
 
         public void Save()

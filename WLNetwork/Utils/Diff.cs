@@ -1,6 +1,6 @@
 ﻿using KellermanSoftware.CompareNetObjects;
 
-namespace WLBotHost.Utils
+namespace WLNetwork.Utils
 {
     public static class Diff
     {

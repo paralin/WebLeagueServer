@@ -5,16 +5,14 @@ using System.Threading.Tasks;
 using Dota2;
 using Dota2.Engine;
 using Dota2.Engine.Control;
-using Dota2.Engine.Game;
-using Dota2.Engine.Game.Entities.Dota;
 using Dota2.Engine.Session.State.Enums;
 using Dota2.GC.Dota.Internal;
 using Dota2.GC.Internal;
-using Dota2GameConnect.Utils;
 using log4net;
 using Stateless;
 using SteamKit2;
 using WLNetwork.Bots.LobbyBot.Enums;
+using WLNetwork.Utils;
 using Timer = System.Timers.Timer;
 
 namespace WLNetwork.Bots.LobbyBot
@@ -373,7 +371,6 @@ namespace WLNetwork.Bots.LobbyBot
             }
         }
 
-
 #endregion
 #region Callbacks
 
@@ -565,7 +562,6 @@ namespace WLNetwork.Bots.LobbyBot
             DotaGCHandler.AbandonGame();
             DotaGCHandler.LeaveLobby();
         }
-
 #endregion
     }
 }

@@ -10,10 +10,10 @@ using WLNetwork.Chat.Methods;
 using WLNetwork.Database;
 using WLNetwork.Model;
 using WLNetwork.Utils;
-using XSockets.Core.XSocket.Helpers;
 using System.Collections.Generic;
 using MongoDB.Driver.Builders;
 using MongoDB.Bson;
+using WLNetwork.Clients;
 
 namespace WLNetwork.Chat
 {
@@ -24,8 +24,6 @@ namespace WLNetwork.Chat
     {
         private static readonly ILog log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        private static readonly Controllers.Chat Chat = new Controllers.Chat();
 
         /// <summary>
         /// Update timer for the DB
@@ -56,11 +54,16 @@ namespace WLNetwork.Chat
         private static void MembersOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
         {
             if(args.OldItems != null)
-                Chat.InvokeTo(m=>m.User != null, new GlobalMemberRm(args.OldItems.OfType<KeyValuePair<string, ChatMember>>().Select(m=>m.Value.SteamID).ToArray()), GlobalMemberRm.Msg);
-            if(args.NewItems != null)
-                Chat.InvokeTo(m=>m.User != null, new GlobalMemberSnapshot(args.NewItems.OfType<KeyValuePair<string, ChatMember>>().Select(m=>m.Value).ToArray()), GlobalMemberSnapshot.Msg);
+                Hubs.Chat.HubContext.Clients.All.GlobalMemberRemove(args.OldItems.OfType<KeyValuePair<string, ChatMember>>().Select(m=>m.Value.SteamID).ToArray());
+            if (args.NewItems != null)
+                Hubs.Chat.HubContext.Clients.All.GlobalMemberSnapshot(new GlobalMemberSnapshot(args.NewItems.OfType<KeyValuePair<string, ChatMember>>().Select(m => m.Value).ToArray()));
         }
 
+        /// <summary>
+        /// Called periodically.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="elapsedEventArgs"></param>
         private static void UpdateTimerOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
         {
             UpdateDB();
@@ -99,17 +102,21 @@ namespace WLNetwork.Chat
                         exist.UpdateFromUser(user);
                     }
 
-                    var cont = Chat.Find(m => m.User != null && m.User.Id == user.Id).FirstOrDefault();
-                    if(cont != null) cont.User = user;
+                    BrowserClient cli;
+                    if (BrowserClient.ClientsBySteamID.TryGetValue(user.Id, out cli))
+                    {
+                        cli.UpdateUser(user);
+                    }
                 }
                 foreach (ChatMember member in Members.Values.Where(x => users.All(m => m.steam.steamid != x.SteamID)).ToArray())
                 {
                     Members.Remove(member.SteamID);
                     log.Debug("MEMBER REMOVED [" + member.SteamID + "] [" + member.Name + "]");
 
-                    // Find any online members with this steam id
-                    var memb = Chat.Find(m => m.User != null && m.User.steam.steamid == member.SteamID).FirstOrDefault();
-                    if(memb != null) memb.Close();
+                    // todo: Find any online members with this steam id
+                    //BrowserClient memb;
+                    //if (!BrowserClient.ClientsBySteamID.TryGetValue(member.SteamID)) continue;
+                    //memb.Close();
                 }
             }
             catch (Exception ex)
@@ -129,7 +136,7 @@ namespace WLNetwork.Chat
         {
             var member = sender as ChatMember;
             if (member == null) return;
-            Chat.InvokeTo(m=>m.User != null, new GlobalMemberUpdate(member.SteamID, args.PropertyName, member.GetType().GetProperty(args.PropertyName).GetValue(member)), GlobalMemberUpdate.Msg);
+            Hubs.Chat.HubContext.Clients.All.GlobalMemberUpdate(member.SteamID, args.PropertyName, member.GetType().GetProperty(args.PropertyName).GetValue(member));
         }
     }
 }

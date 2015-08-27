@@ -1,19 +1,15 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using log4net;
-using SteamKit2.GC.Dota.Internal;
-using WLNetwork.Chat.Exceptions;
 using WLNetwork.Chat.Methods;
+using WLNetwork.Clients;
 using WLNetwork.Database;
 using WLNetwork.Model;
-using WLNetwork.Utils;
-using XSockets.Core.XSocket.Helpers;
 
 namespace WLNetwork.Chat
 {
@@ -25,8 +21,9 @@ namespace WLNetwork.Chat
         private static readonly ILog log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static readonly Controllers.Chat ChatController = new Controllers.Chat();
-
+        /// <summary>
+        /// Channels / ID pairs.
+        /// </summary>
         public static ConcurrentDictionary<Guid, ChatChannel> Channels = new ConcurrentDictionary<Guid, ChatChannel>();
 
         /// <summary>
@@ -90,31 +87,33 @@ namespace WLNetwork.Chat
                 var msg = new ChatMemberRm(Id.ToString(), old.ToArray());
                 foreach (var oldm in old)
                 {
-                    ChatMember nm = null;
+                    ChatMember nm;
                     if(MemberDB.Members.TryGetValue(oldm, out nm) && nm != null)
                         log.DebugFormat("PARTED [{0}] {{{2}}}", Name, Id, nm.Name);
                 }
                 foreach (var mm in Members.ToArray())
                 {
-                    ChatController.InvokeTo(
-                        m => m.ConnectionContext.IsAuthenticated && m.User != null && m.User.steam.steamid == mm,
-                        msg, ChatMemberRm.Msg);
+                    BrowserClient cli;
+                    if (!BrowserClient.ClientsBySteamID.TryGetValue(mm, out cli)) continue;
+                    foreach(var ccli in cli.ChatClients.Values)
+                        ccli.ChatMemberRemoved(Id.ToString(), old.ToArray());
                 }
             }
             if (e.NewItems != null)
             {
                 var memb = e.NewItems.OfType<string>().ToArray();
-                var msg = new ChatMemberAdd(Id.ToString(), memb);
                 foreach (var newm in memb)
                 {
-                    ChatMember nm = null;
+                    ChatMember nm;
                     if (MemberDB.Members.TryGetValue(newm, out nm) && nm != null)
                         log.DebugFormat("JOINED [{0}] ({1}) {{{2}}}", Name, Id, nm.Name);
                 }
                 foreach (var mm in Members.ToArray())
                 {
-                    ChatController.InvokeTo(m => m.ConnectionContext.IsAuthenticated && m.User != null && m.User.steam.steamid == mm, msg,
-                        ChatMemberAdd.Msg);
+                    BrowserClient cli;
+                    if (!BrowserClient.ClientsBySteamID.TryGetValue(mm, out cli)) continue;
+                    foreach(var ccli in cli.ChatClients.Values)
+                        ccli.ChatMemberAdd(Id.ToString(), memb);
                 }
             }
             if (Members.Count == 0) Close(true);
@@ -128,15 +127,11 @@ namespace WLNetwork.Chat
             string[] oldMembers = Members.ToArray();
             if (!noModifyMembers)
                 Members.Clear();
-            foreach (
-                Controllers.Chat so in
-                    oldMembers.Select(
-                        member =>
-                            ChatController.Find(
-                                m => m.ConnectionContext.IsAuthenticated && m.User.steam.steamid == member))
-                        .SelectMany(sox => sox))
+            foreach (var client in oldMembers)
             {
-                so.Channels.Remove(this);
+                BrowserClient cli;
+                if (!BrowserClient.ClientsBySteamID.TryGetValue(client, out cli)) continue;
+                cli.Channels.Remove(this);
             }
             if (!Permanent)
             {
@@ -182,9 +177,11 @@ namespace WLNetwork.Chat
             foreach (var mm in Members.Where(m=> filterToId == null || m == filterToId))
             {
                 var mm1 = mm;
-                ChatController.InvokeTo(
-                    m => m.ConnectionContext.IsAuthenticated && m.User != null && m.User.steam.steamid == mm1,
-                    msg, ChatMessage.Msg);
+                BrowserClient cli;
+                if (!BrowserClient.ClientsBySteamID.TryGetValue(mm1, out cli)) continue;
+                // OnChatMessage: ID, sender id, text, service (true/false), datetime, name of channel
+                foreach (var ccli in cli.ChatClients.Values)
+                    ccli.OnChatMessage(Id.ToString(), memberid, text, service, DateTime.UtcNow, Name);
             }
         }
 
@@ -196,9 +193,8 @@ namespace WLNetwork.Chat
         /// <returns></returns>
         public static ChatChannel Join(string name, ChatMember member)
         {
-            ChatChannel chan = Channels.Values.FirstOrDefault(m => m.Name.ToLower() == name.ToLower());
-            if (chan == null) return null;
-            return Join(chan.Id, member);
+            var chan = Channels.Values.FirstOrDefault(m => string.Equals(m.Name, name, StringComparison.CurrentCultureIgnoreCase));
+            return chan == null ? null : Join(chan.Id, member);
         }
 
         /// <summary>
@@ -226,7 +222,7 @@ namespace WLNetwork.Chat
         public static void SystemMessage(string league, string message, string filterToId=null)
         {
             if(filterToId == null)
-                log.Debug(String.Format("[SYSTEM MESSAGE] [{0}] {1}", league, message));
+                log.Debug($"[SYSTEM MESSAGE] [{league}] {message}");
             var chan = Channels.Values.FirstOrDefault(m => m.Name == league);
             chan?.TransmitMessage(null, message, true, filterToId);
         }
@@ -241,12 +237,10 @@ namespace WLNetwork.Chat
         public static ChatChannel JoinOrCreate(string name, ChatMember member, ChannelType chanType = ChannelType.Public)
         {
             ChatChannel chan = Join(name, member);
-            if (chan == null)
-            {
-                chan = new ChatChannel(name, chanType);
-                if (chanType == ChannelType.League) chan.Leavable = false;
-                if (!chan.Members.Contains(member.SteamID)) chan.Members.Add(member.SteamID);
-            }
+            if (chan != null) return chan;
+            chan = new ChatChannel(name, chanType);
+            if (chanType == ChannelType.League) chan.Leavable = false;
+            if (!chan.Members.Contains(member.SteamID)) chan.Members.Add(member.SteamID);
             return chan;
         }
 
@@ -256,7 +250,7 @@ namespace WLNetwork.Chat
         /// <param name="id"></param>
         public static void TransmitMOTD(string id, League league)
         {
-            log.Debug(String.Format("[MOTD] [{0}] Transmitting messages.", id));
+            log.Debug($"[MOTD] [{id}] Transmitting messages.");
             var chan = Channels.Values.FirstOrDefault(m => m.Name == id);
 
             foreach(var msg in league.MotdMessages)

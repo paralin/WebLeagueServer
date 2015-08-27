@@ -3,27 +3,30 @@ using System.Reflection;
 using System.Threading;
 using log4net;
 using log4net.Config;
+using Microsoft.Owin;
+using Microsoft.Owin.Cors;
+using Microsoft.Owin.Hosting;
+using Owin;
 using WLNetwork.Bots;
 using WLNetwork.Chat;
 using WLNetwork.Matches;
-using XSockets.Core.Common.Socket;
-using XSockets.Plugin.Framework;
 using WLNetwork.Database;
 using WLNetwork.Leagues;
 
+[assembly: OwinStartup(typeof(WLNetwork.Startup))]
 namespace WLNetwork
 {
-    internal class Program
+    public class Program
     {
         private static readonly ILog log = LogManager.GetLogger
             (MethodBase.GetCurrentMethod().DeclaringType);
 
         private static volatile bool shutdown;
 
-        public static void Main(string[] args)
+        public static void Main()
         {
             XmlConfigurator.Configure();
-            ThreadPool.SetMaxThreads (1500, 1500);
+            //ThreadPool.SetMaxThreads (1500, 1500);
 #if !DEBUG
             AppDomain.CurrentDomain.UnhandledException +=
                 (sender, eventArgs) => log.Fatal("UNHANDLED EXCEPTION", (Exception) eventArgs.ExceptionObject);
@@ -33,14 +36,13 @@ namespace WLNetwork
 
             //Init database
             log.Info("There are " + HeroCache.Heros.Values.Count + " heros in the system.");
-            log.Info("There are " + MemberDB.Members.Count+" members in the system.");
-            log.Info("There are " + BotDB.Bots.Count+" bots in the system.");
+            log.Info("There are " + MemberDB.Members.Count + " members in the system.");
+            log.Info("There are " + BotDB.Bots.Count + " bots in the system.");
             log.Info("There are " + LeagueDB.Leagues.Count + " leagues in the system.");
 
             Console.CancelKeyPress += delegate { shutdown = true; };
-            using (var container = Composable.GetExport<IXSocketServerContainer>())
+            using (WebApp.Start("http://*:7028"))
             {
-                container.Start();
                 new ChatChannel("main", ChannelType.Public, false, true);
                 log.Debug("Server online and listening.");
                 ThreadPool.QueueUserWorkItem(se => MatchGame.RecoverActiveMatches());
@@ -49,6 +51,14 @@ namespace WLNetwork
                     Thread.Sleep(500);
                 }
             }
+        }
+    }
+    class Startup
+    {
+        public void Configuration(IAppBuilder app)
+        {
+            app.UseCors(CorsOptions.AllowAll);
+            app.MapSignalR();
         }
     }
 }

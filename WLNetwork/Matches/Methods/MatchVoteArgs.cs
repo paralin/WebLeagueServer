@@ -1,4 +1,5 @@
 ﻿using System;
+using WLNetwork.Matches.Enums;
 
 namespace WLNetwork.Matches.Methods
 {

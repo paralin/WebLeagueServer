@@ -4,9 +4,10 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
 using log4net;
+using WLNetwork.Clients;
+using WLNetwork.Hubs;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Matches.Methods;
-using XSockets.Core.XSocket.Helpers;
 
 namespace WLNetwork.Matches
 {
@@ -16,8 +17,6 @@ namespace WLNetwork.Matches
     public static class MatchesController
     {
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static readonly Controllers.Matches Matches = new Controllers.Matches();
-        private static readonly Controllers.Admin Admins = new Controllers.Admin();
 
         /// <summary>
         ///     All games in the system.
@@ -40,11 +39,10 @@ namespace WLNetwork.Matches
             if (args.NewItems != null)
             {
                 IEnumerable<MatchGameInfo> newAvailable = args.NewItems.OfType<MatchGameInfo>();
-                Matches.InvokeTo(m => m.User != null, new PublicMatchUpd(newAvailable.ToArray()), PublicMatchUpd.Msg);
+                Hubs.Matches.HubContext.Clients.All.PublicMatchUpdate(newAvailable.ToArray());
             }
             if (args.OldItems != null)
-                Matches.InvokeTo(m => m.User != null, new PublicMatchRm(args.OldItems.OfType<MatchGameInfo>().ToArray()),
-                    PublicMatchRm.Msg);
+                Hubs.Matches.HubContext.Clients.All.PublicMatchRemove(args.OldItems.OfType<MatchGameInfo>().ToArray());
         }
 
         private static void GamesOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
@@ -54,15 +52,14 @@ namespace WLNetwork.Matches
                 IEnumerable<MatchGame> newAvailable =
                     args.NewItems.OfType<MatchGame>().Where(m => m.Info.Status == MatchStatus.Players);
                 var matchGames = newAvailable as MatchGame[] ?? newAvailable.ToArray();
-                Matches.InvokeTo(m => m.User != null, new AvailableGameUpd(matchGames.ToArray()), AvailableGameUpd.Msg);
-                Admins.InvokeTo(m => m.User != null, new AvailableGameUpd(matchGames.ToArray()), AvailableGameUpd.Msg);
+                Hubs.Matches.HubContext.Clients.All.AvailableGameUpdate(matchGames.ToArray());
+                foreach (var cli in BrowserClient.Clients.Values.Where(m=>m.User != null && m.User.authItems.Contains("admin")).SelectMany(client => client.MatchClients.Values))
+                    cli.AvailableGameUpdate(matchGames.ToArray());
             }
             if (args.OldItems != null)
             {
-                Matches.InvokeTo(m => m.User != null, new AvailableGameRm(args.OldItems.OfType<MatchGame>().ToArray()),
-                    AvailableGameRm.Msg);
-                Admins.InvokeTo(m => m.User != null, new AvailableGameRm(args.OldItems.OfType<MatchGame>().ToArray()),
-                    AvailableGameRm.Msg);
+                Hubs.Matches.HubContext.Clients.All.AvailableGameRemove(args.OldItems.OfType<MatchGame>().ToArray());
+                Hubs.Admin.HubContext.Clients.All.AvailableGameRemove(args.OldItems.OfType<MatchGame>().ToArray());
             }
         }
     }

@@ -50,9 +50,10 @@ namespace WLNetwork.Utils
         {
             if (collection == null) throw new ArgumentNullException("collection");
 
-            foreach (T i in collection) Items.Remove(i);
+            var enumerable = collection as T[] ?? collection.ToArray();
+            foreach (T i in enumerable) Items.Remove(i);
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove,
-                collection.ToList()));
+                enumerable.ToList()));
         }
 
         /// <summary>

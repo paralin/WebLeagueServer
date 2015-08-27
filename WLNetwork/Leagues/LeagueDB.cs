@@ -15,7 +15,6 @@ using WLNetwork.Chat.Methods;
 using WLNetwork.Database;
 using WLNetwork.Model;
 using WLNetwork.Utils;
-using XSockets.Core.XSocket.Helpers;
 
 namespace WLNetwork.Leagues
 {
@@ -25,7 +24,6 @@ namespace WLNetwork.Leagues
     public static class LeagueDB
     {
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static readonly Controllers.Matches Matches = new Controllers.Matches();
 
         /// <summary>
         /// Update timer for the DB
@@ -132,7 +130,7 @@ namespace WLNetwork.Leagues
             }
             if (AnyUpdated)
             {
-                Matches.InvokeToAll("refreshleagues");
+                Hubs.Matches.HubContext.Clients.All.RefreshLeagues();
             }
         }
     }

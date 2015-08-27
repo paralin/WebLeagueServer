@@ -1,7 +1,7 @@
 ﻿using System;
 using WLNetwork.Matches.Enums;
 
-namespace WLNetwork.Model
+namespace WLNetwork.Matches.Methods
 {
     public class MatchCreateOptions
     {

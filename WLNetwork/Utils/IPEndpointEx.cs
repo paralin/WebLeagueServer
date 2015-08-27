@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Dota2GameConnect.Utils
+namespace WLNetwork.Utils
 {
     public static class IPEndpointEx
     {

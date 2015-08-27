@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace WLNetwork
+﻿namespace WLNetwork.Matches.Enums
 {
 	/// <summary>
 	/// WebLeague match result
