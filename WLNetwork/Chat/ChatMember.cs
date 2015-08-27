@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
 using KellermanSoftware.CompareNetObjects;
 using WLNetwork.Chat.Enums;
 using WLNetwork.Model;
@@ -248,7 +247,6 @@ namespace WLNetwork.Chat
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             if (_disablePropertyChanged) return;
