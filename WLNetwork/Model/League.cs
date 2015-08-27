@@ -40,7 +40,7 @@ namespace WLNetwork.Model
         /// <summary>
         /// Secondary current seasons
         /// </summary>
-        public List<uint> SecondaryCurrentSeason { get; set; } 
+        public List<uint> SecondaryCurrentSeason { get; set; }
 
         /// <summary>
         /// Seasons

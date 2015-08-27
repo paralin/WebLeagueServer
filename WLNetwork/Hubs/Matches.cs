@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Humanizer;
 using log4net;
 using WLNetwork.Chat;
 using WLNetwork.Clients;
@@ -71,14 +70,19 @@ namespace WLNetwork.Hubs
             League league;
             if (!LeagueDB.Leagues.TryGetValue(options.League, out league)) return "Can't find league " + options.League + "!";
             if (league.Archived || !league.IsActive) return "The league '" + league.Name + "' is currently inactive, you cannot create matches.";
-            var start = league.Seasons[(int) league.CurrentSeason].Start;
-            if (start > DateTime.UtcNow) return $"The league '{league.Name}' starts in {start.Humanize()}.";
-			if (league.RequireTeamspeak && !client.User.tsonline) return "Please join Teamspeak before joining games.";
+            var start = league.Seasons[(int)league.CurrentSeason].Start;
+            if (start > DateTime.UtcNow) return $"The league '{league.Name}' has not started yet.";
+            if (league.RequireTeamspeak && !client.User.tsonline) return "Please join Teamspeak before joining games.";
             options.MatchType = MatchType.StartGame;
-            var match = new MatchGame(client.User.steam.steamid, options, league.Id, league.CurrentSeason, league.Seasons[(int)league.CurrentSeason].Ticket, league.Region, league.SecondaryCurrentSeason.ToArray());
+            options.League = league.Id;
+            options.LeagueSeason = league.CurrentSeason;
+            options.LeagueTicket = league.Seasons[(int) league.CurrentSeason].Ticket;
+            options.LeagueRegion = league.Region;
+            options.SecondaryLeagueSeason = league.SecondaryCurrentSeason.ToArray();
+            var match = new MatchGame(client.User.steam.steamid, options);
             client.Match = match;
-            match.Players.Add(new MatchPlayer(client.User, league.Id, league.CurrentSeason, league.SecondaryCurrentSeason.ToArray()) {IsCaptain = true});
-            ChatChannel.SystemMessage(league.Id, client.User.profile.name+" created a new match.");
+            match.Players.Add(new MatchPlayer(client.User, league.Id, league.CurrentSeason, league.SecondaryCurrentSeason.ToArray()) { IsCaptain = true });
+            ChatChannel.SystemMessage(league.Id, client.User.profile.name + " created a new match.");
             return null;
         }
 
@@ -93,7 +97,7 @@ namespace WLNetwork.Hubs
             if (client.Match == null) return "You are not currently in a match.";
             if (client.User == null) return "You are not logged in for some reason.";
             if (client.User.authItems.Contains("spectateOnly")) return "You cannot start matches, you can spectate only.";
-            var me = client.Match.Players.FirstOrDefault(m=> m.SID == client.User.steam.steamid);
+            var me = client.Match.Players.FirstOrDefault(m => m.SID == client.User.steam.steamid);
             if (me == null || !me.IsCaptain) return "You are not the host of this game.";
             if (client.Match.Setup != null || client.Match.Info.Status == MatchStatus.Teams)
             {
@@ -101,7 +105,7 @@ namespace WLNetwork.Hubs
             }
             if (client.Match.Info.MatchType == MatchType.Captains)
             {
-				if (client.Match.Players.Count(m=>m.Team != MatchTeam.Spectate) < 10) return "You need at least 10 players to start the challenge.";
+                if (client.Match.Players.Count(m => m.Team != MatchTeam.Spectate) < 10) return "You need at least 10 players to start the challenge.";
                 client.Match.StartPicks();
             }
             else if (client.Match.Info.MatchType == MatchType.StartGame)
@@ -119,26 +123,26 @@ namespace WLNetwork.Hubs
         ///     Pick a player in captains
         /// </summary>
         /// <param name="player"></param>
-        public void PickPlayer(PickPlayer player)
+        public void PickPlayer(string steamid)
         {
             BrowserClient client = Client;
             if (client?.User == null) return;
             if (client.Match == null || client.Match.Info.MatchType != MatchType.Captains) return;
             MatchPlayer me = client.Match.Players.FirstOrDefault(m => m.IsCaptain && m.SID == client.User.steam.steamid);
             if (me == null) return;
-            client.Match.PickPlayer(player.SID, me.Team);
+            client.Match.PickPlayer(steamid, me.Team);
         }
 
         /// <summary>
         ///      Kick a player from a startgame
         /// </summary>
         /// <param name="player"></param>
-        public void KickPlayer(PickPlayer player)
+        public void KickPlayer(string steamid)
         {
             BrowserClient client = Client;
             if (client?.User == null) return;
-            if (client.Match == null || client.User == null || client.Match.Info.MatchType != MatchType.StartGame || client.Match.Info.Owner != client.User.steam.steamid || player.SID == client.User.steam.steamid || client.Match.Info.Status > MatchStatus.Players) return;
-            client.Match.KickPlayer(player.SID);
+            if (client.Match == null || client.User == null || client.Match.Info.MatchType != MatchType.StartGame || client.Match.Info.Owner != client.User.steam.steamid || steamid == client.User.steam.steamid || client.Match.Info.Status > MatchStatus.Players) return;
+            client.Match.KickPlayer(steamid);
         }
 
         /// <summary>
@@ -161,10 +165,11 @@ namespace WLNetwork.Hubs
             if (client?.User == null) return "You are not logged in.";
             if (client.Match == null) return "You are not currently in a match.";
             if (client.User == null) return "You are not logged in for some reason.";
-            var me = client.Match.Players.FirstOrDefault(m=>m.SID == client.User.steam.steamid);
+            var me = client.Match.Players.FirstOrDefault(m => m.SID == client.User.steam.steamid);
             if (me == null || !me.IsCaptain) return "You are not the host of this game.";
             if (client.Match.Setup == null || client.Match.Setup.Details.Status != MatchSetupStatus.Wait ||
-                client.Match.Players.Any(m => !m.Ready && m.Team < MatchTeam.Spectate)) return "The match cannot be started yet.";
+                client.Match.Players.Any(m => !m.Ready && m.Team < MatchTeam.Spectate))
+                return "The match cannot be started yet.";
             client.Match.StartMatch();
             return null;
         }
@@ -173,7 +178,7 @@ namespace WLNetwork.Hubs
         ///     Respond to a challenge
         /// </summary>
         /// <param name="resp"></param>
-        public void ChallengeResponse(ChallengeResponse resp)
+        public void ChallengeResponse(bool accept)
         {
             BrowserClient client = Client;
             if (client?.User == null) return;
@@ -185,8 +190,8 @@ namespace WLNetwork.Hubs
             client.Challenge = null;
             if (other == null) return;
             other.Challenge = null;
-            ChatChannel.SystemMessage(chal.League, client.User.profile.name+(resp.accept ? " accepted the challenge." : " declined the challenge."));
-            if (!resp.accept) return;
+            ChatChannel.SystemMessage(chal.League, client.User.profile.name + (accept ? " accepted the challenge." : " declined the challenge."));
+            if (!accept) return;
 
             League league = null;
             if (!LeagueDB.Leagues.TryGetValue(chal.League, out league))
@@ -206,8 +211,13 @@ namespace WLNetwork.Hubs
             {
                 GameMode = chal.GameMode,
                 MatchType = chal.MatchType,
-                OpponentSID = other.User.steam.steamid
-            }, chal.League, league.CurrentSeason, league.Seasons[(int)league.CurrentSeason].Ticket, league.Region, league.SecondaryCurrentSeason.ToArray());
+                OpponentSID = other.User.steam.steamid,
+                League = chal.League,
+                LeagueSeason = league.CurrentSeason,
+                LeagueTicket = league.Seasons[(int)league.CurrentSeason].Ticket,
+                LeagueRegion = league.Region,
+                SecondaryLeagueSeason = league.SecondaryCurrentSeason.ToArray()
+            });
             client.Match = match;
             other.Match = match;
             match.Players.AddRange(new[]
@@ -253,30 +263,30 @@ namespace WLNetwork.Hubs
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
-        public string JoinMatch(MatchJoinOptions options)
+        public string JoinMatch(Guid id, bool spec)
         {
             BrowserClient client = Client;
             if (client?.User == null) return "You are not logged in.";
-            if (client.Match != null && options.Id == client.Match.Id) return "You are already in that match.";
-            if (client.User.authItems.Contains("spectateOnly") && !options.Spec) return "You cannot join matches, you can spectate only.";
+            if (client.Match != null && id == client.Match.Id) return "You are already in that match.";
+            if (client.User.authItems.Contains("spectateOnly") && !spec) return "You cannot join matches, you can spectate only.";
             //LeaveMatch();
             if (client.Match != null) return "You are already in a match, leave that one first.";
-            MatchGame match = MatchesController.Games.FirstOrDefault( m => m.Id == options.Id && m.Info.Public);
+            MatchGame match = MatchesController.Games.FirstOrDefault(m => m.Id == id && m.Info.Public);
             if (match == null) return "That match can't be found.";
             if (client.User != null && client.User.authItems.Contains("challengeOnly") && match.Info.MatchType != MatchType.Captains) return "You are limited to joining challenge pools only.";
             if (!client.User.vouch.leagues.Contains(match.Info.League)) return $"You are not in the league '{match.Info.League}'!";
-            if (match.Info.Status != MatchStatus.Players && !options.Spec && match.Info.Status != MatchStatus.Teams)
+            if (match.Info.Status != MatchStatus.Players && !spec && match.Info.Status != MatchStatus.Teams)
                 return "Can't join a match that has started.";
-            if (match.Info.Status > MatchStatus.Lobby && options.Spec)
+            if (match.Info.Status > MatchStatus.Lobby && spec)
                 return "Can't spectate a match already past the lobby stage.";
-            if (!options.Spec && match.Players.Count(m => m.Team != MatchTeam.Spectate) >= 10 && match.Info.MatchType != MatchType.Captains) 
+            if (!spec && match.Players.Count(m => m.Team != MatchTeam.Spectate) >= 10 && match.Info.MatchType != MatchType.Captains)
                 return "That match is full.";
-            if (match.PlayerForbidden(client.User.steam.steamid) && !options.Spec)
+            if (match.PlayerForbidden(client.User.steam.steamid) && !spec)
                 return "Can't join as you've been kicked from that startgame.";
-			var league = LeagueDB.Leagues [match.Info.League];
-			if (league != null && league.RequireTeamspeak && !client.User.tsonline && !options.Spec) return "Please join Teamspeak before joining games.";
+            var league = LeagueDB.Leagues[match.Info.League];
+            if (league != null && league.RequireTeamspeak && !client.User.tsonline && !spec) return "Please join Teamspeak before joining games.";
             client.Match = match;
-            match.Players.Add(new MatchPlayer(client.User, match.Info.League, match.Info.LeagueSeason, match.Info.SecondaryLeagueSeason) {Team = options.Spec ? MatchTeam.Spectate : MatchTeam.Unassigned});
+            match.Players.Add(new MatchPlayer(client.User, match.Info.League, match.Info.LeagueSeason, match.Info.SecondaryLeagueSeason) { Team = spec ? MatchTeam.Spectate : MatchTeam.Unassigned });
             return null;
         }
 
@@ -331,21 +341,21 @@ namespace WLNetwork.Hubs
             if (client.User.authItems.Contains("challengeOnly")) return "You are limited to joining challenge pools only.";
             if (!client.User.vouch.leagues.Contains(target.League)) return "You are not in the league '" + target.League + "!";
             if (target.MatchType == 0) target.MatchType = MatchType.Captains;
-			if (league.RequireTeamspeak && !client.User.tsonline && target.MatchType != MatchType.OneVsOne) return "Please join Teamspeak before joining games.";
+            if (league.RequireTeamspeak && !client.User.tsonline && target.MatchType != MatchType.OneVsOne) return "Please join Teamspeak before joining games.";
             target.GameMode = target.MatchType == MatchType.OneVsOne ? GameMode.SOLOMID : GameMode.CM;
             target.ChallengerSID = client.User.steam.steamid;
             target.ChallengerName = client.User.profile.name;
             if (target.ChallengedSID == null) return "You didn't specify a person to challenge.";
             if (target.ChallengedSID == client.User.steam.steamid) return "You cannot challenge yourself!";
             BrowserClient tcont;
-            if(!BrowserClient.ClientsBySteamID.TryGetValue(target.ChallengedSID, out tcont)) return "That player is no longer online.";
+            if (!BrowserClient.ClientsBySteamID.TryGetValue(target.ChallengedSID, out tcont)) return "That player is no longer online.";
             if (tcont.Match != null) return "That player is already in a match.";
             if (tcont.Challenge != null) return "That player is already waiting for a challenge.";
             if (tcont.User.authItems.Contains("spectateOnly")) return "That player is a spectator and cannot play matches.";
             if (!tcont.User.vouch.leagues.Contains(target.League)) return "That player is not in the league '" + target.League + "!";
-			if (league.RequireTeamspeak && !tcont.User.tsonline && target.MatchType != MatchType.OneVsOne) return "Please ask your target to join Teamspeak first.";
-            var start = league.Seasons[(int) league.CurrentSeason].Start;
-            if (start > DateTime.UtcNow && target.MatchType != MatchType.OneVsOne) return $"The league '{league.Name}' starts in {start.Humanize()}.";
+            if (league.RequireTeamspeak && !tcont.User.tsonline && target.MatchType != MatchType.OneVsOne) return "Please ask your target to join Teamspeak first.";
+            var start = league.Seasons[(int)league.CurrentSeason].Start;
+            if (start > DateTime.UtcNow && target.MatchType != MatchType.OneVsOne) return $"The league '{league.Name}' hasn't started yet.";
             target.ChallengedName = tcont.User.profile.name;
             target.ChallengedSID = tcont.User.steam.steamid;
             tcont.Challenge = target;

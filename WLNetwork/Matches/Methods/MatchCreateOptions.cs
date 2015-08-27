@@ -1,5 +1,4 @@
-﻿using System;
-using WLNetwork.Matches.Enums;
+﻿using WLNetwork.Matches.Enums;
 
 namespace WLNetwork.Matches.Methods
 {
@@ -25,23 +24,25 @@ namespace WLNetwork.Matches.Methods
         /// League ID
         /// </summary>
         public string League { get; set; }
-    }
-
-    public class MatchJoinOptions
-    {
-        /// <summary>
-        ///     Match ID
-        /// </summary>
-        public Guid Id { get; set; }
 
         /// <summary>
-        /// Spectator?
+        /// League season
         /// </summary>
-        public bool Spec { get; set; }
-    }
+        public uint LeagueSeason { get; set; }
 
-    public class FillChatPlayersOptions
-    {
-        public string ChatName { get; set; }
+        /// <summary>
+        /// Secondary league season
+        /// </summary>
+        public uint[] SecondaryLeagueSeason { get; set; }
+
+        /// <summary>
+        /// League ticket
+        /// </summary>
+        public uint LeagueTicket { get; set; }
+
+        /// <summary>
+        /// League region
+        /// </summary>
+        public uint LeagueRegion { get; set; }
     }
 }

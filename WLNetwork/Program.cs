@@ -41,7 +41,11 @@ namespace WLNetwork
             log.Info("There are " + LeagueDB.Leagues.Count + " leagues in the system.");
 
             Console.CancelKeyPress += delegate { shutdown = true; };
+#if DEBUG
+            using (WebApp.Start("http://localhost:7028"))
+#else
             using (WebApp.Start("http://*:7028"))
+#endif
             {
                 new ChatChannel("main", ChannelType.Public, false, true);
                 log.Debug("Server online and listening.");
@@ -53,7 +57,7 @@ namespace WLNetwork
             }
         }
     }
-    class Startup
+    public class Startup
     {
         public void Configuration(IAppBuilder app)
         {

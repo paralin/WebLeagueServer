@@ -56,17 +56,17 @@ namespace WLNetwork.Clients
         /// <summary>
         /// All currently connected chat clients.
         /// </summary>
-        public ConcurrentDictionary<string, dynamic>  ChatClients = new ConcurrentDictionary<string, dynamic>();
+        public ConcurrentDictionary<string, dynamic> ChatClients = new ConcurrentDictionary<string, dynamic>();
 
         /// <summary>
         /// All currently connected match clients.
         /// </summary>
-        public ConcurrentDictionary<string, dynamic>  MatchClients = new ConcurrentDictionary<string, dynamic>();
+        public ConcurrentDictionary<string, dynamic> MatchClients = new ConcurrentDictionary<string, dynamic>();
 
         /// <summary>
         /// All currently connected admin clients.
         /// </summary>
-        public ConcurrentDictionary<string, dynamic>  AdminClients = new ConcurrentDictionary<string, dynamic>();
+        public ConcurrentDictionary<string, dynamic> AdminClients = new ConcurrentDictionary<string, dynamic>();
 
         /// <summary>
         /// Client type.
@@ -181,7 +181,7 @@ namespace WLNetwork.Clients
                                     exist.ChatClients[ctx.ConnectionId] = client;
                                     break;
                             }
-                            
+
                             // Resend everything.
                             exist.SendFullSnapshot();
                             return;
@@ -212,7 +212,7 @@ namespace WLNetwork.Clients
         {
             log.Debug("DISCONNECTED [" + ctx.ConnectionId + "]");
             BrowserClient cli;
-            if(!Clients.TryRemove(ctx.ConnectionId, out cli)) return;
+            if (!Clients.TryRemove(ctx.ConnectionId, out cli)) return;
             ConcurrentDictionary<string, dynamic> clientDictionary = null;
             switch (hubType)
             {
@@ -243,7 +243,7 @@ namespace WLNetwork.Clients
                 if (Challenge != null)
                 {
                     BrowserClient tcont;
-                    if(ClientsBySteamID.TryGetValue(Challenge.ChallengerSID, out tcont))
+                    if (ClientsBySteamID.TryGetValue(Challenge.ChallengerSID, out tcont))
                     {
                         tcont.Challenge = null;
                         tcont.ChallengeTimer?.Stop();

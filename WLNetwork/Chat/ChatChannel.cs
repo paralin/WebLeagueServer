@@ -4,11 +4,8 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using log4net;
-using WLNetwork.Chat.Methods;
 using WLNetwork.Clients;
-using WLNetwork.Database;
 using WLNetwork.Model;
 
 namespace WLNetwork.Chat
@@ -84,18 +81,17 @@ namespace WLNetwork.Chat
             if (e.OldItems != null)
             {
                 var old = e.OldItems.OfType<string>();
-                var msg = new ChatMemberRm(Id.ToString(), old.ToArray());
                 foreach (var oldm in old)
                 {
                     ChatMember nm;
-                    if(MemberDB.Members.TryGetValue(oldm, out nm) && nm != null)
+                    if (MemberDB.Members.TryGetValue(oldm, out nm) && nm != null)
                         log.DebugFormat("PARTED [{0}] {{{2}}}", Name, Id, nm.Name);
                 }
                 foreach (var mm in Members.ToArray())
                 {
                     BrowserClient cli;
                     if (!BrowserClient.ClientsBySteamID.TryGetValue(mm, out cli)) continue;
-                    foreach(var ccli in cli.ChatClients.Values)
+                    foreach (var ccli in cli.ChatClients.Values)
                         ccli.ChatMemberRemoved(Id.ToString(), old.ToArray());
                 }
             }
@@ -112,7 +108,7 @@ namespace WLNetwork.Chat
                 {
                     BrowserClient cli;
                     if (!BrowserClient.ClientsBySteamID.TryGetValue(mm, out cli)) continue;
-                    foreach(var ccli in cli.ChatClients.Values)
+                    foreach (var ccli in cli.ChatClients.Values)
                         ccli.ChatMemberAdd(Id.ToString(), memb);
                 }
             }
@@ -169,12 +165,7 @@ namespace WLNetwork.Chat
                     return;
                 }
             }
-            var msg = new ChatMessage { Text = text, Member = memberid, ChatId = Id.ToString(), Auto = service , Date = DateTime.UtcNow, Channel = Name};
-            Task.Run(() =>
-            {
-                lock(Mongo.ExclusiveLock) Mongo.ChatMessages.Insert(msg);
-            });
-            foreach (var mm in Members.Where(m=> filterToId == null || m == filterToId))
+            foreach (var mm in Members.Where(m => filterToId == null || m == filterToId))
             {
                 var mm1 = mm;
                 BrowserClient cli;
@@ -209,7 +200,7 @@ namespace WLNetwork.Chat
             if (!Channels.TryGetValue(id, out chan)) return null;
             //if (chan.ChannelType != ChannelType.Public && chan.Name != "main")
             //    throw new JoinCreateException("That channel is not joinable this way.");
-            if(!chan.Members.Contains(member.SteamID)) chan.Members.Add(member.SteamID);
+            if (!chan.Members.Contains(member.SteamID)) chan.Members.Add(member.SteamID);
             return chan;
         }
 
@@ -219,9 +210,9 @@ namespace WLNetwork.Chat
         /// <param name="league"></param>
         /// <param name="message"></param>
         /// <param name="filterToId">filter to send to just 1 steam id</param>
-        public static void SystemMessage(string league, string message, string filterToId=null)
+        public static void SystemMessage(string league, string message, string filterToId = null)
         {
-            if(filterToId == null)
+            if (filterToId == null)
                 log.Debug($"[SYSTEM MESSAGE] [{league}] {message}");
             var chan = Channels.Values.FirstOrDefault(m => m.Name == league);
             chan?.TransmitMessage(null, message, true, filterToId);
@@ -253,8 +244,8 @@ namespace WLNetwork.Chat
             log.Debug($"[MOTD] [{id}] Transmitting messages.");
             var chan = Channels.Values.FirstOrDefault(m => m.Name == id);
 
-            foreach(var msg in league.MotdMessages)
-                chan?.TransmitMessage(null, "MOTD: "+msg, true);
+            foreach (var msg in league.MotdMessages)
+                chan?.TransmitMessage(null, "MOTD: " + msg, true);
         }
     }
 

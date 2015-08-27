@@ -99,7 +99,7 @@ namespace WLNetwork.Matches
         {
             // Reverse rating and don't add w/l but reverse old rating
             ApplyToUsers(Result, seasons, true, false, false, true);
-            
+
             MatchCounted = false;
             Result = nres;
             StreakEndedRating = 0;
@@ -135,7 +135,8 @@ namespace WLNetwork.Matches
 
                 ApplyRating(seasons, true);
                 return true;
-            }else if ((Result == EMatchResult.DireVictory || Result == EMatchResult.RadVictory) && (newResult == EMatchResult.DontCount || newResult == EMatchResult.Unknown))
+            }
+            else if ((Result == EMatchResult.DireVictory || Result == EMatchResult.RadVictory) && (newResult == EMatchResult.DontCount || newResult == EMatchResult.Unknown))
             {
                 VoidGame(newResult, seasons);
                 return true;
@@ -164,7 +165,7 @@ namespace WLNetwork.Matches
             Save();
         }
 
-        private void ApplyToUsers(EMatchResult result, uint[] seasons, bool reverseWL = false, bool changeWinStreak = true, bool addWL = true, bool reverseRating=false)
+        private void ApplyToUsers(EMatchResult result, uint[] seasons, bool reverseWL = false, bool changeWinStreak = true, bool addWL = true, bool reverseRating = false)
         {
             foreach (var player in Players)
             {
@@ -174,7 +175,7 @@ namespace WLNetwork.Matches
                     string idstr = League + ":" + season;
                     string lroot = "profile.leagues." + idstr;
 
-                    update = update.Inc(lroot + ".rating", (player.RatingChange*(reverseRating ? -1 : 1)));
+                    update = update.Inc(lroot + ".rating", (player.RatingChange * (reverseRating ? -1 : 1)));
 
                     if ((result == EMatchResult.RadVictory && player.Team == MatchTeam.Radiant) || (result == EMatchResult.DireVictory && player.Team == MatchTeam.Dire)) // if they won
                     {

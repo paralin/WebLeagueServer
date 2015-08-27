@@ -53,7 +53,7 @@ namespace WLNetwork.Matches
                     args.NewItems.OfType<MatchGame>().Where(m => m.Info.Status == MatchStatus.Players);
                 var matchGames = newAvailable as MatchGame[] ?? newAvailable.ToArray();
                 Hubs.Matches.HubContext.Clients.All.AvailableGameUpdate(matchGames.ToArray());
-                foreach (var cli in BrowserClient.Clients.Values.Where(m=>m.User != null && m.User.authItems.Contains("admin")).SelectMany(client => client.MatchClients.Values))
+                foreach (var cli in BrowserClient.Clients.Values.Where(m => m.User != null && m.User.authItems.Contains("admin")).SelectMany(client => client.MatchClients.Values))
                     cli.AvailableGameUpdate(matchGames.ToArray());
             }
             if (args.OldItems != null)

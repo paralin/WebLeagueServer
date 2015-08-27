@@ -96,7 +96,7 @@ namespace WLNetwork.Bots
         internal static void UpdateDB()
         {
             Bot[] bots;
-            lock(Mongo.ExclusiveLock) bots = Mongo.Bots.FindAs<Bot>(Query.Or(Query.NotExists("Invalid"), Query.EQ("Invalid", false))).ToArray();
+            lock (Mongo.ExclusiveLock) bots = Mongo.Bots.FindAs<Bot>(Query.Or(Query.NotExists("Invalid"), Query.EQ("Invalid", false))).ToArray();
             try
             {
                 foreach (Bot bot in bots)

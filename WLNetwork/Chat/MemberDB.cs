@@ -1,19 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Timers;
 using log4net;
-using MongoDB.Driver;
-using WLNetwork.Chat.Methods;
+using MongoDB.Bson;
+using MongoDB.Driver.Builders;
+using WLNetwork.Clients;
 using WLNetwork.Database;
 using WLNetwork.Model;
 using WLNetwork.Utils;
-using System.Collections.Generic;
-using MongoDB.Driver.Builders;
-using MongoDB.Bson;
-using WLNetwork.Clients;
 
 namespace WLNetwork.Chat
 {
@@ -53,10 +51,10 @@ namespace WLNetwork.Chat
         /// <param name="args"></param>
         private static void MembersOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
         {
-            if(args.OldItems != null)
-                Hubs.Chat.HubContext.Clients.All.GlobalMemberRemove(args.OldItems.OfType<KeyValuePair<string, ChatMember>>().Select(m=>m.Value.SteamID).ToArray());
+            if (args.OldItems != null)
+                Hubs.Chat.HubContext.Clients.All.GlobalMemberRemove(args.OldItems.OfType<KeyValuePair<string, ChatMember>>().Select(m => m.Value.SteamID).ToArray());
             if (args.NewItems != null)
-                Hubs.Chat.HubContext.Clients.All.GlobalMemberSnapshot(new GlobalMemberSnapshot(args.NewItems.OfType<KeyValuePair<string, ChatMember>>().Select(m => m.Value).ToArray()));
+                Hubs.Chat.HubContext.Clients.All.GlobalMemberSnapshot(args.NewItems.OfType<KeyValuePair<string, ChatMember>>().Select(m => m.Value).ToArray());
         }
 
         /// <summary>
@@ -69,14 +67,14 @@ namespace WLNetwork.Chat
             UpdateDB();
         }
 
-        private static bool alreadyUpdating = false;
+        private static bool alreadyUpdating;
 
         /// <summary>
         ///     Check for differences in the DB
         /// </summary>
         internal static void UpdateDB()
         {
-            if(alreadyUpdating) return;
+            if (alreadyUpdating) return;
             alreadyUpdating = true;
             UpdateTimer.Stop();
             try

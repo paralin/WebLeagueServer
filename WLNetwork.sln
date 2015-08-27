@@ -1,23 +1,28 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WLNetwork", "WLNetwork\WLNetwork.csproj", "{CD854E09-58F2-40CE-8049-6CD713775B5F}"
+# Visual Studio 14
+VisualStudioVersion = 14.0.22823.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WLNetworkRuntime", "WLNetworkRuntime\WLNetworkRuntime.csproj", "{66063693-99C5-4471-BCBF-5D2C6BA609BC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WLNetworkRuntime", "WLNetworkRuntime\WLNetworkRuntime.csproj", "{5839B10F-C60C-4CC3-9BBC-ED4F0763906B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WLNetwork", "WLNetwork\WLNetwork.csproj", "{EA512D20-638E-432A-90B7-57A10A64060F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|x86 = Debug|x86
-		Release|x86 = Release|x86
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5839B10F-C60C-4CC3-9BBC-ED4F0763906B}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{5839B10F-C60C-4CC3-9BBC-ED4F0763906B}.Debug|x86.Build.0 = Debug|Any CPU
-		{5839B10F-C60C-4CC3-9BBC-ED4F0763906B}.Release|x86.ActiveCfg = Release|Any CPU
-		{5839B10F-C60C-4CC3-9BBC-ED4F0763906B}.Release|x86.Build.0 = Release|Any CPU
-		{CD854E09-58F2-40CE-8049-6CD713775B5F}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{CD854E09-58F2-40CE-8049-6CD713775B5F}.Debug|x86.Build.0 = Debug|Any CPU
-		{CD854E09-58F2-40CE-8049-6CD713775B5F}.Release|x86.ActiveCfg = Release|Any CPU
-		{CD854E09-58F2-40CE-8049-6CD713775B5F}.Release|x86.Build.0 = Release|Any CPU
+		{66063693-99C5-4471-BCBF-5D2C6BA609BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66063693-99C5-4471-BCBF-5D2C6BA609BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66063693-99C5-4471-BCBF-5D2C6BA609BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66063693-99C5-4471-BCBF-5D2C6BA609BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA512D20-638E-432A-90B7-57A10A64060F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA512D20-638E-432A-90B7-57A10A64060F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA512D20-638E-432A-90B7-57A10A64060F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA512D20-638E-432A-90B7-57A10A64060F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -79,11 +79,11 @@ namespace WLNetwork.Hubs
             var res = Mongo.Results.FindOneAs<MatchResult>(Query.EQ("_id", id));
             if (res == null)
             {
-                log.Warn("Can't find match "+id+", not re-calculating.");
+                log.Warn("Can't find match " + id + ", not re-calculating.");
                 return;
             }
 
-            log.Info("Recalculating result "+id+" on request of admin.");
+            log.Info("Recalculating result " + id + " on request of admin.");
             res.RecalculateResult();
         }
 
@@ -96,27 +96,27 @@ namespace WLNetwork.Hubs
         {
             var client = Client;
             if (client?.User == null || !client.User.authItems.Contains("admin")) return "You are not an admin.";
-			if (id == 0)
-				return "Invalid request.";
-			var res = Mongo.Results.FindAs<MatchResult> (Query<MatchResult>.EQ (m => m.Id, id)).FirstOrDefault();
-			if (res == null)
-				return "Unable to find that match result.";
-			if (res.Result == result)
-				return "The result is already set to that.";
-			if (res.Result == EMatchResult.DontCount && res.MatchType == MatchType.OneVsOne)
-				return "Cannot count this match.";
-			if (res.MatchType == MatchType.OneVsOne) 
-			{
-				res.Result = EMatchResult.DontCount;
-				res.Save ();
-				return "Unable to change 1v1 results.";
-			}
+            if (id == 0)
+                return "Invalid request.";
+            var res = Mongo.Results.FindAs<MatchResult>(Query<MatchResult>.EQ(m => m.Id, id)).FirstOrDefault();
+            if (res == null)
+                return "Unable to find that match result.";
+            if (res.Result == result)
+                return "The result is already set to that.";
+            if (res.Result == EMatchResult.DontCount && res.MatchType == MatchType.OneVsOne)
+                return "Cannot count this match.";
+            if (res.MatchType == MatchType.OneVsOne)
+            {
+                res.Result = EMatchResult.DontCount;
+                res.Save();
+                return "Unable to change 1v1 results.";
+            }
 
-			log.Debug ("Request to change result of " + res.Id + " from " + res.Result.ToString ("G") + " to " + result.ToString ("G"));
-			if(!res.AdjustResult(result)) return "Don't know how to convert " + res.Result.ToString ("G") + " to " + result.ToString ("G")+".";
-			res.Save ();
+            log.Debug("Request to change result of " + res.Id + " from " + res.Result.ToString("G") + " to " + result.ToString("G"));
+            if (!res.AdjustResult(result)) return "Don't know how to convert " + res.Result.ToString("G") + " to " + result.ToString("G") + ".";
+            res.Save();
 
-			return null;
+            return null;
         }
     }
 }

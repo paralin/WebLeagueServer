@@ -11,6 +11,7 @@ using log4net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SteamKit2;
+using WLNetwork.Bots.Data;
 using WLNetwork.Bots.LobbyBot;
 using WLNetwork.Bots.LobbyBot.Enums;
 using WLNetwork.Matches;
@@ -52,10 +53,10 @@ namespace WLNetwork.Bots
 
             log = LogManager.GetLogger(details.Bot.Username);
 
-            bot = new Bot(new SteamUser.LogOnDetails() {Username = details.Bot.Username, Password = details.Bot.Password}, contrs:new BotGameController(this));
+            bot = new Bot(new SteamUser.LogOnDetails() { Username = details.Bot.Username, Password = details.Bot.Password }, contrs: new BotGameController(this));
             bot.InvalidCreds += (sender, args) =>
             {
-                log.Warn("Steam reports invalid creds for "+details.Bot.Username+"!");
+                log.Warn("Steam reports invalid creds for " + details.Bot.Username + "!");
             };
             bot.StateTransitioned += (sender, transition) =>
             {
@@ -144,7 +145,7 @@ namespace WLNetwork.Bots
                         var args = new LeaverStatusArgs
                         {
                             Players = lobby.members.Concat(lobby.left_members).Select(
-                                m => new LeaverStatusArgs.Player {Status = m.leaver_status, SteamID = "" + m.id})
+                                m => new LeaverStatusArgs.Player { Status = m.leaver_status, SteamID = "" + m.id })
                                 .ToArray(),
                             Lobby = lobby
                         };
@@ -162,11 +163,11 @@ namespace WLNetwork.Bots
                     {
                         foreach (var memb in lobby.members.Where(memb => memb.hero_id != 0))
                         {
-                            HeroId(this, new PlayerHeroArgs() {hero_id = memb.hero_id, steam_id = memb.id});
+                            HeroId(this, new PlayerHeroArgs() { hero_id = memb.hero_id, steam_id = memb.id });
                         }
                     }
                     if (MatchStatus != null)
-                        MatchStatus(this, new MatchStateArgs {State = lobby.game_state, Status = lobby.state});
+                        MatchStatus(this, new MatchStateArgs { State = lobby.game_state, Status = lobby.state });
                     if (MatchId != null && lobby.match_id != 0) MatchId(this, lobby.match_id);
                     if (lobby.match_outcome != EMatchOutcome.k_EMatchOutcome_Unknown && MatchOutcome != null)
                         MatchOutcome(this, lobby.match_outcome);
@@ -254,12 +255,12 @@ namespace WLNetwork.Bots
             }
 
             // Kick anyone in team slots that isn't supposed to be there
-            foreach (var member in from member in bot.DotaGCHandler.Lobby.members.Where(m=>m.id != bot.SteamUser.SteamID.ConvertToUInt64())
-                let plyr = Details.Players.FirstOrDefault(m => m.SID == "" + member.id)
-                where
-                    plyr == null || (plyr.Team != MatchTeam.Dire && member.team == DOTA_GC_TEAM.DOTA_GC_TEAM_BAD_GUYS) ||
-                    (plyr.Team != MatchTeam.Radiant && member.team == DOTA_GC_TEAM.DOTA_GC_TEAM_GOOD_GUYS)
-                select member)
+            foreach (var member in from member in bot.DotaGCHandler.Lobby.members.Where(m => m.id != bot.SteamUser.SteamID.ConvertToUInt64())
+                                   let plyr = Details.Players.FirstOrDefault(m => m.SID == "" + member.id)
+                                   where
+                                       plyr == null || (plyr.Team != MatchTeam.Dire && member.team == DOTA_GC_TEAM.DOTA_GC_TEAM_BAD_GUYS) ||
+                                       (plyr.Team != MatchTeam.Radiant && member.team == DOTA_GC_TEAM.DOTA_GC_TEAM_GOOD_GUYS)
+                                   select member)
             {
                 log.Warn("Kicking player " + member.id + " for being on team " + member.team + " when they shouldn't.");
                 bot.DotaGCHandler.KickPlayerFromLobby(member.id.ToAccountID());
@@ -268,7 +269,7 @@ namespace WLNetwork.Bots
             bot.DotaGCHandler.LaunchLobby();
         }
 
-#region Client Controller
+        #region Client Controller
 
         /// <summary>
         /// Controls a spectator bot
@@ -307,7 +308,7 @@ namespace WLNetwork.Bots
 
             private void Say(string msg)
             {
-                _commander.Submit("say \""+msg+"\"");
+                _commander.Submit("say \"" + msg + "\"");
             }
 
             private bool hasSubmittedResult = false;
@@ -344,7 +345,7 @@ namespace WLNetwork.Bots
                     (gr.GameWinner.Value == GameRules.DOTA_ServerTeam.RADIANT ||
                      gr.GameWinner.Value == GameRules.DOTA_ServerTeam.DIRE))
                 {
-                    log.Debug("Game server has reported result "+gr.GameWinner.Value.ToString("G")+"!");
+                    log.Debug("Game server has reported result " + gr.GameWinner.Value.ToString("G") + "!");
                     hasSubmittedResult = true;
                     _inst.ServerOutcome(gr.GameWinner.Value == GameRules.DOTA_ServerTeam.RADIANT ? EMatchOutcome.k_EMatchOutcome_RadVictory : EMatchOutcome.k_EMatchOutcome_DireVictory);
                 }
@@ -414,6 +415,6 @@ namespace WLNetwork.Bots
                 _state.GameEvents.Clear();
             }
         }
-#endregion
+        #endregion
     }
 }

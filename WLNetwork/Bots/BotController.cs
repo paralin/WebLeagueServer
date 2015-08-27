@@ -9,6 +9,7 @@ using Dota2.GC.Dota.Internal;
 using log4net;
 using Newtonsoft.Json.Linq;
 using SteamKit2;
+using WLNetwork.Bots.Data;
 using WLNetwork.Bots.LobbyBot.Enums;
 using WLNetwork.Chat;
 using WLNetwork.Database;
@@ -23,7 +24,7 @@ namespace WLNetwork.Bots
 {
     public class BotController
     {
-        private ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private ILog log;
         public BotInstance instance;
         private MatchSetupDetails game;
         private Timer matchResultTimeout;
@@ -34,7 +35,7 @@ namespace WLNetwork.Bots
             matchResultTimeout.Elapsed += MatchResultTimeout;
 
             this.game = game;
-            log = LogManager.GetLogger("BotController "+game.Id.ToString().Split('-')[0]);
+            log = LogManager.GetLogger("BotController " + game.Id.ToString().Split('-')[0]);
 
             instance = new BotInstance(game);
             instance.PlayerReady += PlayerReady;
@@ -48,8 +49,8 @@ namespace WLNetwork.Bots
             instance.FirstBloodHappened += FirstBloodHappened;
             instance.SpectatorCountUpdate += SpectatorCountUpdate;
             instance.HeroId += HeroId;
-			instance.LobbyReady += LobbyReady;
-			instance.LobbyPlaying += LobbyPlaying;
+            instance.LobbyReady += LobbyReady;
+            instance.LobbyPlaying += LobbyPlaying;
             instance.InvalidCreds += InvalidCreds;
         }
 
@@ -72,72 +73,72 @@ namespace WLNetwork.Bots
                 log.Error("Unable to fetch match result, giving up.");
                 outcomeProcessed = true;
                 MatchGame g = game.GetGame();
-                if(g != null) g.ProcessMatchResult(EMatchResult.Unknown);
+                if (g != null) g.ProcessMatchResult(EMatchResult.Unknown);
                 return;
             }
 
             log.Debug("DOTA2 GC has not set match_outcome, starting checks...");
-			AttemptAPIResult ();
+            AttemptAPIResult();
         }
 
-		void AttemptDetailsResult()
-		{
-			instance.FetchMatchResult(game.MatchId, match =>
-				{
-					if (outcomeProcessed) return;
-					if (match == null)
-					{
-						log.Warn("No match result, trying again in 10 seconds...");
-						matchResultAttempts++;
-						matchResultTimeout.Start();
-					}
-					else
-					{
-						outcomeProcessed = true;
-						log.Debug("Fetched match result with outcome good_guys_win="+match.good_guys_win+".");
-						MatchGame g = game.GetGame();
-						if (g != null)
-						{
-							g.ProcessMatchResult(match.good_guys_win ? EMatchResult.RadVictory : EMatchResult.DireVictory);
-						}
-					}
-				});
-		}
-
-        void LobbyPlaying (object sender, EventArgs e)
+        void AttemptDetailsResult()
         {
-			if (game.Status == MatchSetupStatus.Done)
-				return;
-			log.Debug("Bot entered Play state "+game.Bot.Username);
-			game.Status = MatchSetupStatus.Done;
-			var match = game.GetGame();
-			if (match != null)
-			{
-				if (match.Info.Status == Matches.Enums.MatchStatus.Lobby)
-				{
-					match.Info.Status = Matches.Enums.MatchStatus.Play;
-					match.Info = match.Info;
-				}
-			}
-			game.TransmitUpdate();
+            instance.FetchMatchResult(game.MatchId, match =>
+            {
+                if (outcomeProcessed) return;
+                if (match == null)
+                {
+                    log.Warn("No match result, trying again in 10 seconds...");
+                    matchResultAttempts++;
+                    matchResultTimeout.Start();
+                }
+                else
+                {
+                    outcomeProcessed = true;
+                    log.Debug("Fetched match result with outcome good_guys_win=" + match.good_guys_win + ".");
+                    MatchGame g = game.GetGame();
+                    if (g != null)
+                    {
+                        g.ProcessMatchResult(match.good_guys_win ? EMatchResult.RadVictory : EMatchResult.DireVictory);
+                    }
+                }
+            });
         }
 
-        void LobbyReady (object sender, EventArgs e)
+        void LobbyPlaying(object sender, EventArgs e)
+        {
+            if (game.Status == MatchSetupStatus.Done)
+                return;
+            log.Debug("Bot entered Play state " + game.Bot.Username);
+            game.Status = MatchSetupStatus.Done;
+            var match = game.GetGame();
+            if (match != null)
+            {
+                if (match.Info.Status == Matches.Enums.MatchStatus.Lobby)
+                {
+                    match.Info.Status = Matches.Enums.MatchStatus.Play;
+                    match.Info = match.Info;
+                }
+            }
+            game.TransmitUpdate();
+        }
+
+        void LobbyReady(object sender, EventArgs e)
         {
             if (game.Status == MatchSetupStatus.Wait) return;
 
-			log.Debug("Bot entered LobbyUI " + game.Bot.Username);
+            log.Debug("Bot entered LobbyUI " + game.Bot.Username);
             hasStarted = false;
-			game.Status = MatchSetupStatus.Wait;
-			game.State = DOTA_GameState.DOTA_GAMERULES_STATE_INIT;
-			var match = game.GetGame();
-			if (match != null)
-			{
-				match.Info.Status = Matches.Enums.MatchStatus.Lobby;
-				match.Info = match.Info;
-			}
-			game.TransmitUpdate();
-			game.TransmitLobbyReady();
+            game.Status = MatchSetupStatus.Wait;
+            game.State = DOTA_GameState.DOTA_GAMERULES_STATE_INIT;
+            var match = game.GetGame();
+            if (match != null)
+            {
+                match.Info.Status = Matches.Enums.MatchStatus.Lobby;
+                match.Info = match.Info;
+            }
+            game.TransmitUpdate();
+            game.TransmitLobbyReady();
         }
 
         private void HeroId(object sender, PlayerHeroArgs playerHeroArgs)
@@ -146,25 +147,25 @@ namespace WLNetwork.Bots
             var player = game.Players.FirstOrDefault(m => m.SID == playerHeroArgs.steam_id + "");
             if (player == null)
             {
-                log.Warn("Unable to find player for hero ID update! Steam ID: "+playerHeroArgs.steam_id);
+                log.Warn("Unable to find player for hero ID update! Steam ID: " + playerHeroArgs.steam_id);
                 return;
             }
 
-            if(player.Hero != null && player.Hero.Id == playerHeroArgs.hero_id) return;
+            if (player.Hero != null && player.Hero.Id == playerHeroArgs.hero_id) return;
 
             //Find the hero
             HeroInfo hero;
             if (!HeroCache.Heros.TryGetValue(playerHeroArgs.hero_id, out hero))
             {
-                log.Warn("Unable to find hero ID "+playerHeroArgs.hero_id+"!");
+                log.Warn("Unable to find hero ID " + playerHeroArgs.hero_id + "!");
                 return;
             }
 
             //And we're done!
             player.Hero = hero;
 
-            log.Debug("Hero ID "+hero.Id+" resolved to "+hero.fullName);
-            
+            log.Debug("Hero ID " + hero.Id + " resolved to " + hero.fullName);
+
             //Let's not transmit this yet as when the match state updates it will be transmitted
             if (game.Players.Where(m => m.Team == MatchTeam.Dire || m.Team == MatchTeam.Radiant)
                 .All(m => m.Hero != null))
@@ -190,7 +191,7 @@ namespace WLNetwork.Bots
                 game.FirstBloodHappened = true;
                 game.TransmitUpdate();
                 g.SaveActiveGame();
-                if(g.Info.League != null) ChatChannel.SystemMessage(g.Info.League, "First blood was just spilled in match " + game.Id.ToString().Substring(0, 4) + "!");
+                if (g.Info.League != null) ChatChannel.SystemMessage(g.Info.League, "First blood was just spilled in match " + game.Id.ToString().Substring(0, 4) + "!");
             }
         }
 
@@ -199,7 +200,7 @@ namespace WLNetwork.Bots
         {
             if (hasStarted) return;
             hasStarted = true;
-            var g =game.GetGame();
+            var g = game.GetGame();
             if (g == null) return;
             game.GameStartTime = DateTime.UtcNow;
             game.ServerSteamID = new SteamID(instance.bot.DotaGCHandler.Lobby.server_id).Render(true);
@@ -212,22 +213,22 @@ namespace WLNetwork.Bots
         private void UnknownPlayer(object sender, ulong player)
         {
             if (game.Bot == null || game.Status == MatchSetupStatus.Done) return;
-            log.Warn("Kicking unknown player "+player);
+            log.Warn("Kicking unknown player " + player);
             var memb = instance.bot.DotaGCHandler.Lobby.members.FirstOrDefault(m => m.id == player);
-            if(memb != null) instance.bot.SendLobbyMessage("Kicked "+memb.name+" from the lobby.");
+            if (memb != null) instance.bot.SendLobbyMessage("Kicked " + memb.name + " from the lobby.");
             instance.bot.DotaGCHandler.KickPlayerFromLobby(player.ToAccountID());
         }
 
         private bool lobbyReadySent = false;
         private bool lobbyUnReadySent = false;
-        public void PlayerReady(object sender, PlayerReadyArgs playerReadyArgs)
+        public void PlayerReady(object sender, PlayerReadyArgs readyArgs)
         {
             if (game.Bot == null) return;
-            MatchGame g = game.GetGame(); 
+            MatchGame g = game.GetGame();
             bool anyNotReady = false;
             foreach (MatchPlayer plyr in game.Players)
             {
-                plyr.Ready = playerReadyArgs.Players.Any(m => m.IsReady && m.SteamID == plyr.SID);
+                plyr.Ready = readyArgs.Players.Any(m => m.IsReady && m.SteamID == plyr.SID);
                 if (!plyr.Ready) anyNotReady = true;
             }
             if (g != null)
@@ -249,8 +250,8 @@ namespace WLNetwork.Bots
                     if (lobbyReadySent)
                     {
                         var plyr = g.Players.FirstOrDefault(m => !m.Ready);
-                        if(plyr != null)
-                            instance.bot.SendLobbyMessage("Lobby is no longer ready, waiting for " + plyr.Name + " to join "+(plyr.Team == MatchTeam.Dire ? "Dire" : "Radiant")+".");
+                        if (plyr != null)
+                            instance.bot.SendLobbyMessage("Lobby is no longer ready, waiting for " + plyr.Name + " to join " + (plyr.Team == MatchTeam.Dire ? "Dire" : "Radiant") + ".");
                     }
                     lobbyReadySent = false;
                 }
@@ -260,7 +261,7 @@ namespace WLNetwork.Bots
         public void MatchId(object sender, ulong id)
         {
             if (id == game.MatchId) return;
-            log.Debug("MATCH ID FIXED " +game.Id+ " " + id);
+            log.Debug("MATCH ID FIXED " + game.Id + " " + id);
             game.MatchId = id;
         }
 
@@ -283,7 +284,7 @@ namespace WLNetwork.Bots
             if (g != null)
             {
                 g.Players = g.Players;
-				/*
+                /*
                 if (someoneAbandoned)
                 {
                     log.Warn("ABANDON FOR "+g.Id+", CLOSING GAME");
@@ -341,7 +342,7 @@ namespace WLNetwork.Bots
         {
             MatchGame g = game.GetGame();
             if (g == null || outcomeProcessed) return;
-			if (game.TicketID == 0) AttemptDetailsResult();
+            if (game.TicketID == 0) AttemptDetailsResult();
             else
             {
                 log.Debug("Attempting API result fetch...");
@@ -374,13 +375,13 @@ namespace WLNetwork.Bots
                 if (!fetchedSuccess)
                 {
                     log.Warn("Match result via api failed, using in-game result fetch...");
-					AttemptDetailsResult ();
+                    AttemptDetailsResult();
                 }
                 else
                 {
-                    log.Debug("Successfully fetched result via web api, radiant won = "+mres);
+                    log.Debug("Successfully fetched result via web api, radiant won = " + mres);
                     outcomeProcessed = true;
-                    g.ProcessMatchResult(mres ? EMatchResult.RadVictory :  EMatchResult.DireVictory);
+                    g.ProcessMatchResult(mres ? EMatchResult.RadVictory : EMatchResult.DireVictory);
                 }
             }
         }
@@ -401,14 +402,14 @@ namespace WLNetwork.Bots
             MatchGame g = game.GetGame();
             if (g != null)
             {
-				EMatchResult res;
-				if (args == EMatchOutcome.k_EMatchOutcome_DireVictory)
-					res = EMatchResult.DireVictory;
-				else if (args == EMatchOutcome.k_EMatchOutcome_RadVictory)
-					res = EMatchResult.RadVictory;
-				else
-					res = EMatchResult.Unknown;
-				g.ProcessMatchResult(res);
+                EMatchResult res;
+                if (args == EMatchOutcome.k_EMatchOutcome_DireVictory)
+                    res = EMatchResult.DireVictory;
+                else if (args == EMatchOutcome.k_EMatchOutcome_RadVictory)
+                    res = EMatchResult.RadVictory;
+                else
+                    res = EMatchResult.Unknown;
+                g.ProcessMatchResult(res);
             }
         }
     }

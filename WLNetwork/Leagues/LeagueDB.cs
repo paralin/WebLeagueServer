@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Timers;
 using KellermanSoftware.CompareNetObjects;
 using log4net;
-using MongoDB.Bson;
-using MongoDB.Driver;
 using MongoDB.Driver.Builders;
 using WLNetwork.Chat;
-using WLNetwork.Chat.Methods;
 using WLNetwork.Database;
 using WLNetwork.Model;
 using WLNetwork.Utils;
@@ -75,13 +71,13 @@ namespace WLNetwork.Leagues
         {
             AnyUpdated = false;
             League[] leagues;
-            var logic = new CompareLogic() {Config = new ComparisonConfig() { MaxDifferences = 100 } };
+            var logic = new CompareLogic() { Config = new ComparisonConfig() { MaxDifferences = 100 } };
             try
             {
-              lock (Mongo.ExclusiveLock)
-              {
-                 leagues = Mongo.Leagues.FindAs<League>(Query.NE("Archived", true)).ToArray();
-              }
+                lock (Mongo.ExclusiveLock)
+                {
+                    leagues = Mongo.Leagues.FindAs<League>(Query.NE("Archived", true)).ToArray();
+                }
                 foreach (var league in leagues)
                 {
                     League exist = null;

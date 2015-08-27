@@ -105,7 +105,7 @@ namespace WLNetwork.Bots.LobbyBot
         /// <param name="details">Auth info</param>
         /// <param name="reconnectDelay">Delay between reconnection attempts to steam, set to a negative value to disable reconnecting</param>
         /// <param name="contrs">Game controllers</param>
-        public Bot(SteamUser.LogOnDetails details, double reconnectDelay=2000, params IDotaGameController[] contrs)
+        public Bot(SteamUser.LogOnDetails details, double reconnectDelay = 2000, params IDotaGameController[] contrs)
         {
             _controllers = contrs;
 
@@ -180,7 +180,7 @@ namespace WLNetwork.Bots.LobbyBot
                 .Ignore(Trigger.DotaEnteredLobbyPlay)
                 .Permit(Trigger.DotaEnteredLobbyUI, State.DotaLobby)
                 .Permit(Trigger.DotaNoLobby, State.DotaMenu)
-                .OnEntry(()=> _connAttempts = 0)
+                .OnEntry(() => _connAttempts = 0)
 #if ENABLE_GAME_CONNECTION
                 .OnEntry(() =>
                 {
@@ -194,8 +194,8 @@ namespace WLNetwork.Bots.LobbyBot
 #endif
                 .OnExit(ReleaseDotaGameConnection);
         }
-#endregion
-#region Bot Specific Implementation
+        #endregion
+        #region Bot Specific Implementation
         /// <summary>
         /// Join the correct slot
         /// </summary>
@@ -226,7 +226,7 @@ namespace WLNetwork.Bots.LobbyBot
                 return;
             }
 
-            DotaGCHandler.JoinChatChannel("Lobby_"+DotaGCHandler.Lobby.lobby_id, DOTAChatChannelType_t.DOTAChannelType_Lobby);
+            DotaGCHandler.JoinChatChannel("Lobby_" + DotaGCHandler.Lobby.lobby_id, DOTAChatChannelType_t.DOTAChannelType_Lobby);
         }
 
         /// <summary>
@@ -241,8 +241,8 @@ namespace WLNetwork.Bots.LobbyBot
             }
         }
 
-#endregion
-#region Internal Methods
+        #endregion
+        #region Internal Methods
 
         /// <summary>
         /// Start connecting to Steam
@@ -255,7 +255,7 @@ namespace WLNetwork.Bots.LobbyBot
             DotaGCHandler.Bootstrap(c);
             SteamUser = c.GetHandler<SteamUser>();
             SteamFriends = c.GetHandler<SteamFriends>();
-            
+
             var cb = _cbManager = new CallbackManager(c);
 
             SetupSteamCallbacks(cb);
@@ -295,7 +295,7 @@ namespace WLNetwork.Bots.LobbyBot
             DotaGCHandler = SteamClient.GetHandler<DotaGCHandler>();
             DotaGCHandler.Start();
             var cli = GameClient = new DotaGameClient(DotaGCHandler, _cbManager);
-            foreach(var cont in _controllers) cli.RegisterController(cont);
+            foreach (var cont in _controllers) cli.RegisterController(cont);
         }
 
         /// <summary>
@@ -322,7 +322,7 @@ namespace WLNetwork.Bots.LobbyBot
 
             if (DotaGCHandler.Lobby.connect.Length == 0 || DotaGCHandler.Lobby.connect.StartsWith("="))
             {
-                log.Warn("Connect address is Datagram routed or empty ["+DotaGCHandler.Lobby.connect+"] - not connecting to game server.");
+                log.Warn("Connect address is Datagram routed or empty [" + DotaGCHandler.Lobby.connect + "] - not connecting to game server.");
                 return;
             }
             _connAttempts++;
@@ -371,8 +371,8 @@ namespace WLNetwork.Bots.LobbyBot
             }
         }
 
-#endregion
-#region Callbacks
+        #endregion
+        #region Callbacks
 
         /// <summary>
         /// Setup steam client callbacks
@@ -446,7 +446,7 @@ namespace WLNetwork.Bots.LobbyBot
                                     a.result.persona_name + ": " + a.result.text);
                     if (a.result.channel_id == lobbyChannelId)
                     {
-                        if(a.result.text.Contains("!start")) DotaGCHandler.LaunchLobby();
+                        if (a.result.text.Contains("!start")) DotaGCHandler.LaunchLobby();
                     }
                 });
             cb.Add<DotaGCHandler.MatchResultResponse>(c =>
@@ -474,7 +474,7 @@ namespace WLNetwork.Bots.LobbyBot
             cb.Add<DotaGameClient.SessionStateTransition>(tra =>
             {
                 if (GameClient == null) return;
-                log.Debug("[GameClient] "+tra.OldStatus.ToString("G")+" => "+tra.NewStatus.ToString("G"));
+                log.Debug("[GameClient] " + tra.OldStatus.ToString("G") + " => " + tra.NewStatus.ToString("G"));
 
                 if (tra.NewStatus == States.PLAY)
                 {
@@ -482,14 +482,14 @@ namespace WLNetwork.Bots.LobbyBot
                 }
 
                 if (tra.NewStatus != States.DISCONNECTED || _state.State != State.DotaPlay) return;
-                log.WarnFormat("Client has disconnected, attempts {0}/{1}.{2}", _connAttempts, maxAttempts, _connAttempts<maxAttempts ? " Retrying." : " Not retrying.");
+                log.WarnFormat("Client has disconnected, attempts {0}/{1}.{2}", _connAttempts, maxAttempts, _connAttempts < maxAttempts ? " Retrying." : " Not retrying.");
                 if (_connAttempts < maxAttempts)
                     StartDotaGameConnection();
             });
             cb.Add<DotaGameClient.LogMessage>(msg =>
             {
                 if (GameClient == null) return;
-                log.Debug("[GameClient] "+msg.message);
+                log.Debug("[GameClient] " + msg.message);
             });
         }
 
@@ -499,12 +499,13 @@ namespace WLNetwork.Bots.LobbyBot
             {
                 log.DebugFormat("Entered lobby {0} with state {1}.", lobby.lobby_id, lobby.state.ToString("G"));
 
-            }else if (Lobby != null && lobby == null)
+            }
+            else if (Lobby != null && lobby == null)
             {
                 log.DebugFormat("Exited lobby {0}.", Lobby.lobby_id);
             }
 
-            if(lobby != null)
+            if (lobby != null)
                 _state.Fire(lobby.state == CSODOTALobby.State.UI || string.IsNullOrEmpty(lobby.connect) ? Trigger.DotaEnteredLobbyUI : Trigger.DotaEnteredLobbyPlay);
             else
                 _state.Fire(Trigger.DotaNoLobby);
@@ -512,8 +513,8 @@ namespace WLNetwork.Bots.LobbyBot
             LobbyUpdate?.Invoke(Lobby, lobby);
             Lobby = lobby;
         }
-#endregion
-#region Public Methods
+        #endregion
+        #region Public Methods
 
         /// <summary>
         /// Start the bot
@@ -562,6 +563,6 @@ namespace WLNetwork.Bots.LobbyBot
             DotaGCHandler.AbandonGame();
             DotaGCHandler.LeaveLobby();
         }
-#endregion
+        #endregion
     }
 }

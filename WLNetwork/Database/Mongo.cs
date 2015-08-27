@@ -2,7 +2,6 @@
 using System.Reflection;
 using log4net;
 using MongoDB.Driver;
-using WLNetwork.Chat.Methods;
 using WLNetwork.Matches;
 using WLNetwork.Model;
 using WLNetwork.Properties;
@@ -14,7 +13,7 @@ namespace WLNetwork.Database
         private static readonly ILog log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public static MongoClient Client = null;
+        public static MongoClient Client;
         public static MongoServer Server;
         public static MongoDatabase Database;
 
@@ -24,7 +23,6 @@ namespace WLNetwork.Database
         public static MongoCollection<ActiveMatch> ActiveMatches;
         public static MongoCollection<HeroInfo> Heros;
         public static MongoCollection<League> Leagues;
-        public static MongoCollection<ChatMessage> ChatMessages;
 
         public static readonly object ExclusiveLock = new object();
 
@@ -54,7 +52,6 @@ namespace WLNetwork.Database
             ActiveMatches = Database.GetCollection<ActiveMatch>("activeMatches");
             Heros = Database.GetCollection<HeroInfo>("heros");
             Leagues = Database.GetCollection<League>("leagues");
-            ChatMessages = Database.GetCollection<ChatMessage>("chatMessages");
         }
     }
 }

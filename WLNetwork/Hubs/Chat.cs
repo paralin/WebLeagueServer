@@ -43,9 +43,10 @@ namespace WLNetwork.Hubs
         public void SendMessage(string channel, string text)
         {
             var cli = Client;
-            if (cli?.User == null || string.IsNullOrWhiteSpace(channel) || string.IsNullOrWhiteSpace(text)) {
-              log.WarnFormat("Ignored chat message {0}", text);
-              return;
+            if (cli?.User == null || string.IsNullOrWhiteSpace(channel) || string.IsNullOrWhiteSpace(text))
+            {
+                log.WarnFormat("Ignored chat message {0}", text);
+                return;
             }
             ChatChannel chan = Client.Channels.FirstOrDefault(m => m.Id.ToString() == channel);
             if (chan == null) return;

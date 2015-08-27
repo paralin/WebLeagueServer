@@ -20,7 +20,7 @@ namespace WLNetwork.Matches
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         public MatchPlayer(User user = null, string leagueid = null, uint leagueseason = 0, uint[] additionalSeasons = null)
         {
-            if(additionalSeasons == null) additionalSeasons = new uint[0];
+            if (additionalSeasons == null) additionalSeasons = new uint[0];
             if (user != null)
             {
                 SID = user.steam.steamid;
@@ -38,7 +38,7 @@ namespace WLNetwork.Matches
                         LeagueProfile tprof = null;
                         if (user.profile.leagues == null)
                             user.profile.leagues = new Dictionary<string, LeagueProfile>();
-                        foreach (var season in additionalSeasons.Concat(new[] {leagueseason}))
+                        foreach (var season in additionalSeasons.Concat(new[] { leagueseason }))
                         {
                             LeagueProfile prof = null;
                             if (!user.profile.leagues.TryGetValue(leagueid + ":" + season, out prof) ||
@@ -52,8 +52,8 @@ namespace WLNetwork.Matches
                             }
                             if (season == leagueseason || tprof == null) tprof = prof;
                         }
-						Rating = (uint)tprof.rating;
-						WinStreak = (uint)tprof.winStreak;
+                        Rating = (uint)tprof.rating;
+                        WinStreak = (uint)tprof.winStreak;
                     }
                 }
             }

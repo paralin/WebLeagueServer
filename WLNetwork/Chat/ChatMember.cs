@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using KellermanSoftware.CompareNetObjects;
-using WLNetwork.Annotations;
 using WLNetwork.Chat.Enums;
 using WLNetwork.Model;
 
@@ -15,7 +14,7 @@ namespace WLNetwork.Chat
     /// </summary>
     public class ChatMember : INotifyPropertyChanged
     {
-        private bool _disablePropertyChanged = false;
+        private bool _disablePropertyChanged;
 
         /// <summary>
         ///     Create a chat member.
@@ -50,7 +49,7 @@ namespace WLNetwork.Chat
             Avatar = user.steam.avatarfull;
             TeamspeakOnline = user.tsonline;
 
-            if(Leagues == null || !logic.Compare(Leagues, user.vouch.leagues).AreEqual)
+            if (Leagues == null || !logic.Compare(Leagues, user.vouch.leagues).AreEqual)
                 Leagues = user.vouch.leagues;
             if (!logic.Compare(LeagueProfiles, user.profile.leagues).AreEqual)
                 LeagueProfiles = user.profile.leagues;
@@ -224,13 +223,13 @@ namespace WLNetwork.Chat
         /// <summary>
         /// Chat member type
         /// </summary>
-        public enum ChatMemberType : int
+        public enum ChatMemberType
         {
             Spectator = -1,
             Normal = 0,
             Donator = 5,
             Moderator = 80,
-            Admin = 90 
+            Admin = 90
         }
 
         /// <summary>
@@ -253,7 +252,7 @@ namespace WLNetwork.Chat
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             if (_disablePropertyChanged) return;
-            if(PropertyChanged != null) PropertyChanged.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            if (PropertyChanged != null) PropertyChanged.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
