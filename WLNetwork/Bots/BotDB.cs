@@ -5,11 +5,11 @@ using System.Linq;
 using System.Reflection;
 using System.Timers;
 using log4net;
+using MongoDB.Driver.Builders;
 using WLNetwork.Database;
 using WLNetwork.Matches;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Model;
-using MongoDB.Driver.Builders;
 
 namespace WLNetwork.Bots
 {
@@ -96,7 +96,9 @@ namespace WLNetwork.Bots
         internal static void UpdateDB()
         {
             Bot[] bots;
-            lock (Mongo.ExclusiveLock) bots = Mongo.Bots.FindAs<Bot>(Query.Or(Query.NotExists("Invalid"), Query.EQ("Invalid", false))).ToArray();
+            lock (Mongo.ExclusiveLock)
+                bots =
+                    Mongo.Bots.FindAs<Bot>(Query.Or(Query.NotExists("Invalid"), Query.EQ("Invalid", false))).ToArray();
             try
             {
                 foreach (Bot bot in bots)

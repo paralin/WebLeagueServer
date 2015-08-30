@@ -2,23 +2,23 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="WLNetwork.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="DMongoURL" Type="System.String" Scope="User">
-      <Value Profile="(Default)">mongodb://192.168.0.104:27017</Value>
-    </Setting>
-    <Setting Name="DMongoDB" Type="System.String" Scope="User">
-      <Value Profile="(Default)">webleague-dev</Value>
-    </Setting>
-    <Setting Name="AuthSecret" Type="System.String" Scope="User">
-      <Value Profile="(Default)">webleague-secret</Value>
-    </Setting>
-    <Setting Name="MinWinStreakForAnnounce" Type="System.UInt32" Scope="User">
-      <Value Profile="(Default)">3</Value>
-    </Setting>
-    <Setting Name="MinWinStreakForRating" Type="System.UInt32" Scope="User">
+    <Setting Name="MinWinStreakForRating" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">3</Value>
     </Setting>
     <Setting Name="SteamAPI" Type="System.String" Scope="User">
       <Value Profile="(Default)">B14E6AC32F6E54936DE3A6A3AEF1A1F9</Value>
+    </Setting>
+    <Setting Name="DMongoDB" Type="System.String" Scope="User">
+      <Value Profile="(Default)">webleague-dev</Value>
+    </Setting>
+    <Setting Name="DMongoURL" Type="System.String" Scope="User">
+      <Value Profile="(Default)">mongodb://192.168.0.6:27017</Value>
+    </Setting>
+    <Setting Name="AuthSecret" Type="System.String" Scope="User">
+      <Value Profile="(Default)">webleague-secret</Value>
+    </Setting>
+    <Setting Name="MinWinStreakForAnnounce" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">3</Value>
     </Setting>
   </Settings>
 </SettingsFile>

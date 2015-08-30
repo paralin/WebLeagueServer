@@ -57,10 +57,10 @@ namespace WLNetwork.Rating
             double direAvg = data.Players.Where(m => m.Team == MatchTeam.Dire).Average(m => m.RatingBefore);
 
             //calculate probability to win
-            double qa = Math.Pow(10, (radiantAvg / 400.0));
-            double qb = Math.Pow(10, (direAvg / 400.0));
-            double radiantWinProb = qa / (qa + qb);
-            double direWinProb = qb / (qa + qb);
+            double qa = Math.Pow(10, (radiantAvg/400.0));
+            double qb = Math.Pow(10, (direAvg/400.0));
+            double radiantWinProb = qa/(qa + qb);
+            double direWinProb = qb/(qa + qb);
 
             //get factors for increment or decrement
             KFactor radiantFactor = KFactors.First(a => radiantAvg >= a.MinMmr && radiantAvg <= a.MaxMmr);
@@ -71,13 +71,13 @@ namespace WLNetwork.Rating
             int incDire = 0;
             if (data.Result == EMatchResult.RadVictory)
             {
-                incRadiant = (int)Math.Round(radiantFactor.Factor * (1.0 - radiantWinProb));
-                incDire = (int)Math.Round(direFactor.Factor * -direWinProb);
+                incRadiant = (int) Math.Round(radiantFactor.Factor*(1.0 - radiantWinProb));
+                incDire = (int) Math.Round(direFactor.Factor*-direWinProb);
             }
             else
             {
-                incRadiant = (int)Math.Round(radiantFactor.Factor * -radiantWinProb);
-                incDire = (int)Math.Round(direFactor.Factor * (1.0 - direWinProb));
+                incRadiant = (int) Math.Round(radiantFactor.Factor*-radiantWinProb);
+                incDire = (int) Math.Round(direFactor.Factor*(1.0 - direWinProb));
             }
 
             foreach (var plyr in data.Players.Where(m => m.Team == MatchTeam.Dire)) plyr.RatingChange = incDire;
@@ -89,7 +89,9 @@ namespace WLNetwork.Rating
             // rating of the first place player
             var plyrs =
                 MemberDB.Members.Values.Where(
-                    m => m.LeagueProfiles != null && m.LeagueProfiles.ContainsKey(data.League + ":" + data.LeagueSeason)).Select(m => m.LeagueProfiles[data.League + ":" + data.LeagueSeason]).ToArray();
+                    m => m.LeagueProfiles != null && m.LeagueProfiles.ContainsKey(data.League + ":" + data.LeagueSeason))
+                    .Select(m => m.LeagueProfiles[data.League + ":" + data.LeagueSeason])
+                    .ToArray();
 
             int elofp = BaseMmr;
             //int eloavg = BaseMmr;
@@ -106,16 +108,16 @@ namespace WLNetwork.Rating
             foreach (var plyr in data.Players.Where(m => m.Team == MatchTeam.Dire || m.Team == MatchTeam.Radiant))
             {
                 // If they won
-                int f2 = (int)Math.Round(((double)(elofp - plyr.RatingBefore)) / 600.0 * 8.0);
+                int f2 = (int) Math.Round(((double) (elofp - plyr.RatingBefore))/600.0*8.0);
                 if ((plyr.Team == MatchTeam.Dire && !good_guys_win) || (plyr.Team == MatchTeam.Radiant && good_guys_win))
                 {
-                    double wsf = Math.Min(1.0 + (0.1 * ((double)plyr.WinStreakBefore)), 1.4);
-                    plyr.RatingChange = (int)Math.Round((plyr.RatingChange + f2) * wsf);
+                    double wsf = Math.Min(1.0 + (0.1*((double) plyr.WinStreakBefore)), 1.4);
+                    plyr.RatingChange = (int) Math.Round((plyr.RatingChange + f2)*wsf);
                 }
                 else
                 {
                     //plyr.RatingChange = (int)Math.Round(Math.Min(-1.0, f2 + (double)plyr.RatingChange));
-                    plyr.RatingChange = (int)Math.Min(-1.0, f2 + plyr.RatingChange);
+                    plyr.RatingChange = (int) Math.Min(-1.0, f2 + plyr.RatingChange);
                 }
             }
 #endif

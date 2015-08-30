@@ -15,7 +15,7 @@ namespace WLNetwork.Utils
         {
             try
             {
-                var request = (HttpWebRequest)WebRequest.Create("http://icanhazip.com");
+                var request = (HttpWebRequest) WebRequest.Create("http://icanhazip.com");
 
                 request.UserAgent = "curl"; // this simulate curl linux command
 

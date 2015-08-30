@@ -66,22 +66,22 @@ namespace WLNetwork.Matches
         public DateTime GameStartTime { get; set; }
 
         /// <summary>
-        ///  Is this a recovered in progress match
+        ///     Is this a recovered in progress match
         /// </summary>
         public bool IsRecovered { get; set; }
 
         /// <summary>
-        /// The server steam id
+        ///     The server steam id
         /// </summary>
         public string ServerSteamID { get; set; }
 
         /// <summary>
-        /// Ticket ID
+        ///     Ticket ID
         /// </summary>
         public uint TicketID { get; set; }
 
         /// <summary>
-        /// Server region
+        ///     Server region
         /// </summary>
         public uint Region { get; set; }
     }

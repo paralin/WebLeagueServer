@@ -1,6 +1,0 @@
-[submodule "SteamKit"]
-	path = SteamKit
-	url = https://github.com/paralin/SteamKit.git
-[submodule "Dependencies/Dota2"]
-	path = Dependencies/Dota2
-	url = https://github.com/paralin/Dota2.git

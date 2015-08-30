@@ -7,7 +7,7 @@ namespace WLNetwork.Utils
     public static class IPEndpointEx
     {
         /// <summary>
-        /// Parses an IP string to an IPEndpoint
+        ///     Parses an IP string to an IPEndpoint
         /// </summary>
         /// <param name="ip">address</param>
         /// <returns>parsed endpoint</returns>

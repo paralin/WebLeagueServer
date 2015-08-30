@@ -25,7 +25,7 @@ namespace WLNetwork.Matches
         public string ChallengedName { get; set; }
 
         /// <summary>
-        /// League ID
+        ///     League ID
         /// </summary>
         public string League { get; set; }
 
@@ -35,7 +35,7 @@ namespace WLNetwork.Matches
         public GameMode GameMode { get; set; }
 
         /// <summary>
-        /// You can also do 1v1 challenge
+        ///     You can also do 1v1 challenge
         /// </summary>
         public MatchType MatchType { get; set; }
     }

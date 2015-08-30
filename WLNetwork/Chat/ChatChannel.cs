@@ -19,7 +19,7 @@ namespace WLNetwork.Chat
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// Channels / ID pairs.
+        ///     Channels / ID pairs.
         /// </summary>
         public static ConcurrentDictionary<Guid, ChatChannel> Channels = new ConcurrentDictionary<Guid, ChatChannel>();
 
@@ -44,7 +44,7 @@ namespace WLNetwork.Chat
         /// <summary>
         ///     ID of the channel.
         /// </summary>
-        public Guid Id { get; private set; }
+        public Guid Id { get; }
 
         /// <summary>
         ///     Name of the channel.
@@ -184,7 +184,9 @@ namespace WLNetwork.Chat
         /// <returns></returns>
         public static ChatChannel Join(string name, ChatMember member)
         {
-            var chan = Channels.Values.FirstOrDefault(m => string.Equals(m.Name, name, StringComparison.CurrentCultureIgnoreCase));
+            var chan =
+                Channels.Values.FirstOrDefault(
+                    m => string.Equals(m.Name, name, StringComparison.CurrentCultureIgnoreCase));
             return chan == null ? null : Join(chan.Id, member);
         }
 
@@ -205,7 +207,7 @@ namespace WLNetwork.Chat
         }
 
         /// <summary>
-        /// Send a global system message.
+        ///     Send a global system message.
         /// </summary>
         /// <param name="league"></param>
         /// <param name="message"></param>
@@ -236,7 +238,7 @@ namespace WLNetwork.Chat
         }
 
         /// <summary>
-        /// Sends all MOTD messages to a channel
+        ///     Sends all MOTD messages to a channel
         /// </summary>
         /// <param name="id"></param>
         public static void TransmitMOTD(string id, League league)

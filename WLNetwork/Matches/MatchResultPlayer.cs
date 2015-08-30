@@ -62,12 +62,12 @@ namespace WLNetwork.Matches
         public uint WinStreakBefore { get; set; }
 
         /// <summary>
-        /// Rating change
+        ///     Rating change
         /// </summary>
         public int RatingChange { get; set; }
 
         /// <summary>
-        /// ID of their hero
+        ///     ID of their hero
         /// </summary>
         public uint HeroId { get; set; }
     }

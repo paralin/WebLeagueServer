@@ -7,7 +7,6 @@ using log4net;
 using WLNetwork.Clients;
 using WLNetwork.Hubs;
 using WLNetwork.Matches.Enums;
-using WLNetwork.Matches.Methods;
 
 namespace WLNetwork.Matches
 {
@@ -53,13 +52,16 @@ namespace WLNetwork.Matches
                     args.NewItems.OfType<MatchGame>().Where(m => m.Info.Status == MatchStatus.Players);
                 var matchGames = newAvailable as MatchGame[] ?? newAvailable.ToArray();
                 Hubs.Matches.HubContext.Clients.All.AvailableGameUpdate(matchGames.ToArray());
-                foreach (var cli in BrowserClient.Clients.Values.Where(m => m.User != null && m.User.authItems.Contains("admin")).SelectMany(client => client.MatchClients.Values))
+                foreach (
+                    var cli in
+                        BrowserClient.Clients.Values.Where(m => m.User != null && m.User.authItems.Contains("admin"))
+                            .SelectMany(client => client.MatchClients.Values))
                     cli.AvailableGameUpdate(matchGames.ToArray());
             }
             if (args.OldItems != null)
             {
                 Hubs.Matches.HubContext.Clients.All.AvailableGameRemove(args.OldItems.OfType<MatchGame>().ToArray());
-                Hubs.Admin.HubContext.Clients.All.AvailableGameRemove(args.OldItems.OfType<MatchGame>().ToArray());
+                Admin.HubContext.Clients.All.AvailableGameRemove(args.OldItems.OfType<MatchGame>().ToArray());
             }
         }
     }

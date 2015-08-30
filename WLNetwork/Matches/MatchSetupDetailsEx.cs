@@ -53,7 +53,10 @@ namespace WLNetwork.Matches
             if (game == null) return;
             MatchGame match = MatchesController.Games.FirstOrDefault(m => m.Id == game.Id);
             if (match == null) return;
-            foreach (var mcli in BrowserClient.Clients.Values.Where(m => m.Match == match).SelectMany(cli => cli.MatchClients.Values))
+            foreach (
+                var mcli in
+                    BrowserClient.Clients.Values.Where(m => m.Match == match).SelectMany(cli => cli.MatchClients.Values)
+                )
                 mcli.OnLobbyReady();
         }
     }

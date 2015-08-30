@@ -13,7 +13,7 @@ namespace WLNetwork.Properties {
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "14.0.0.0")]
-    public sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
+    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
         
@@ -25,13 +25,25 @@ namespace WLNetwork.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("mongodb://192.168.0.104:27017")]
-        public string DMongoURL {
+        [global::System.Configuration.DefaultSettingValueAttribute("3")]
+        public int MinWinStreakForRating {
             get {
-                return ((string)(this["DMongoURL"]));
+                return ((int)(this["MinWinStreakForRating"]));
             }
             set {
-                this["DMongoURL"] = value;
+                this["MinWinStreakForRating"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("B14E6AC32F6E54936DE3A6A3AEF1A1F9")]
+        public string SteamAPI {
+            get {
+                return ((string)(this["SteamAPI"]));
+            }
+            set {
+                this["SteamAPI"] = value;
             }
         }
         
@@ -44,6 +56,18 @@ namespace WLNetwork.Properties {
             }
             set {
                 this["DMongoDB"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("mongodb://192.168.0.6:27017")]
+        public string DMongoURL {
+            get {
+                return ((string)(this["DMongoURL"]));
+            }
+            set {
+                this["DMongoURL"] = value;
             }
         }
         
@@ -62,36 +86,12 @@ namespace WLNetwork.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("3")]
-        public uint MinWinStreakForAnnounce {
+        public int MinWinStreakForAnnounce {
             get {
-                return ((uint)(this["MinWinStreakForAnnounce"]));
+                return ((int)(this["MinWinStreakForAnnounce"]));
             }
             set {
                 this["MinWinStreakForAnnounce"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("3")]
-        public uint MinWinStreakForRating {
-            get {
-                return ((uint)(this["MinWinStreakForRating"]));
-            }
-            set {
-                this["MinWinStreakForRating"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("B14E6AC32F6E54936DE3A6A3AEF1A1F9")]
-        public string SteamAPI {
-            get {
-                return ((string)(this["SteamAPI"]));
-            }
-            set {
-                this["SteamAPI"] = value;
             }
         }
     }

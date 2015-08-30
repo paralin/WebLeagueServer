@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNet.SignalR;
 using Microsoft.AspNet.SignalR.Hubs;
-using MongoDB.Driver.Linq;
 using WLNetwork.Clients;
-using WLNetwork.Model;
 
 namespace WLNetwork.Hubs
 {
@@ -19,7 +17,7 @@ namespace WLNetwork.Hubs
         }
 
         /// <summary>
-        /// Hub context.
+        ///     Hub context.
         /// </summary>
         public static IHubContext HubContext => GlobalHost.ConnectionManager.GetHubContext<T>();
     }

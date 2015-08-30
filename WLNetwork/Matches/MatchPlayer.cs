@@ -3,9 +3,8 @@ using System.Linq;
 using System.Reflection;
 using Dota2.GC.Dota.Internal;
 using log4net;
-using Microsoft.Win32;
-using MongoDB.Driver;
 using MongoDB.Driver.Builders;
+using WLNetwork.Database;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Model;
 using WLNetwork.Rating;
@@ -18,7 +17,9 @@ namespace WLNetwork.Matches
     public class MatchPlayer
     {
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        public MatchPlayer(User user = null, string leagueid = null, uint leagueseason = 0, uint[] additionalSeasons = null)
+
+        public MatchPlayer(User user = null, string leagueid = null, uint leagueseason = 0,
+            uint[] additionalSeasons = null)
         {
             if (additionalSeasons == null) additionalSeasons = new uint[0];
             if (user != null)
@@ -31,14 +32,15 @@ namespace WLNetwork.Matches
                 {
                     if (!user.vouch.leagues.Contains(leagueid))
                     {
-                        log.ErrorFormat("MatchPlayer created with a user {0} not in the league {1}.", user.profile.name, leagueid);
+                        log.ErrorFormat("MatchPlayer created with a user {0} not in the league {1}.", user.profile.name,
+                            leagueid);
                     }
                     else
                     {
                         LeagueProfile tprof = null;
                         if (user.profile.leagues == null)
                             user.profile.leagues = new Dictionary<string, LeagueProfile>();
-                        foreach (var season in additionalSeasons.Concat(new[] { leagueseason }))
+                        foreach (var season in additionalSeasons.Concat(new[] {leagueseason}))
                         {
                             LeagueProfile prof = null;
                             if (!user.profile.leagues.TryGetValue(leagueid + ":" + season, out prof) ||
@@ -47,13 +49,13 @@ namespace WLNetwork.Matches
                                 prof = new LeagueProfile();
                                 prof.rating = RatingCalculator.BaseMmr;
                                 user.profile.leagues[leagueid + ":" + season] = prof;
-                                Database.Mongo.Users.Update(Query<User>.EQ(m => m.Id, user.Id),
+                                Mongo.Users.Update(Query<User>.EQ(m => m.Id, user.Id),
                                     Update<User>.Set(m => m.profile.leagues, user.profile.leagues));
                             }
                             if (season == leagueseason || tprof == null) tprof = prof;
                         }
-                        Rating = (uint)tprof.rating;
-                        WinStreak = (uint)tprof.winStreak;
+                        Rating = (uint) tprof.rating;
+                        WinStreak = (uint) tprof.winStreak;
                     }
                 }
             }
@@ -105,12 +107,12 @@ namespace WLNetwork.Matches
         public uint Rating { get; set; }
 
         /// <summary>
-        /// Win streak before
+        ///     Win streak before
         /// </summary>
         public uint WinStreak { get; set; }
 
         /// <summary>
-        /// Hero ID
+        ///     Hero ID
         /// </summary>
         public HeroInfo Hero { get; set; }
     }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Reflection;
+﻿using System.Reflection;
 using log4net;
 using WLNetwork.Properties;
 
@@ -8,7 +7,9 @@ namespace WLNetwork
     public static class Env
     {
         private static readonly ILog log =
-           LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public static string MONGODB_URL;
 
         static Env()
         {
@@ -23,7 +24,5 @@ namespace WLNetwork
             }
 #endif
         }
-
-        public static string MONGODB_URL;
     }
 }

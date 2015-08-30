@@ -5,99 +5,99 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace WLNetwork.Model
 {
     /// <summary>
-    /// A league.
+    ///     A league.
     /// </summary>
     [BsonIgnoreExtraElements]
     public class League
     {
         /// <summary>
-        /// ID of the league
-        /// <example>fplna</example>
+        ///     ID of the league
+        ///     <example>fplna</example>
         /// </summary>
         public string Id { get; set; }
 
         /// <summary>
-        /// Name of the league, e.g. "
-        /// <example>FACEIT Pro League: North America</example>
+        ///     Name of the league, e.g. "
+        ///     <example>FACEIT Pro League: North America</example>
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
-        /// Can games be played towards rating for this league
+        ///     Can games be played towards rating for this league
         /// </summary>
         public bool IsActive { get; set; }
 
         /// <summary>
-        /// If archived, no chat is created and the league is not visible in the UI.
+        ///     If archived, no chat is created and the league is not visible in the UI.
         /// </summary>
         public bool Archived { get; set; }
 
         /// <summary>
-        /// Current season index in the <see cref="Seasons"/> array.
+        ///     Current season index in the <see cref="Seasons" /> array.
         /// </summary>
         public uint CurrentSeason { get; set; }
 
         /// <summary>
-        /// Secondary current seasons
+        ///     Secondary current seasons
         /// </summary>
         public List<uint> SecondaryCurrentSeason { get; set; }
 
         /// <summary>
-        /// Seasons
+        ///     Seasons
         /// </summary>
         public List<LeagueSeason> Seasons { get; set; }
 
         /// <summary>
-        /// Region
+        ///     Region
         /// </summary>
         public uint Region { get; set; }
 
         /// <summary>
-        /// Require teamspeak
+        ///     Require teamspeak
         /// </summary>
         public bool RequireTeamspeak { get; set; }
 
         /// <summary>
-        /// Motd messages
+        ///     Motd messages
         /// </summary>
         public string[] MotdMessages { get; set; }
     }
 
     /// <summary>
-    /// A season in a league.
+    ///     A season in a league.
     /// </summary>
     [BsonIgnoreExtraElements]
     public class LeagueSeason
     {
         /// <summary>
-        /// Name of the season.
-        /// <example>Season 1</example>
+        ///     Name of the season.
+        ///     <example>Season 1</example>
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
-        /// Prizepool currency
-        /// <example>€</example>
+        ///     Prizepool currency
+        ///     <example>€</example>
         /// </summary>
         public string PrizepoolCurrency { get; set; }
 
         /// <summary>
-        /// Prizepool distribution
+        ///     Prizepool distribution
         /// </summary>
         public List<int> PrizepoolDist { get; set; }
 
         /// <summary>
-        /// Start date
+        ///     Start date
         /// </summary>
         public DateTime Start { get; set; }
 
         /// <summary>
-        /// End date.
+        ///     End date.
         /// </summary>
         public DateTime End { get; set; }
 
         /// <summary>
-        /// Ticket number/leagueID for this league season.
+        ///     Ticket number/leagueID for this league season.
         /// </summary>
         public uint Ticket { get; set; }
     }

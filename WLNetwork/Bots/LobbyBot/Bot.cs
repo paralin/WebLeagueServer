@@ -2,97 +2,92 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Dota2;
-#if USE_GAME_ENGINE
-using Dota2.Engine;
-using Dota2.Engine.Control;
-using Dota2.Engine.Session.State.Enums;
-#endif
+using Dota2.GC;
 using Dota2.GC.Dota.Internal;
 using Dota2.GC.Internal;
 using log4net;
 using Stateless;
 using SteamKit2;
-using SteamKit2.GC.Dota.Internal;
-using SteamKit2.GC.Internal;
 using WLNetwork.Bots.LobbyBot.Enums;
 using WLNetwork.Utils;
-using CMsgDOTAMatch = Dota2.GC.Dota.Internal.CMsgDOTAMatch;
-using CSODOTALobby = Dota2.GC.Dota.Internal.CSODOTALobby;
-using DOTAChatChannelType_t = Dota2.GC.Dota.Internal.DOTAChatChannelType_t;
-using GCConnectionStatus = Dota2.GC.Internal.GCConnectionStatus;
 using Timer = System.Timers.Timer;
+#if USE_GAME_ENGINE
+using Dota2.Engine;
+using Dota2.Engine.Control;
+using Dota2.Engine.Session.State.Enums;
+#endif
 
 namespace WLNetwork.Bots.LobbyBot
 {
     /// <summary>
-    /// An instance of a DOTA 2 lobby/game bot
+    ///     An instance of a DOTA 2 lobby/game bot
     /// </summary>
     public class Bot
     {
-#region Clients
+        #region Clients
 
         /// <summary>
-        /// Steam client
+        ///     Steam client
         /// </summary>
         public SteamClient SteamClient { get; private set; }
 
         /// <summary>
-        /// Steam users handler
+        ///     Steam users handler
         /// </summary>
         public SteamUser SteamUser { get; private set; }
 
         /// <summary>
-        /// Steam friends
+        ///     Steam friends
         /// </summary>
         public SteamFriends SteamFriends { get; private set; }
 
         /// <summary>
-        /// Dota2 game coordinator
+        ///     Dota2 game coordinator
         /// </summary>
         public DotaGCHandler DotaGCHandler { get; private set; }
 
         /// <summary>
-        /// The lobby before the current update
+        ///     The lobby before the current update
         /// </summary>
         public CSODOTALobby Lobby { get; private set; }
 
 #if USE_GAME_ENGINE
-        /// <summary>
-        /// DOTA 2 game client
-        /// </summary>
+    /// <summary>
+    /// DOTA 2 game client
+    /// </summary>
         public DotaGameClient GameClient { get; private set; }
 #endif
 
         /// <summary>
-        /// State of the bot
+        ///     State of the bot
         /// </summary>
         public State State => _state.State;
 
         /// <summary>
-        /// Called when state transitions
+        ///     Called when state transitions
         /// </summary>
         public event EventHandler<StateMachine<State, Trigger>.Transition> StateTransitioned;
 
         /// <summary>
-        /// Called when the lobby is updated.
+        ///     Called when the lobby is updated.
         /// </summary>
         public event EventHandler<CSODOTALobby> LobbyUpdate;
 
         /// <summary>
-        /// Called when invalid credentials
+        ///     Called when invalid credentials
         /// </summary>
         public event EventHandler InvalidCreds;
 
-#endregion
-#region Private
+        #endregion
 
-        private SteamUser.LogOnDetails _logonDetails;
+        #region Private
+
+        private readonly SteamUser.LogOnDetails _logonDetails;
         private readonly ILog log;
         private StateMachine<State, Trigger> _state;
-        private Timer _reconnectTimer;
+        private readonly Timer _reconnectTimer;
         private CallbackManager _cbManager;
-        private bool _shouldReconnect = true;
+        private readonly bool _shouldReconnect = true;
         private int _cbThreadCtr;
         private Thread _procThread;
         private int _connAttempts;
@@ -102,20 +97,26 @@ namespace WLNetwork.Bots.LobbyBot
 #if USE_GAME_ENGINE
         private IDotaGameController[] _controllers;
 #endif
+
         private readonly Dictionary<ulong, Action<CMsgDOTAMatch>> Callbacks =
-           new Dictionary<ulong, Action<CMsgDOTAMatch>>();
+            new Dictionary<ulong, Action<CMsgDOTAMatch>>();
+
         private ulong MatchId;
 
         private bool _isRunning;
 
-#endregion
-#region Constructor
+        #endregion
+
+        #region Constructor
 
         /// <summary>
-        /// Create a new game bot
+        ///     Create a new game bot
         /// </summary>
         /// <param name="details">Auth info</param>
-        /// <param name="reconnectDelay">Delay between reconnection attempts to steam, set to a negative value to disable reconnecting</param>
+        /// <param name="reconnectDelay">
+        ///     Delay between reconnection attempts to steam, set to a negative value to disable
+        ///     reconnecting
+        /// </param>
         /// <param name="contrs">Game controllers</param>
         public Bot(SteamUser.LogOnDetails details, double reconnectDelay = 2000
 #if USE_GAME_ENGINE
@@ -166,7 +167,8 @@ namespace WLNetwork.Bots.LobbyBot
             _state.Configure(State.Steam)
                 .SubstateOf(State.Conceived)
                 .Permit(Trigger.SteamConnected, State.Dota)
-                .PermitDynamic(Trigger.SteamDisconnected, () => _shouldReconnect ? State.RetryConnection : State.SignedOff)
+                .PermitDynamic(Trigger.SteamDisconnected,
+                    () => _shouldReconnect ? State.RetryConnection : State.SignedOff)
                 .Permit(Trigger.SteamInvalidCreds, State.SignedOff)
                 .OnEntry(StartSteamConnection)
                 .OnExit(ReleaseSteamConnection);
@@ -215,10 +217,13 @@ namespace WLNetwork.Bots.LobbyBot
 #endif
                 ;
         }
-#endregion
-#region Bot Specific Implementation
+
+        #endregion
+
+        #region Bot Specific Implementation
+
         /// <summary>
-        /// Join the correct slot
+        ///     Join the correct slot
         /// </summary>
         private void JoinLobbySlot()
         {
@@ -227,7 +232,7 @@ namespace WLNetwork.Bots.LobbyBot
         }
 
         /// <summary>
-        /// Send a lobby chat message
+        ///     Send a lobby chat message
         /// </summary>
         /// <param name="msg"></param>
         public void SendLobbyMessage(string msg)
@@ -237,7 +242,7 @@ namespace WLNetwork.Bots.LobbyBot
         }
 
         /// <summary>
-        /// Join the lobby chat channel
+        ///     Join the lobby chat channel
         /// </summary>
         private void JoinLobbyChat()
         {
@@ -247,11 +252,12 @@ namespace WLNetwork.Bots.LobbyBot
                 return;
             }
 
-            DotaGCHandler.JoinChatChannel("Lobby_" + DotaGCHandler.Lobby.lobby_id, DOTAChatChannelType_t.DOTAChannelType_Lobby);
+            DotaGCHandler.JoinChatChannel("Lobby_" + DotaGCHandler.Lobby.lobby_id,
+                DOTAChatChannelType_t.DOTAChannelType_Lobby);
         }
 
         /// <summary>
-        /// Leave a lobby chat channel
+        ///     Leave a lobby chat channel
         /// </summary>
         private void LeaveLobbyChat()
         {
@@ -262,11 +268,12 @@ namespace WLNetwork.Bots.LobbyBot
             }
         }
 
-#endregion
-#region Internal Methods
+        #endregion
+
+        #region Internal Methods
 
         /// <summary>
-        /// Start connecting to Steam
+        ///     Start connecting to Steam
         /// </summary>
         private void StartSteamConnection()
         {
@@ -292,7 +299,7 @@ namespace WLNetwork.Bots.LobbyBot
         }
 
         /// <summary>
-        /// Make sure every client is shutdown completely
+        ///     Make sure every client is shutdown completely
         /// </summary>
         private void ReleaseSteamConnection()
         {
@@ -311,7 +318,7 @@ namespace WLNetwork.Bots.LobbyBot
         }
 
         /// <summary>
-        /// Start connecting to the DOTA 2 game coordinator
+        ///     Start connecting to the DOTA 2 game coordinator
         /// </summary>
         private void StartDotaGCConnection()
         {
@@ -324,7 +331,7 @@ namespace WLNetwork.Bots.LobbyBot
         }
 
         /// <summary>
-        /// Completely disconnect from the DOTA gc
+        ///     Completely disconnect from the DOTA gc
         /// </summary>
         private void ReleaseDotaGCConnection()
         {
@@ -341,9 +348,9 @@ namespace WLNetwork.Bots.LobbyBot
         }
 
 #if USE_GAME_ENGINE
-        /// <summary>
-        /// Start connecting to the DOTA 2 game server
-        /// </summary>
+    /// <summary>
+    /// Start connecting to the DOTA 2 game server
+    /// </summary>
         private void StartDotaGameConnection()
         {
             ReleaseDotaGameConnection();
@@ -379,7 +386,7 @@ namespace WLNetwork.Bots.LobbyBot
         }
 
         /// <summary>
-        /// Internal thread
+        ///     Internal thread
         /// </summary>
         /// <param name="state"></param>
         private static void SteamThread(object state)
@@ -400,11 +407,12 @@ namespace WLNetwork.Bots.LobbyBot
             }
         }
 
-#endregion
-#region Callbacks
+        #endregion
+
+        #region Callbacks
 
         /// <summary>
-        /// Setup steam client callbacks
+        ///     Setup steam client callbacks
         /// </summary>
         /// <param name="cb"></param>
         private void SetupSteamCallbacks(CallbackManager cb)
@@ -444,12 +452,16 @@ namespace WLNetwork.Bots.LobbyBot
         }
 
         /// <summary>
-        /// Setup DOTA 2 game coordinator callbacks
+        ///     Setup DOTA 2 game coordinator callbacks
         /// </summary>
         /// <param name="cb">Manager</param>
         private void SetupDotaGCCallbacks(CallbackManager cb)
         {
-            cb.Add<DotaGCHandler.GCWelcomeCallback>(a => { log.Debug("GC session welcomed"); _state.Fire(Trigger.DotaConnected); });
+            cb.Add<DotaGCHandler.GCWelcomeCallback>(a =>
+            {
+                log.Debug("GC session welcomed");
+                _state.Fire(Trigger.DotaConnected);
+            });
             cb.Add<DotaGCHandler.ConnectionStatus>(a =>
             {
                 log.DebugFormat("GC connection status: {0}", a.result.status.ToString("G"));
@@ -473,10 +485,8 @@ namespace WLNetwork.Bots.LobbyBot
                     log.DebugFormat("[Chat][" +
                                     (a.result.channel_id == lobbyChannelId ? "Lobby" : a.result.channel_id + "") + "] " +
                                     a.result.persona_name + ": " + a.result.text);
-                    if (a.result.channel_id == lobbyChannelId)
-                    {
-                        if (a.result.text.Contains("!start")) DotaGCHandler.LaunchLobby();
-                    }
+                    if (a.result.channel_id != lobbyChannelId) return;
+                    if (a.result.text.Contains("!start")) DotaGCHandler.LaunchLobby();
                 });
             cb.Add<DotaGCHandler.MatchResultResponse>(c =>
             {
@@ -490,10 +500,10 @@ namespace WLNetwork.Bots.LobbyBot
         }
 
 #if USE_GAME_ENGINE
-        /// <summary>
-        /// Setup the DOTA client callbacks
-        /// </summary>
-        /// <param name="cb"></param>
+    /// <summary>
+    /// Setup the DOTA client callbacks
+    /// </summary>
+    /// <param name="cb"></param>
         private void SetupDotaClientCallbacks(CallbackManager cb)
         {
             cb.Add<DotaGameClient.HandshakeRejected>(rej =>
@@ -529,7 +539,6 @@ namespace WLNetwork.Bots.LobbyBot
             if (Lobby == null && lobby != null)
             {
                 log.DebugFormat("Entered lobby {0} with state {1}.", lobby.lobby_id, lobby.state.ToString("G"));
-
             }
             else if (Lobby != null && lobby == null)
             {
@@ -537,18 +546,22 @@ namespace WLNetwork.Bots.LobbyBot
             }
 
             if (lobby != null)
-                _state.Fire(lobby.state == CSODOTALobby.State.UI || string.IsNullOrEmpty(lobby.connect) ? Trigger.DotaEnteredLobbyUI : Trigger.DotaEnteredLobbyPlay);
+                _state.Fire(lobby.state == CSODOTALobby.State.UI || string.IsNullOrEmpty(lobby.connect)
+                    ? Trigger.DotaEnteredLobbyUI
+                    : Trigger.DotaEnteredLobbyPlay);
             else
                 _state.Fire(Trigger.DotaNoLobby);
 
             LobbyUpdate?.Invoke(Lobby, lobby);
             Lobby = lobby;
         }
-#endregion
-#region Public Methods
+
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
-        /// Start the bot
+        ///     Start the bot
         /// </summary>
         public void Start()
         {
@@ -557,7 +570,7 @@ namespace WLNetwork.Bots.LobbyBot
         }
 
         /// <summary>
-        /// Shutdown the bot completely
+        ///     Shutdown the bot completely
         /// </summary>
         public void Stop()
         {
@@ -594,6 +607,7 @@ namespace WLNetwork.Bots.LobbyBot
             DotaGCHandler.AbandonGame();
             DotaGCHandler.LeaveLobby();
         }
-#endregion
+
+        #endregion
     }
 }

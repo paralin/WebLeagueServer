@@ -1,62 +1,65 @@
 ﻿namespace WLNetwork.Bots.LobbyBot.Enums
 {
     /// <summary>
-    /// Bot state
+    ///     Bot state
     /// </summary>
     public enum State
     {
         /// <summary>
-        /// Overall container state
+        ///     Overall container state
         /// </summary>
         Conceived,
 
         #region SignedOff
 
         /// <summary>
-        /// Container state for NOT connected to steam
+        ///     Container state for NOT connected to steam
         /// </summary>
         SignedOff,
 
         /// <summary>
-        /// Waiting for retry attempt
+        ///     Waiting for retry attempt
         /// </summary>
         RetryConnection,
 
         #endregion
+
         #region Steam
 
         /// <summary>
-        /// Connecting to Steam / Using steam
+        ///     Connecting to Steam / Using steam
         /// </summary>
         Steam,
 
         #region DOTA
 
         /// <summary>
-        /// Currently using DOTA2
+        ///     Currently using DOTA2
         /// </summary>
         Dota,
 
         /// <summary>
-        /// Connecting to DOTA2
+        ///     Connecting to DOTA2
         /// </summary>
         DotaConnect,
 
         /// <summary>
-        /// Main menu of DOTA
+        ///     Main menu of DOTA
         /// </summary>
         DotaMenu,
 
         /// <summary>
-        /// Currently in lobby UI
+        ///     Currently in lobby UI
         /// </summary>
         DotaLobby,
 
         /// <summary>
-        /// Currently game in progress
+        ///     Currently game in progress
         /// </summary>
         DotaPlay,
+
         #endregion
+
         #endregion
     }
 }

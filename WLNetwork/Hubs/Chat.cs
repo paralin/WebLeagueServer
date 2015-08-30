@@ -28,7 +28,7 @@ namespace WLNetwork.Hubs
         }
 
         /// <summary>
-        /// Complete member list snapshot
+        ///     Complete member list snapshot
         /// </summary>
         public ChatMember[] MemberListSnapshot()
         {
@@ -36,7 +36,7 @@ namespace WLNetwork.Hubs
         }
 
         /// <summary>
-        /// Sends a message to a channel.
+        ///     Sends a message to a channel.
         /// </summary>
         /// <param name="channel">Channel</param>
         /// <param name="text">Message text</param>
@@ -53,7 +53,5 @@ namespace WLNetwork.Hubs
             log.DebugFormat("[{0}] {1}: \"{2}\"", chan.Name, Client.User.profile.name, text);
             chan.TransmitMessage(Client.User.steam.steamid, text);
         }
-
-        /* Join or create a chat not here - not interactive right now. */
     }
 }

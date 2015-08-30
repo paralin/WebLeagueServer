@@ -6,8 +6,6 @@
  * Licensed under the Apache 2.0
  * https://github.com/SignalR/SignalR/blob/master/LICENSE.md
  *
- * Generated with signalr.exe. Use: signalr.exe ghp
- *
  */
 
 /// <reference path="..\..\SignalR.Client.JS\Scripts\jquery-1.6.4.js" />
@@ -139,9 +137,9 @@
                 return proxies['matches'].invoke.apply(proxies['matches'], $.merge(["CancelChallenge"], $.makeArray(arguments)));
              },
 
-            challengeResponse: function (resp) {
+            challengeResponse: function (accept) {
             /// <summary>Calls the ChallengeResponse method on the server-side Matches hub.&#10;Returns a jQuery.Deferred() promise.</summary>
-            /// <param name=\"resp\" type=\"Object\">Server side type is WLNetwork.Matches.Methods.ChallengeResponse</param>
+            /// <param name=\"accept\" type=\"\">Server side type is System.Boolean</param>
                 return proxies['matches'].invoke.apply(proxies['matches'], $.merge(["ChallengeResponse"], $.makeArray(arguments)));
              },
 
@@ -171,15 +169,16 @@
                 return proxies['matches'].invoke.apply(proxies['matches'], $.merge(["GetPublicGameList"], $.makeArray(arguments)));
              },
 
-            joinMatch: function (options) {
+            joinMatch: function (id, spec) {
             /// <summary>Calls the JoinMatch method on the server-side Matches hub.&#10;Returns a jQuery.Deferred() promise.</summary>
-            /// <param name=\"options\" type=\"Object\">Server side type is WLNetwork.Matches.Methods.MatchJoinOptions</param>
+            /// <param name=\"id\" type=\"Object\">Server side type is System.Guid</param>
+            /// <param name=\"spec\" type=\"\">Server side type is System.Boolean</param>
                 return proxies['matches'].invoke.apply(proxies['matches'], $.merge(["JoinMatch"], $.makeArray(arguments)));
              },
 
-            kickPlayer: function (player) {
+            kickPlayer: function (steamid) {
             /// <summary>Calls the KickPlayer method on the server-side Matches hub.&#10;Returns a jQuery.Deferred() promise.</summary>
-            /// <param name=\"player\" type=\"Object\">Server side type is WLNetwork.Matches.Methods.PickPlayer</param>
+            /// <param name=\"steamid\" type=\"String\">Server side type is System.String</param>
                 return proxies['matches'].invoke.apply(proxies['matches'], $.merge(["KickPlayer"], $.makeArray(arguments)));
              },
 
@@ -188,9 +187,9 @@
                 return proxies['matches'].invoke.apply(proxies['matches'], $.merge(["LeaveMatch"], $.makeArray(arguments)));
              },
 
-            pickPlayer: function (player) {
+            pickPlayer: function (steamid) {
             /// <summary>Calls the PickPlayer method on the server-side Matches hub.&#10;Returns a jQuery.Deferred() promise.</summary>
-            /// <param name=\"player\" type=\"Object\">Server side type is WLNetwork.Matches.Methods.PickPlayer</param>
+            /// <param name=\"steamid\" type=\"String\">Server side type is System.String</param>
                 return proxies['matches'].invoke.apply(proxies['matches'], $.merge(["PickPlayer"], $.makeArray(arguments)));
              },
 

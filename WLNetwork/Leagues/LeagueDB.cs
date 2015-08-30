@@ -15,24 +15,24 @@ using WLNetwork.Utils;
 namespace WLNetwork.Leagues
 {
     /// <summary>
-    /// Global store of leagues
+    ///     Global store of leagues
     /// </summary>
     public static class LeagueDB
     {
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// Update timer for the DB
+        ///     Update timer for the DB
         /// </summary>
         public static Timer UpdateTimer;
 
         /// <summary>
-        ///    League Dictionary
+        ///     League Dictionary
         /// </summary>
         public static ObservableDictionary<string, League> Leagues = new ObservableDictionary<string, League>();
 
         /// <summary>
-        /// Any updated this update
+        ///     Any updated this update
         /// </summary>
         private static bool AnyUpdated = false;
 
@@ -48,7 +48,7 @@ namespace WLNetwork.Leagues
         }
 
         /// <summary>
-        /// Transmit an update when the leagues change.
+        ///     Transmit an update when the leagues change.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
@@ -71,7 +71,7 @@ namespace WLNetwork.Leagues
         {
             AnyUpdated = false;
             League[] leagues;
-            var logic = new CompareLogic() { Config = new ComparisonConfig() { MaxDifferences = 100 } };
+            var logic = new CompareLogic() {Config = new ComparisonConfig() {MaxDifferences = 100}};
             try
             {
                 lock (Mongo.ExclusiveLock)
@@ -92,7 +92,9 @@ namespace WLNetwork.Leagues
                             league.SecondaryCurrentSeason = new List<uint>();
                             dirty = true;
                         }
-                        if (dirty) Mongo.Leagues.Update(Query<League>.EQ(m => m.Id, league.Id), Update<League>.Set(m => m.SecondaryCurrentSeason, league.SecondaryCurrentSeason));
+                        if (dirty)
+                            Mongo.Leagues.Update(Query<League>.EQ(m => m.Id, league.Id),
+                                Update<League>.Set(m => m.SecondaryCurrentSeason, league.SecondaryCurrentSeason));
 
                         Leagues[league.Id] = league;
                         AnyUpdated = true;

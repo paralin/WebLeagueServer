@@ -26,7 +26,7 @@
         public bool Invalid { get; set; }
 
         /// <summary>
-        /// In use.
+        ///     In use.
         /// </summary>
         public bool InUse { get; set; }
     }

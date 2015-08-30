@@ -16,7 +16,7 @@ using WLNetwork.Utils;
 namespace WLNetwork.Chat
 {
     /// <summary>
-    /// Global store of users and their state
+    ///     Global store of users and their state
     /// </summary>
     public static class MemberDB
     {
@@ -24,14 +24,16 @@ namespace WLNetwork.Chat
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        /// Update timer for the DB
+        ///     Update timer for the DB
         /// </summary>
         public static Timer UpdateTimer;
 
         /// <summary>
-        ///    User  Dictionary
+        ///     User  Dictionary
         /// </summary>
         public static ObservableDictionary<string, ChatMember> Members = new ObservableDictionary<string, ChatMember>();
+
+        private static bool alreadyUpdating;
 
         static MemberDB()
         {
@@ -45,20 +47,22 @@ namespace WLNetwork.Chat
         }
 
         /// <summary>
-        /// Transmit an update when the members change
+        ///     Transmit an update when the members change
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="args"></param>
         private static void MembersOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
         {
             if (args.OldItems != null)
-                Hubs.Chat.HubContext.Clients.All.GlobalMemberRemove(args.OldItems.OfType<KeyValuePair<string, ChatMember>>().Select(m => m.Value.SteamID).ToArray());
+                Hubs.Chat.HubContext.Clients.All.GlobalMemberRemove(
+                    args.OldItems.OfType<KeyValuePair<string, ChatMember>>().Select(m => m.Value.SteamID).ToArray());
             if (args.NewItems != null)
-                Hubs.Chat.HubContext.Clients.All.GlobalMemberSnapshot(args.NewItems.OfType<KeyValuePair<string, ChatMember>>().Select(m => m.Value).ToArray());
+                Hubs.Chat.HubContext.Clients.All.GlobalMemberSnapshot(
+                    args.NewItems.OfType<KeyValuePair<string, ChatMember>>().Select(m => m.Value).ToArray());
         }
 
         /// <summary>
-        /// Called periodically.
+        ///     Called periodically.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="elapsedEventArgs"></param>
@@ -66,8 +70,6 @@ namespace WLNetwork.Chat
         {
             UpdateDB();
         }
-
-        private static bool alreadyUpdating;
 
         /// <summary>
         ///     Check for differences in the DB
@@ -106,7 +108,9 @@ namespace WLNetwork.Chat
                         cli.UpdateUser(user);
                     }
                 }
-                foreach (ChatMember member in Members.Values.Where(x => users.All(m => m.steam.steamid != x.SteamID)).ToArray())
+                foreach (
+                    ChatMember member in
+                        Members.Values.Where(x => users.All(m => m.steam.steamid != x.SteamID)).ToArray())
                 {
                     Members.Remove(member.SteamID);
                     log.Debug("MEMBER REMOVED [" + member.SteamID + "] [" + member.Name + "]");
@@ -126,7 +130,7 @@ namespace WLNetwork.Chat
         }
 
         /// <summary>
-        /// Called when a member's property is changed outside the constructor.
+        ///     Called when a member's property is changed outside the constructor.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="propertyChangedEventArgs"></param>
@@ -134,7 +138,8 @@ namespace WLNetwork.Chat
         {
             var member = sender as ChatMember;
             if (member == null) return;
-            Hubs.Chat.HubContext.Clients.All.GlobalMemberUpdate(member.SteamID, args.PropertyName, member.GetType().GetProperty(args.PropertyName).GetValue(member));
+            Hubs.Chat.HubContext.Clients.All.GlobalMemberUpdate(member.SteamID, args.PropertyName,
+                member.GetType().GetProperty(args.PropertyName).GetValue(member));
         }
     }
 }

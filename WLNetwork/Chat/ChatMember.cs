@@ -9,11 +9,36 @@ using WLNetwork.Model;
 namespace WLNetwork.Chat
 {
     /// <summary>
-    ///    Global user state 
+    ///     Global user state
     /// </summary>
     public class ChatMember : INotifyPropertyChanged
     {
-        private bool _disablePropertyChanged;
+        /// <summary>
+        ///     Chat member type
+        /// </summary>
+        public enum ChatMemberType
+        {
+            Spectator = -1,
+            Normal = 0,
+            Donator = 5,
+            Moderator = 80,
+            Admin = 90
+        }
+
+        private readonly bool _disablePropertyChanged;
+        private string _avatar;
+        private string _id;
+        private Dictionary<string, LeagueProfile> _leagueProfiles;
+        private string[] _leagues;
+        private ChatMemberType _memberType;
+        private string _name;
+        private uint _rating;
+        private UserState _state;
+        private string _stateDesc;
+        private string _steamId;
+        private bool _teamspeakOnline;
+        private string _uid;
+        private uint _winStreak;
 
         /// <summary>
         ///     Create a chat member.
@@ -33,54 +58,7 @@ namespace WLNetwork.Chat
         }
 
         /// <summary>
-        /// Update from a user and return if changed
-        /// </summary>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        public void UpdateFromUser(User user)
-        {
-            CompareLogic logic = new CompareLogic();
-
-            ID = user.steam.steamid;
-            SteamID = user.steam.steamid;
-            UID = user.Id;
-            Name = user.profile.name;
-            Avatar = user.steam.avatarfull;
-            TeamspeakOnline = user.tsonline;
-
-            if (Leagues == null || !logic.Compare(Leagues, user.vouch.leagues).AreEqual)
-                Leagues = user.vouch.leagues;
-            if (!logic.Compare(LeagueProfiles, user.profile.leagues).AreEqual)
-                LeagueProfiles = user.profile.leagues;
-
-            if (user.authItems.Contains("admin"))
-                MemberType = ChatMemberType.Admin;
-            else if (user.authItems.Contains("vouch"))
-                MemberType = ChatMemberType.Moderator;
-            else if (user.authItems.Contains("spectateOnly"))
-                MemberType = ChatMemberType.Spectator;
-            else if (user.authItems.Contains("donator"))
-                MemberType = ChatMemberType.Donator;
-            else
-                MemberType = ChatMemberType.Normal;
-        }
-
-        private string _id;
-        private string _steamId;
-        private string _uid;
-        private string _name;
-        private string _avatar;
-        private uint _rating;
-        private uint _winStreak;
-        private UserState _state;
-        private string _stateDesc;
-        private ChatMemberType _memberType;
-        private string[] _leagues;
-        private Dictionary<string, LeagueProfile> _leagueProfiles;
-        private bool _teamspeakOnline;
-
-        /// <summary>
-        /// ID, basically steam id
+        ///     ID, basically steam id
         /// </summary>
         public string ID
         {
@@ -150,7 +128,7 @@ namespace WLNetwork.Chat
         }
 
         /// <summary>
-        /// Current user state
+        ///     Current user state
         /// </summary>
         public UserState State
         {
@@ -164,7 +142,7 @@ namespace WLNetwork.Chat
         }
 
         /// <summary>
-        /// Current state description
+        ///     Current state description
         /// </summary>
         public string StateDesc
         {
@@ -192,7 +170,7 @@ namespace WLNetwork.Chat
         }
 
         /// <summary>
-        /// Leagues the user is in
+        ///     Leagues the user is in
         /// </summary>
         public string[] Leagues
         {
@@ -206,7 +184,7 @@ namespace WLNetwork.Chat
         }
 
         /// <summary>
-        /// League profiles
+        ///     League profiles
         /// </summary>
         public Dictionary<string, LeagueProfile> LeagueProfiles
         {
@@ -220,19 +198,7 @@ namespace WLNetwork.Chat
         }
 
         /// <summary>
-        /// Chat member type
-        /// </summary>
-        public enum ChatMemberType
-        {
-            Spectator = -1,
-            Normal = 0,
-            Donator = 5,
-            Moderator = 80,
-            Admin = 90
-        }
-
-        /// <summary>
-        /// Teamspeak online
+        ///     Teamspeak online
         /// </summary>
         public bool TeamspeakOnline
         {
@@ -246,6 +212,39 @@ namespace WLNetwork.Chat
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        ///     Update from a user and return if changed
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        public void UpdateFromUser(User user)
+        {
+            CompareLogic logic = new CompareLogic();
+
+            ID = user.steam.steamid;
+            SteamID = user.steam.steamid;
+            UID = user.Id;
+            Name = user.profile.name;
+            Avatar = user.steam.avatarfull;
+            TeamspeakOnline = user.tsonline;
+
+            if (Leagues == null || !logic.Compare(Leagues, user.vouch.leagues).AreEqual)
+                Leagues = user.vouch.leagues;
+            if (!logic.Compare(LeagueProfiles, user.profile.leagues).AreEqual)
+                LeagueProfiles = user.profile.leagues;
+
+            if (user.authItems.Contains("admin"))
+                MemberType = ChatMemberType.Admin;
+            else if (user.authItems.Contains("vouch"))
+                MemberType = ChatMemberType.Moderator;
+            else if (user.authItems.Contains("spectateOnly"))
+                MemberType = ChatMemberType.Spectator;
+            else if (user.authItems.Contains("donator"))
+                MemberType = ChatMemberType.Donator;
+            else
+                MemberType = ChatMemberType.Normal;
+        }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {

@@ -6,7 +6,7 @@ namespace WLNetwork.Utils
     public static class SteamClientEx
     {
         /// <summary>
-        /// Add a callback
+        ///     Add a callback
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="manager">callback manager</param>

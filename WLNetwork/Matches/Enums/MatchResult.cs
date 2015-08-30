@@ -1,29 +1,28 @@
 ﻿namespace WLNetwork.Matches.Enums
 {
     /// <summary>
-    /// WebLeague match result
+    ///     WebLeague match result
     /// </summary>
     public enum EMatchResult
     {
         /// <summary>
-        /// Never count this match result
+        ///     Never count this match result
         /// </summary>
         DontCount = 0,
 
         /// <summary>
-        /// Unknown match result (to be counted later)
+        ///     Unknown match result (to be counted later)
         /// </summary>
         Unknown = 1,
 
         /// <summary>
-        /// Radiant victory
+        ///     Radiant victory
         /// </summary>
         RadVictory = 2,
 
         /// <summary>
-        /// Dire victory
+        ///     Dire victory
         /// </summary>
         DireVictory = 3,
     }
 }
-

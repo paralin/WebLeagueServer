@@ -14,7 +14,7 @@ using MatchType = WLNetwork.Matches.Enums.MatchType;
 namespace WLNetwork.Hubs
 {
     /// <summary>
-    /// Admin controller
+    ///     Admin controller
     /// </summary>
     public class Admin : WebLeagueHub<Admin>
     {
@@ -42,7 +42,7 @@ namespace WLNetwork.Hubs
         }
 
         /// <summary>
-        /// Destroys a match with no result.
+        ///     Destroys a match with no result.
         /// </summary>
         public void KillMatch(Guid id)
         {
@@ -53,7 +53,7 @@ namespace WLNetwork.Hubs
         }
 
         /// <summary>
-        /// Manually result a match
+        ///     Manually result a match
         /// </summary>
         /// <param name="id">Match ID</param>
         /// <param name="result">New result</param>
@@ -63,13 +63,14 @@ namespace WLNetwork.Hubs
             if (client?.User == null || !client.User.authItems.Contains("admin")) return;
             if (result == EMatchResult.DontCount || result == EMatchResult.Unknown) return;
             var match = MatchesController.Games.FirstOrDefault(m => m.Id == id);
-            if (match?.Setup == null || match.Setup.Details.State != DOTA_GameState.DOTA_GAMERULES_STATE_GAME_IN_PROGRESS)
+            if (match?.Setup == null ||
+                match.Setup.Details.State != DOTA_GameState.DOTA_GAMERULES_STATE_GAME_IN_PROGRESS)
                 return;
             match.ProcessMatchResult(result, true);
         }
 
         /// <summary>
-        /// Recalculate a match result
+        ///     Recalculate a match result
         /// </summary>
         /// <param name="args"></param>
         public void RecalculateMatch(long id)
@@ -87,9 +88,8 @@ namespace WLNetwork.Hubs
             res.RecalculateResult();
         }
 
-
         /// <summary>
-        /// Changes match result
+        ///     Changes match result
         /// </summary>
         /// <returns>Any errors</returns>
         public string ChangeResult(ulong id, EMatchResult result)
@@ -112,8 +112,10 @@ namespace WLNetwork.Hubs
                 return "Unable to change 1v1 results.";
             }
 
-            log.Debug("Request to change result of " + res.Id + " from " + res.Result.ToString("G") + " to " + result.ToString("G"));
-            if (!res.AdjustResult(result)) return "Don't know how to convert " + res.Result.ToString("G") + " to " + result.ToString("G") + ".";
+            log.Debug("Request to change result of " + res.Id + " from " + res.Result.ToString("G") + " to " +
+                      result.ToString("G"));
+            if (!res.AdjustResult(result))
+                return "Don't know how to convert " + res.Result.ToString("G") + " to " + result.ToString("G") + ".";
             res.Save();
 
             return null;

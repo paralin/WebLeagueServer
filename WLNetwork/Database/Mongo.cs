@@ -1,5 +1,4 @@
-﻿using System;
-using System.Reflection;
+﻿using System.Reflection;
 using log4net;
 using MongoDB.Driver;
 using WLNetwork.Matches;
@@ -16,14 +15,12 @@ namespace WLNetwork.Database
         public static MongoClient Client;
         public static MongoServer Server;
         public static MongoDatabase Database;
-
         public static MongoCollection<User> Users;
         public static MongoCollection<Bot> Bots;
         public static MongoCollection<MatchResult> Results;
         public static MongoCollection<ActiveMatch> ActiveMatches;
         public static MongoCollection<HeroInfo> Heros;
         public static MongoCollection<League> Leagues;
-
         public static readonly object ExclusiveLock = new object();
 
         static Mongo()
@@ -34,7 +31,9 @@ namespace WLNetwork.Database
                 return;
             }
 #if DEBUG
-            Client = new MongoClient(Settings.Default.DMongoURL + "/" + Settings.Default.DMongoDB + "?safe=true;maxpoolsize=1000");
+            Client =
+                new MongoClient(Settings.Default.DMongoURL + "/" + Settings.Default.DMongoDB +
+                                "?safe=true;maxpoolsize=1000");
 #else
             Client = new MongoClient(Env.MONGODB_URL + "?safe=true;maxpoolsize=600");
 #endif

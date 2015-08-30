@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
@@ -10,7 +9,6 @@ using log4net;
 using Newtonsoft.Json.Linq;
 using SteamKit2;
 using WLNetwork.Bots.Data;
-using WLNetwork.Bots.LobbyBot.Enums;
 using WLNetwork.Chat;
 using WLNetwork.Database;
 using WLNetwork.Matches;
@@ -24,10 +22,16 @@ namespace WLNetwork.Bots
 {
     public class BotController
     {
-        private ILog log;
+        private readonly MatchSetupDetails game;
+        private readonly ILog log;
+        private readonly Timer matchResultTimeout;
+        private bool hasStarted = false;
         public BotInstance instance;
-        private MatchSetupDetails game;
-        private Timer matchResultTimeout;
+        private bool lobbyReadySent = false;
+        private bool lobbyUnReadySent = false;
+        private int matchResultAttempts = 0;
+        private bool outcomeProcessed = false;
+        private bool startedResultCheck = false;
 
         public BotController(MatchSetupDetails game)
         {
@@ -63,7 +67,6 @@ namespace WLNetwork.Bots
             game.Cleanup();
         }
 
-        private int matchResultAttempts = 0;
         private void MatchResultTimeout(object sender, ElapsedEventArgs elapsedEventArgs)
         {
             matchResultTimeout.Stop();
@@ -81,7 +84,7 @@ namespace WLNetwork.Bots
             AttemptAPIResult();
         }
 
-        void AttemptDetailsResult()
+        private void AttemptDetailsResult()
         {
             instance.FetchMatchResult(game.MatchId, match =>
             {
@@ -105,7 +108,7 @@ namespace WLNetwork.Bots
             });
         }
 
-        void LobbyPlaying(object sender, EventArgs e)
+        private void LobbyPlaying(object sender, EventArgs e)
         {
             if (game.Status == MatchSetupStatus.Done)
                 return;
@@ -123,7 +126,7 @@ namespace WLNetwork.Bots
             game.TransmitUpdate();
         }
 
-        void LobbyReady(object sender, EventArgs e)
+        private void LobbyReady(object sender, EventArgs e)
         {
             if (game.Status == MatchSetupStatus.Wait) return;
 
@@ -191,11 +194,12 @@ namespace WLNetwork.Bots
                 game.FirstBloodHappened = true;
                 game.TransmitUpdate();
                 g.SaveActiveGame();
-                if (g.Info.League != null) ChatChannel.SystemMessage(g.Info.League, "First blood was just spilled in match " + game.Id.ToString().Substring(0, 4) + "!");
+                if (g.Info.League != null)
+                    ChatChannel.SystemMessage(g.Info.League,
+                        "First blood was just spilled in match " + game.Id.ToString().Substring(0, 4) + "!");
             }
         }
 
-        private bool hasStarted = false;
         private void GameStarted(object sender, EventArgs eventArgs)
         {
             if (hasStarted) return;
@@ -219,8 +223,6 @@ namespace WLNetwork.Bots
             instance.bot.DotaGCHandler.KickPlayerFromLobby(player.ToAccountID());
         }
 
-        private bool lobbyReadySent = false;
-        private bool lobbyUnReadySent = false;
         public void PlayerReady(object sender, PlayerReadyArgs readyArgs)
         {
             if (game.Bot == null) return;
@@ -251,7 +253,9 @@ namespace WLNetwork.Bots
                     {
                         var plyr = g.Players.FirstOrDefault(m => !m.Ready);
                         if (plyr != null)
-                            instance.bot.SendLobbyMessage("Lobby is no longer ready, waiting for " + plyr.Name + " to join " + (plyr.Team == MatchTeam.Dire ? "Dire" : "Radiant") + ".");
+                            instance.bot.SendLobbyMessage("Lobby is no longer ready, waiting for " + plyr.Name +
+                                                          " to join " +
+                                                          (plyr.Team == MatchTeam.Dire ? "Dire" : "Radiant") + ".");
                     }
                     lobbyReadySent = false;
                 }
@@ -294,7 +298,6 @@ namespace WLNetwork.Bots
             }
         }
 
-        private bool startedResultCheck = false;
         public void MatchStatus(object sender, MatchStateArgs args)
         {
             MatchGame g = game.GetGame();
@@ -308,7 +311,7 @@ namespace WLNetwork.Bots
             }
             g.Setup = g.Setup;
             if ((args.State >= DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME ||
-                args.Status == CSODOTALobby.State.POSTGAME) && g.Info.Status == Matches.Enums.MatchStatus.Play)
+                 args.Status == CSODOTALobby.State.POSTGAME) && g.Info.Status == Matches.Enums.MatchStatus.Play)
             {
                 g.Info.Status = Matches.Enums.MatchStatus.Complete;
                 g.Info = g.Info;
@@ -323,20 +326,17 @@ namespace WLNetwork.Bots
         }
 
         /// <summary>
-        /// Start attempting to fetch the result
+        ///     Start attempting to fetch the result
         /// </summary>
         public void StartAttemptResult()
         {
             if (outcomeProcessed || startedResultCheck) return;
             startedResultCheck = true;
-            Task.Run(() =>
-            {
-                if (!outcomeProcessed) AttemptAPIResult();
-            });
+            Task.Run(() => { if (!outcomeProcessed) AttemptAPIResult(); });
         }
 
         /// <summary>
-        /// Attempt to fetch from web api
+        ///     Attempt to fetch from web api
         /// </summary>
         public async void AttemptAPIResult()
         {
@@ -391,7 +391,6 @@ namespace WLNetwork.Bots
             //todo: do something here?
         }
 
-        bool outcomeProcessed = false;
         public void MatchOutcome(object sender, EMatchOutcome args)
         {
             if (outcomeProcessed || game.MatchId == 0)

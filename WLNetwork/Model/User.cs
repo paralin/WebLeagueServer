@@ -15,10 +15,9 @@ namespace WLNetwork.Model
         }
 
         public User User { get; set; }
-
-        public string Name { get; private set; }
-        public string AuthenticationType { get; private set; }
-        public bool IsAuthenticated { get; private set; }
+        public string Name { get; }
+        public string AuthenticationType { get; }
+        public bool IsAuthenticated { get; }
     }
 
     /// <summary>
@@ -82,13 +81,13 @@ namespace WLNetwork.Model
         public string name { get; set; }
 
         /// <summary>
-        /// Leagues. key is leagueid:seasonid
+        ///     Leagues. key is leagueid:seasonid
         /// </summary>
         public Dictionary<string, LeagueProfile> leagues { get; set; }
     }
 
     /// <summary>
-    /// A profile for a certain league
+    ///     A profile for a certain league
     /// </summary>
     [BsonIgnoreExtraElements]
     public class LeagueProfile

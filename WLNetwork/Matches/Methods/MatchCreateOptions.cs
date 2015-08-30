@@ -21,27 +21,27 @@ namespace WLNetwork.Matches.Methods
         public string OpponentSID { get; set; }
 
         /// <summary>
-        /// League ID
+        ///     League ID
         /// </summary>
         public string League { get; set; }
 
         /// <summary>
-        /// League season
+        ///     League season
         /// </summary>
         public uint LeagueSeason { get; set; }
 
         /// <summary>
-        /// Secondary league season
+        ///     Secondary league season
         /// </summary>
         public uint[] SecondaryLeagueSeason { get; set; }
 
         /// <summary>
-        /// League ticket
+        ///     League ticket
         /// </summary>
         public uint LeagueTicket { get; set; }
 
         /// <summary>
-        /// League region
+        ///     League region
         /// </summary>
         public uint LeagueRegion { get; set; }
     }

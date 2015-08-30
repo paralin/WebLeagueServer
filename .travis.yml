@@ -1,0 +1,9 @@
+sudo: false
+language: csharp
+solution: WLNetwork.sln
+
+install:
+    - nuget restore WLNetwork.sln
+
+script:
+    - xbuild /p:NoWarn=1584 WLNetwork.sln

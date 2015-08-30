@@ -8,17 +8,17 @@ namespace WLNetwork.Model
     public class ActiveMatch
     {
         /// <summary>
-        /// Match ID
+        ///     Match ID
         /// </summary>
         public Guid Id { get; set; }
 
         /// <summary>
-        /// Setup Details
+        ///     Setup Details
         /// </summary>
         public MatchSetupDetails Details { get; set; }
 
         /// <summary>
-        /// Info
+        ///     Info
         /// </summary>
         public MatchGameInfo Info { get; set; }
     }

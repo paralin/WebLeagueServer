@@ -3,17 +3,15 @@ using System.Reflection;
 using System.Threading;
 using log4net;
 using log4net.Config;
-using Microsoft.Owin;
 using Microsoft.Owin.Cors;
 using Microsoft.Owin.Hosting;
 using Owin;
 using WLNetwork.Bots;
 using WLNetwork.Chat;
-using WLNetwork.Matches;
 using WLNetwork.Database;
 using WLNetwork.Leagues;
+using WLNetwork.Matches;
 
-[assembly: OwinStartup(typeof(WLNetwork.Startup))]
 namespace WLNetwork
 {
     public class Program
@@ -57,7 +55,8 @@ namespace WLNetwork
             }
         }
     }
-    public class Startup
+
+    class Startup
     {
         public void Configuration(IAppBuilder app)
         {

@@ -61,7 +61,7 @@ namespace WLNetwork.Utils
         /// </summary>
         public void Replace(T item)
         {
-            ReplaceRange(new[] { item });
+            ReplaceRange(new[] {item});
         }
 
         /// <summary>

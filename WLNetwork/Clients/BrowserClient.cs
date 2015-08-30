@@ -22,54 +22,12 @@ using WLNetwork.Properties;
 namespace WLNetwork.Clients
 {
     /// <summary>
-    /// Instance of a browser client.
+    ///     Instance of a browser client.
     /// </summary>
     public class BrowserClient
     {
-        private static readonly ILog log =
-            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
         /// <summary>
-        /// Dictionary of all clients.
-        /// </summary>
-        public static ConcurrentDictionary<string, BrowserClient> Clients = new ConcurrentDictionary<string, BrowserClient>();
-
-        /// <summary>
-        /// Clients by Steam ID
-        /// </summary>
-        public static ConcurrentDictionary<string, BrowserClient> ClientsBySteamID = new ConcurrentDictionary<string, BrowserClient>();
-
-        /// <summary>
-        /// Current channels list.
-        /// </summary>
-        public ObservableCollection<ChatChannel> Channels = new ObservableCollection<ChatChannel>();
-
-        /// <summary>
-        /// Current ChatMember match.
-        /// </summary>
-        private ChatMember member;
-
-        private string ConnectionID;
-        private User _user;
-        private bool userped = false;
-
-        /// <summary>
-        /// All currently connected chat clients.
-        /// </summary>
-        public ConcurrentDictionary<string, dynamic> ChatClients = new ConcurrentDictionary<string, dynamic>();
-
-        /// <summary>
-        /// All currently connected match clients.
-        /// </summary>
-        public ConcurrentDictionary<string, dynamic> MatchClients = new ConcurrentDictionary<string, dynamic>();
-
-        /// <summary>
-        /// All currently connected admin clients.
-        /// </summary>
-        public ConcurrentDictionary<string, dynamic> AdminClients = new ConcurrentDictionary<string, dynamic>();
-
-        /// <summary>
-        /// Client type.
+        ///     Client type.
         /// </summary>
         public enum ClientType
         {
@@ -78,8 +36,99 @@ namespace WLNetwork.Clients
             ADMIN
         }
 
+        private static readonly ILog log =
+            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
-        /// Gets the local user.
+        ///     Dictionary of all clients.
+        /// </summary>
+        public static ConcurrentDictionary<string, BrowserClient> Clients =
+            new ConcurrentDictionary<string, BrowserClient>();
+
+        /// <summary>
+        ///     Clients by Steam ID
+        /// </summary>
+        public static ConcurrentDictionary<string, BrowserClient> ClientsBySteamID =
+            new ConcurrentDictionary<string, BrowserClient>();
+
+        /// <summary>
+        ///     Timer until the challenge times out.
+        /// </summary>
+        public readonly Timer ChallengeTimer;
+
+        private readonly bool userped = false;
+        private User _user;
+        private Challenge activeChallenge;
+        private MatchGame activeMatch;
+        private MatchResult activeResult;
+
+        /// <summary>
+        ///     All currently connected admin clients.
+        /// </summary>
+        public ConcurrentDictionary<string, dynamic> AdminClients = new ConcurrentDictionary<string, dynamic>();
+
+        /// <summary>
+        ///     Current channels list.
+        /// </summary>
+        public ObservableCollection<ChatChannel> Channels = new ObservableCollection<ChatChannel>();
+
+        /// <summary>
+        ///     All currently connected chat clients.
+        /// </summary>
+        public ConcurrentDictionary<string, dynamic> ChatClients = new ConcurrentDictionary<string, dynamic>();
+
+        private string ConnectionID;
+
+        /// <summary>
+        ///     All currently connected match clients.
+        /// </summary>
+        public ConcurrentDictionary<string, dynamic> MatchClients = new ConcurrentDictionary<string, dynamic>();
+
+        /// <summary>
+        ///     Current ChatMember match.
+        /// </summary>
+        private ChatMember member;
+
+        /// <summary>
+        ///     Create a new browserclient
+        /// </summary>
+        /// <param name="user">User</param>
+        /// <param name="ctx">Caller context</param>
+        private BrowserClient(User user)
+        {
+            ChallengeTimer = new Timer(2000);
+            ChallengeTimer.Elapsed += (sender, args) =>
+            {
+                if (Challenge != null)
+                {
+                    BrowserClient tcont;
+                    if (ClientsBySteamID.TryGetValue(Challenge.ChallengerSID, out tcont))
+                    {
+                        tcont.Challenge = null;
+                        tcont.ChallengeTimer?.Stop();
+                    }
+                    Challenge = null;
+                }
+                ChallengeTimer.Stop();
+            };
+            _user = user;
+            Channels.CollectionChanged += ChatChannelOnCollectionChanged;
+            ReloadUser();
+            if (User != null)
+            {
+                //See if we're in any matches already
+                MatchGame game =
+                    MatchesController.Games.FirstOrDefault(m => m.Players.Any(x => x.SID == User.steam.steamid));
+                if (game != null)
+                    Match = game;
+            }
+            if (member == null) return;
+            member.State = UserState.ONLINE;
+            member.StateDesc = "Online";
+        }
+
+        /// <summary>
+        ///     Gets the local user.
         /// </summary>
         public User User => _user;
 
@@ -126,16 +175,7 @@ namespace WLNetwork.Clients
         }
 
         /// <summary>
-        /// Timer until the challenge times out.
-        /// </summary>
-        public readonly Timer ChallengeTimer;
-
-        private Challenge activeChallenge;
-        private MatchGame activeMatch;
-        private MatchResult activeResult;
-
-        /// <summary>
-        /// Build a browserclient from a CallerContext
+        ///     Build a browserclient from a CallerContext
         /// </summary>
         /// <param name="ctx"></param>
         public static void HandleConnection(HubCallerContext ctx, dynamic client, ClientType clientType)
@@ -205,7 +245,7 @@ namespace WLNetwork.Clients
         }
 
         /// <summary>
-        /// Called when the client disconnects.
+        ///     Called when the client disconnects.
         /// </summary>
         /// <param name="ctx"></param>
         public static void HandleDisconnected(HubCallerContext ctx, ClientType hubType)
@@ -231,44 +271,7 @@ namespace WLNetwork.Clients
         }
 
         /// <summary>
-        /// Create a new browserclient
-        /// </summary>
-        /// <param name="user">User</param>
-        /// <param name="ctx">Caller context</param>
-        private BrowserClient(User user)
-        {
-            ChallengeTimer = new Timer(2000);
-            ChallengeTimer.Elapsed += (sender, args) =>
-            {
-                if (Challenge != null)
-                {
-                    BrowserClient tcont;
-                    if (ClientsBySteamID.TryGetValue(Challenge.ChallengerSID, out tcont))
-                    {
-                        tcont.Challenge = null;
-                        tcont.ChallengeTimer?.Stop();
-                    }
-                    Challenge = null;
-                }
-                ChallengeTimer.Stop();
-            };
-            _user = user;
-            Channels.CollectionChanged += ChatChannelOnCollectionChanged;
-            ReloadUser();
-            if (User != null)
-            {
-                //See if we're in any matches already
-                MatchGame game = MatchesController.Games.FirstOrDefault(m => m.Players.Any(x => x.SID == User.steam.steamid));
-                if (game != null)
-                    Match = game;
-            }
-            if (member == null) return;
-            member.State = UserState.ONLINE;
-            member.StateDesc = "Online";
-        }
-
-        /// <summary>
-        /// Re-transmits everything.
+        ///     Re-transmits everything.
         /// </summary>
         public void SendFullSnapshot()
         {
@@ -280,7 +283,7 @@ namespace WLNetwork.Clients
         }
 
         /// <summary>
-        /// Called when a chat channel is added/removed
+        ///     Called when a chat channel is added/removed
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -296,7 +299,7 @@ namespace WLNetwork.Clients
         }
 
         /// <summary>
-        /// Lookup the ChatMember.
+        ///     Lookup the ChatMember.
         /// </summary>
         public void ReloadUser()
         {
@@ -325,7 +328,7 @@ namespace WLNetwork.Clients
         }
 
         /// <summary>
-        /// Recheck chats
+        ///     Recheck chats
         /// </summary>
         private void RecheckChats()
         {
@@ -354,7 +357,7 @@ namespace WLNetwork.Clients
         }
 
         /// <summary>
-        /// Watch changes on the member.
+        ///     Watch changes on the member.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="propertyChangedEventArgs"></param>
@@ -364,15 +367,14 @@ namespace WLNetwork.Clients
         }
 
         /// <summary>
-        /// Try to leave the current match.
+        ///     Try to leave the current match.
         /// </summary>
         public void LeaveMatch()
         {
-
         }
 
         /// <summary>
-        /// Force set the user.
+        ///     Force set the user.
         /// </summary>
         /// <param name="user">user object</param>
         public void UpdateUser(User user)
@@ -381,7 +383,7 @@ namespace WLNetwork.Clients
         }
 
         /// <summary>
-        /// Deconstruct
+        ///     Deconstruct
         /// </summary>
         ~BrowserClient()
         {

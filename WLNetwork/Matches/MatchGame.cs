@@ -31,15 +31,15 @@ namespace WLNetwork.Matches
     public class MatchGame
     {
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private bool _balancing;
+        private readonly ConcurrentBag<string> forbidSids = new ConcurrentBag<string>();
+        private ActiveMatch _activeMatch = null;
         private bool _alreadyAttemptedMatchResult = false;
+        private bool _balancing;
         private MatchGameInfo _info;
         private ObservableRangeCollection<MatchPlayer> _players;
         private MatchSetup _setup;
-        private ActiveMatch _activeMatch = null;
-        private ConcurrentBag<string> forbidSids = new ConcurrentBag<string>();
         private BotController controller = null;
-
+        public volatile bool Destroyed;
 
         /// <summary>
         ///     This is for two picks in captains, set to true at start so first pick is just 1
@@ -47,7 +47,7 @@ namespace WLNetwork.Matches
         private bool pickedAlready;
 
         /// <summary>
-        /// Try to recover a match from a stored active match.
+        ///     Try to recover a match from a stored active match.
         /// </summary>
         /// <param name="match"></param>
         private MatchGame(ActiveMatch match)
@@ -87,25 +87,11 @@ namespace WLNetwork.Matches
             controller.instance.Start();
 
             MatchesController.Games.Add(this);
-            log.Info("MATCH RESTORE [" + match.Id + "] [" + Info.Owner + "] [" + Info.GameMode + "] [" + Info.MatchType + "]");
+            log.Info("MATCH RESTORE [" + match.Id + "] [" + Info.Owner + "] [" + Info.GameMode + "] [" + Info.MatchType +
+                     "]");
 
             _activeMatch = match;
             SaveActiveGame();
-        }
-
-        /// <summary>
-        /// Called when the lobby is not recovered
-        /// </summary>
-        public void LobbyNotRecovered()
-        {
-            if (Setup?.Details != null && Setup.Details.MatchId != 0)
-            {
-                Info.Status = MatchStatus.Complete;
-                Info = Info;
-                controller.StartAttemptResult();
-            }
-            else
-                ProcessMatchResult(EMatchResult.Unknown);
         }
 
         /// <summary>
@@ -169,7 +155,10 @@ namespace WLNetwork.Matches
                 {
                     _players = value;
                     Hubs.Matches.HubContext.Clients.All.MatchPlayersSnapshot();
-                    foreach (var cli in BrowserClient.Clients.Values.Where(m => m.User != null && m.User.authItems.Contains("admin")).SelectMany(client => client.MatchClients.Values))
+                    foreach (
+                        var cli in
+                            BrowserClient.Clients.Values.Where(m => m.User != null && m.User.authItems.Contains("admin"))
+                                .SelectMany(client => client.MatchClients.Values))
                         cli.MatchPlayersSnapshot(Id, Players.ToArray());
                     if (_activeMatch != null)
                         SaveActiveGame();
@@ -185,6 +174,21 @@ namespace WLNetwork.Matches
                 _setup = value;
                 TransmitSetupUpdate();
             }
+        }
+
+        /// <summary>
+        ///     Called when the lobby is not recovered
+        /// </summary>
+        public void LobbyNotRecovered()
+        {
+            if (Setup?.Details != null && Setup.Details.MatchId != 0)
+            {
+                Info.Status = MatchStatus.Complete;
+                Info = Info;
+                controller.StartAttemptResult();
+            }
+            else
+                ProcessMatchResult(EMatchResult.Unknown);
         }
 
         public void StartPicks()
@@ -234,21 +238,21 @@ namespace WLNetwork.Matches
         }
 
         /// <summary>
-        /// Determines whether the supplied binary team is valid
+        ///     Determines whether the supplied binary team is valid
         /// </summary>
         private static bool IsValidTeam(MatchPlayer[] playerPool, uint team)
         {
-            uint v = (uint)team;
+            uint v = (uint) team;
             uint c;
             for (c = 0; v != 0; v >>= 1)
             {
                 c += v & 1;
             }
-            return (c == playerPool.Length / 2);
+            return (c == playerPool.Length/2);
         }
 
         /// <summary>
-        /// Calculates the team score for a binary team
+        ///     Calculates the team score for a binary team
         /// </summary>
         private static int CalculateTeamScore(MatchPlayer[] playerPool, uint team)
         {
@@ -256,7 +260,7 @@ namespace WLNetwork.Matches
             for (var i = 0; i < playerPool.Length; ++i)
             {
                 if ((team & 1) == 1)
-                    score += (int)playerPool[i].Rating;
+                    score += (int) playerPool[i].Rating;
                 team >>= 1;
             }
             return score;
@@ -282,7 +286,10 @@ namespace WLNetwork.Matches
             if (_balancing || Info.MatchType != MatchType.StartGame || Info.Status > MatchStatus.Lobby) return;
             _balancing = true;
 
-            var playerPool = Players.Where(m => m.Team == MatchTeam.Radiant || m.Team == MatchTeam.Dire || m.Team == MatchTeam.Unassigned).ToArray();
+            var playerPool =
+                Players.Where(
+                    m => m.Team == MatchTeam.Radiant || m.Team == MatchTeam.Dire || m.Team == MatchTeam.Unassigned)
+                    .ToArray();
 
             uint min = uint.MaxValue;
             uint minTeam = 0;
@@ -294,7 +301,7 @@ namespace WLNetwork.Matches
                 var scoreDiff = Math.Abs(CalculateTeamScore(playerPool, team) - CalculateTeamScore(playerPool, ~team));
                 if (scoreDiff >= min) continue;
 
-                min = (uint)scoreDiff;
+                min = (uint) scoreDiff;
                 minTeam = team;
             }
 
@@ -302,8 +309,6 @@ namespace WLNetwork.Matches
 
             _balancing = false;
         }
-
-        public volatile bool Destroyed;
 
         /// <summary>
         ///     Delete the game.
@@ -340,9 +345,15 @@ namespace WLNetwork.Matches
         {
             if (_setup == null)
             {
-                foreach (var cli in BrowserClient.Clients.Values.Where(m => m.Match == this).SelectMany(client => client.MatchClients.Values))
+                foreach (
+                    var cli in
+                        BrowserClient.Clients.Values.Where(m => m.Match == this)
+                            .SelectMany(client => client.MatchClients.Values))
                     cli.ClearSetupMatch(Id);
-                foreach (var cli in BrowserClient.Clients.Values.Where(m => m.User != null && m.User.authItems.Contains("admin")).SelectMany(client => client.AdminClients.Values))
+                foreach (
+                    var cli in
+                        BrowserClient.Clients.Values.Where(m => m.User != null && m.User.authItems.Contains("admin"))
+                            .SelectMany(client => client.AdminClients.Values))
                     cli.ClearSetupMatch(Id);
             }
             else
@@ -351,9 +362,15 @@ namespace WLNetwork.Matches
                 {
                     Bot bot = _setup.Details.Bot;
                     _setup.Details.Bot = null;
-                    foreach (var cli in BrowserClient.Clients.Values.Where(m => m.Match == this).SelectMany(client => client.MatchClients.Values))
+                    foreach (
+                        var cli in
+                            BrowserClient.Clients.Values.Where(m => m.Match == this)
+                                .SelectMany(client => client.MatchClients.Values))
                         cli.SetupSnapshot(_setup);
-                    foreach (var cli in BrowserClient.Clients.Values.Where(m => m.User != null && m.User.authItems.Contains("admin")).SelectMany(client => client.AdminClients.Values))
+                    foreach (
+                        var cli in
+                            BrowserClient.Clients.Values.Where(m => m.User != null && m.User.authItems.Contains("admin"))
+                                .SelectMany(client => client.AdminClients.Values))
                         cli.SetupSnapshot(_setup);
                     _setup.Details.Bot = bot;
                     if (_activeMatch != null) SaveActiveGame();
@@ -365,7 +382,10 @@ namespace WLNetwork.Matches
         {
             if (_info == null) return;
             Hubs.Matches.HubContext.Clients.All.InfoSnapshot(_info);
-            foreach (var cli in BrowserClient.Clients.Values.Where(m => m.User != null && m.User.authItems.Contains("admin")).SelectMany(client => client.AdminClients.Values))
+            foreach (
+                var cli in
+                    BrowserClient.Clients.Values.Where(m => m.User != null && m.User.authItems.Contains("admin"))
+                        .SelectMany(client => client.AdminClients.Values))
                 cli.InfoSnapshot(_info);
             if (_activeMatch != null) SaveActiveGame();
         }
@@ -412,7 +432,7 @@ namespace WLNetwork.Matches
         }
 
         /// <summary>
-        /// Updates/saves active game info
+        ///     Updates/saves active game info
         /// </summary>
         public void SaveActiveGame()
         {
@@ -466,7 +486,6 @@ namespace WLNetwork.Matches
             });
         }
 
-
         /// <summary>
         ///     Complete the game
         /// </summary>
@@ -477,13 +496,14 @@ namespace WLNetwork.Matches
             if (!MatchesController.Games.Contains(this))
                 return;
 
-            if (Info.SecondaryLeagueSeason == null) Info.SecondaryLeagueSeason = new uint[] { };
+            if (Info.SecondaryLeagueSeason == null) Info.SecondaryLeagueSeason = new uint[] {};
 
             ulong matchId = Setup.Details.MatchId;
             var countMatch = (outcome == EMatchResult.DireVictory ||
                               outcome == EMatchResult.RadVictory);
 
-            log.Debug("PROCESSING " + (manualResult ? "ADMIN " : "") + "RESULT " + matchId + " WITH " + outcome.ToString("G"));
+            log.Debug("PROCESSING " + (manualResult ? "ADMIN " : "") + "RESULT " + matchId + " WITH " +
+                      outcome.ToString("G"));
             var result = new MatchResult
             {
                 Id = matchId,
@@ -506,7 +526,7 @@ namespace WLNetwork.Matches
             {
                 RatingCalculator.CalculateRatingDelta(result);
 
-                result.ApplyRating(Info.SecondaryLeagueSeason.Concat(new[] { Info.LeagueSeason }).ToArray());
+                result.ApplyRating(Info.SecondaryLeagueSeason.Concat(new[] {Info.LeagueSeason}).ToArray());
             }
 
             result.Save();
@@ -514,16 +534,22 @@ namespace WLNetwork.Matches
             if (countMatch)
             {
                 var plyrsids = Players.Select(m => m.SID);
-                foreach (BrowserClient c in BrowserClient.Clients.Values.Where(m => m.User != null && (plyrsids.Contains(m.User.steam.steamid) || m.User.authItems.Contains("admin") || m.User.authItems.Contains("spectateOnly"))))
+                foreach (
+                    BrowserClient c in
+                        BrowserClient.Clients.Values.Where(
+                            m =>
+                                m.User != null &&
+                                (plyrsids.Contains(m.User.steam.steamid) || m.User.authItems.Contains("admin") ||
+                                 m.User.authItems.Contains("spectateOnly"))))
                     c.Result = result;
 
                 var completeMsg = "Match " + Id.ToString().Substring(0, 4) + " (MatchID " + Setup.Details.MatchId +
                                   ") " + (manualResult ? "admin resulted" : "completed") + " with ";
                 if (Info.MatchType != MatchType.OneVsOne)
                     completeMsg +=
-(outcome == EMatchResult.DireVictory
- ? "dire victory."
- : "radiant victory.");
+                        (outcome == EMatchResult.DireVictory
+                            ? "dire victory."
+                            : "radiant victory.");
                 else
                 {
                     var direplyr = Setup.Details.Players.FirstOrDefault(m => m.Team == MatchTeam.Dire);
@@ -543,10 +569,11 @@ namespace WLNetwork.Matches
                     var max = result.EndedWinStreaks.Aggregate((l, r) => l.Value > r.Value ? l : r).Key;
                     var plyr = (Players.FirstOrDefault(m => m.SID == max));
                     if (plyr != null)
-                        completeMsg += " " + (result.Result == EMatchResult.RadVictory ? "Radiant" : "Dire") + " received a bonus " + result.StreakEndedRating + " rating for ending " + plyr.Name + "'s " + result.EndedWinStreaks[max] + " win streak!";
+                        completeMsg += " " + (result.Result == EMatchResult.RadVictory ? "Radiant" : "Dire") +
+                                       " received a bonus " + result.StreakEndedRating + " rating for ending " +
+                                       plyr.Name + "'s " + result.EndedWinStreaks[max] + " win streak!";
                 }
                 if (Info.League != null) ChatChannel.SystemMessage(Info.League, completeMsg);
-
             }
             else
             {
@@ -571,7 +598,7 @@ namespace WLNetwork.Matches
         }
 
         /// <summary>
-        /// Retreive the bot controller. Needed so it doesn't get serialized to JSON
+        ///     Retreive the bot controller. Needed so it doesn't get serialized to JSON
         /// </summary>
         /// <returns></returns>
         public BotController GetBotController()
@@ -580,7 +607,7 @@ namespace WLNetwork.Matches
         }
 
         /// <summary>
-        /// Clear bot controller
+        ///     Clear bot controller
         /// </summary>
         public void SetBotController(BotController controller)
         {
@@ -590,14 +617,17 @@ namespace WLNetwork.Matches
         public void AdminDestroy()
         {
             log.Debug("ADMIN DESTROY " + Id);
-            foreach (var cli in BrowserClient.Clients.Values.Where(m => m.Match == this).SelectMany(client => client.MatchClients.Values))
+            foreach (
+                var cli in
+                    BrowserClient.Clients.Values.Where(m => m.Match == this)
+                        .SelectMany(client => client.MatchClients.Values))
                 cli.SystemMessage("Admin Closed Match", "An admin has destroyed the match you were in.");
             if (Setup != null) ProcessMatchResult(EMatchResult.DontCount);
             else Destroy();
         }
 
         /// <summary>
-        /// Static, recover all active matches
+        ///     Static, recover all active matches
         /// </summary>
         public static void RecoverActiveMatches()
         {
@@ -609,18 +639,21 @@ namespace WLNetwork.Matches
         }
 
         /// <summary>
-        /// Called when the match is started
+        ///     Called when the match is started
         /// </summary>
         public void GameStarted()
         {
             if (Info.League == null) return;
             // Announce win streaks
-            foreach (var plyr in Players.Where(m => m.Team == MatchTeam.Dire || m.Team == MatchTeam.Radiant).Where(plyr => plyr.WinStreak >= Settings.Default.MinWinStreakForAnnounce))
+            foreach (
+                var plyr in
+                    Players.Where(m => m.Team == MatchTeam.Dire || m.Team == MatchTeam.Radiant)
+                        .Where(plyr => plyr.WinStreak >= Settings.Default.MinWinStreakForAnnounce))
                 ChatChannel.SystemMessage(Info.League, $"{plyr.Name} has a {plyr.WinStreak} win streak!");
         }
 
         /// <summary>
-        /// Boot a player from the startgame.
+        ///     Boot a player from the startgame.
         /// </summary>
         /// <param name="sid"></param>
         public void KickPlayer(string sid)
@@ -636,7 +669,7 @@ namespace WLNetwork.Matches
         }
 
         /// <summary>
-        /// Check if a player is forbidden from this match
+        ///     Check if a player is forbidden from this match
         /// </summary>
         /// <param name="steamid"></param>
         /// <returns></returns>
@@ -652,67 +685,67 @@ namespace WLNetwork.Matches
     public class MatchGameInfo
     {
         /// <summary>
-        /// ID of this match
+        ///     ID of this match
         /// </summary>
         public Guid Id { get; set; }
 
         /// <summary>
-        /// Match type
+        ///     Match type
         /// </summary>
         public MatchType MatchType { get; set; }
 
         /// <summary>
-        /// Is this match public?
+        ///     Is this match public?
         /// </summary>
         public bool Public { get; set; }
 
         /// <summary>
-        /// Status of the match
+        ///     Status of the match
         /// </summary>
         public MatchStatus Status { get; set; }
 
         /// <summary>
-        /// Owner of this match.
+        ///     Owner of this match.
         /// </summary>
         public string Owner { get; set; }
 
         /// <summary>
-        /// Game mode
+        ///     Game mode
         /// </summary>
         public GameMode GameMode { get; set; }
 
         /// <summary>
-        /// Opponent, if a challenge
+        ///     Opponent, if a challenge
         /// </summary>
         public string Opponent { get; set; }
 
         /// <summary>
-        /// Captain status.
+        ///     Captain status.
         /// </summary>
         public CaptainsStatus CaptainStatus { get; set; }
 
         /// <summary>
-        /// League ID
+        ///     League ID
         /// </summary>
         public string League { get; set; }
 
         /// <summary>
-        /// Season
+        ///     Season
         /// </summary>
         public uint LeagueSeason { get; set; }
 
         /// <summary>
-        /// Ticket for this league
+        ///     Ticket for this league
         /// </summary>
         public uint LeagueTicket { get; set; }
 
         /// <summary>
-        /// Region for this league
+        ///     Region for this league
         /// </summary>
         public uint LeagueRegion { get; set; }
 
         /// <summary>
-        /// League season
+        ///     League season
         /// </summary>
         public uint[] SecondaryLeagueSeason { get; set; }
     }
