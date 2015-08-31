@@ -19,17 +19,17 @@ namespace WLNetwork.Leagues
     /// </summary>
     public static class LeagueDB
     {
-        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+		private static readonly ILog log = LogManager.GetLogger(typeof(LeagueDB));
 
         /// <summary>
-        ///     Update timer for the DB
+		///     League Dictionary
         /// </summary>
-        public static Timer UpdateTimer;
+		public static ObservableDictionary<string, League> Leagues = new ObservableDictionary<string, League>();
 
         /// <summary>
-        ///     League Dictionary
+		///     Update timer for the DB
         /// </summary>
-        public static ObservableDictionary<string, League> Leagues = new ObservableDictionary<string, League>();
+		public static Timer UpdateTimer;
 
         /// <summary>
         ///     Any updated this update
@@ -39,9 +39,9 @@ namespace WLNetwork.Leagues
         static LeagueDB()
         {
             UpdateTimer = new Timer(20000);
-            UpdateTimer.Elapsed += UpdateTimerOnElapsed;
+			//UpdateTimer.Elapsed += UpdateTimerOnElapsed;
 
-            UpdateDB();
+			//UpdateDB();
             UpdateTimer.Start();
 
             Leagues.CollectionChanged += LeaguesOnCollectionChanged;
@@ -71,6 +71,7 @@ namespace WLNetwork.Leagues
         {
             AnyUpdated = false;
             League[] leagues;
+
             var logic = new CompareLogic() {Config = new ComparisonConfig() {MaxDifferences = 100}};
             try
             {
@@ -78,6 +79,7 @@ namespace WLNetwork.Leagues
                 {
                     leagues = Mongo.Leagues.FindAs<League>(Query.NE("Archived", true)).ToArray();
                 }
+
                 foreach (var league in leagues)
                 {
                     League exist = null;
@@ -107,14 +109,13 @@ namespace WLNetwork.Leagues
                         {
                             Leagues[league.Id] = league;
                             log.Debug("LEAGUE UPDATED [" + league.Id + "] " + res.DifferencesString);
-                            if (res.Differences.Any(m => m.PropertyName.Contains("Motd")) && league.MotdMessages != null)
-                            {
+							if (!league.MotdMessages.OrderBy(a => a).SequenceEqual(exist.MotdMessages.OrderBy(b=>b)))
                                 ChatChannel.TransmitMOTD(league.Id, league);
-                            }
                             AnyUpdated = true;
                         }
                     }
                 }
+
                 foreach (League league in Leagues.Values.Where(x => leagues.All(m => m.Id != x.Id)).ToArray())
                 {
                     Leagues.Remove(league.Id);
@@ -126,6 +127,7 @@ namespace WLNetwork.Leagues
             {
                 log.Error("Mongo connection failure? ", ex);
             }
+
             if (AnyUpdated)
             {
                 Hubs.Matches.HubContext.Clients.All.RefreshLeagues();
