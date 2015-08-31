@@ -22,13 +22,13 @@ namespace WLNetwork.Hubs
 
         public override Task OnConnected()
         {
-            BrowserClient.HandleConnection(this.Context, this.Clients.Caller, BrowserClient.ClientType.CHAT);
+            BrowserClient.HandleConnection(this.Context);
             return base.OnConnected();
         }
 
         public override Task OnDisconnected(bool stopCalled)
         {
-            BrowserClient.HandleDisconnected(this.Context, BrowserClient.ClientType.CHAT);
+            BrowserClient.HandleDisconnected(this.Context);
             return base.OnDisconnected(stopCalled);
         }
 

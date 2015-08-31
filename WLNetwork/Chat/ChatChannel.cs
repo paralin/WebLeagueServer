@@ -80,20 +80,14 @@ namespace WLNetwork.Chat
         {
             if (e.OldItems != null)
             {
-                var old = e.OldItems.OfType<string>();
+                var old = e.OldItems.OfType<string>().ToArray();
                 foreach (var oldm in old)
                 {
                     ChatMember nm;
                     if (MemberDB.Members.TryGetValue(oldm, out nm) && nm != null)
-                        log.DebugFormat("PARTED [{0}] {{{2}}}", Name, Id, nm.Name);
+                        log.DebugFormat("PARTED [{0}] {{{1}}}", Name, nm.Name);
                 }
-                foreach (var mm in Members.ToArray())
-                {
-                    BrowserClient cli;
-                    if (!BrowserClient.ClientsBySteamID.TryGetValue(mm, out cli)) continue;
-                    foreach (var ccli in cli.ChatClients.Values)
-                        ccli.ChatMemberRemoved(Id.ToString(), old.ToArray());
-                }
+                Hubs.Chat.HubContext.Clients.Group(Id.ToString()).ChatMemberRemoved(Id.ToString(), old);
             }
             if (e.NewItems != null)
             {
@@ -104,13 +98,7 @@ namespace WLNetwork.Chat
                     if (MemberDB.Members.TryGetValue(newm, out nm) && nm != null)
                         log.DebugFormat("JOINED [{0}] ({1}) {{{2}}}", Name, Id, nm.Name);
                 }
-                foreach (var mm in Members.ToArray())
-                {
-                    BrowserClient cli;
-                    if (!BrowserClient.ClientsBySteamID.TryGetValue(mm, out cli)) continue;
-                    foreach (var ccli in cli.ChatClients.Values)
-                        ccli.ChatMemberAdd(Id.ToString(), memb);
-                }
+                Hubs.Chat.HubContext.Clients.Group(Id.ToString()).ChatMemberAdded(Id.ToString(), memb);
             }
             if (Members.Count == 0) Close(true);
         }
@@ -165,15 +153,7 @@ namespace WLNetwork.Chat
                     return;
                 }
             }
-            foreach (var mm in Members.Where(m => filterToId == null || m == filterToId))
-            {
-                var mm1 = mm;
-                BrowserClient cli;
-                if (!BrowserClient.ClientsBySteamID.TryGetValue(mm1, out cli)) continue;
-                // OnChatMessage: ID, sender id, text, service (true/false), datetime, name of channel
-                foreach (var ccli in cli.ChatClients.Values)
-                    ccli.OnChatMessage(Id.ToString(), memberid, text, service, DateTime.UtcNow, Name);
-            }
+            Hubs.Chat.HubContext.Clients.Group(Id.ToString()).OnChatMessage(Id.ToString(), memberid, text, service, DateTime.UtcNow, Name);
         }
 
         /// <summary>

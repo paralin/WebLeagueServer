@@ -15,15 +15,32 @@ namespace WLNetwork.Hubs
         private static readonly ILog log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Called when the connection connects to this hub instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="T:System.Threading.Tasks.Task"/>
+        /// </returns>
         public override Task OnConnected()
         {
-            BrowserClient.HandleConnection(this.Context, this.Clients.Caller, BrowserClient.ClientType.CHAT);
+            BrowserClient.HandleConnection(this.Context);
             return base.OnConnected();
         }
 
+        /// <summary>
+        /// Called when a connection disconnects from this hub gracefully or due to a timeout.
+        /// </summary>
+        /// <param name="stopCalled">true, if stop was called on the client closing the connection gracefully;
+        ///             false, if the connection has been lost for longer than the
+        ///             <see cref="P:Microsoft.AspNet.SignalR.Configuration.IConfigurationManager.DisconnectTimeout"/>.
+        ///             Timeouts can be caused by clients reconnecting to another SignalR server in scaleout.
+        ///             </param>
+        /// <returns>
+        /// A <see cref="T:System.Threading.Tasks.Task"/>
+        /// </returns>
         public override Task OnDisconnected(bool stopCalled)
         {
-            BrowserClient.HandleDisconnected(this.Context, BrowserClient.ClientType.CHAT);
+            BrowserClient.HandleDisconnected(this.Context);
             return base.OnDisconnected(stopCalled);
         }
 

@@ -17,10 +17,11 @@ namespace WLNetwork
 #if DEBUG
             MONGODB_URL = Settings.Default.DMongoDB + "/" + Settings.Default.DMongoDB;
 #else
-            MONGODB_URL = System.Environment.GetEnvironmentVariable("MONGODB_URL");
+            MONGODB_URL = Environment.GetEnvironmentVariable("MONGODB_URL");
             if (MONGODB_URL == null)
             {
                 log.Fatal("MONGODB_URL environment variable missing.");
+                Console.WriteLine("MONGODB_URL environment variable missing.");
                 Environment.Exit(126);
             }
 #endif

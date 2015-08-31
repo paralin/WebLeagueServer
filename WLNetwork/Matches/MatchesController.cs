@@ -22,26 +22,9 @@ namespace WLNetwork.Matches
         /// </summary>
         public static ObservableCollection<MatchGame> Games = new ObservableCollection<MatchGame>();
 
-        /// <summary>
-        ///     Updates the live game list.
-        /// </summary>
-        public static ObservableCollection<MatchGameInfo> PublicGames = new ObservableCollection<MatchGameInfo>();
-
         static MatchesController()
         {
             Games.CollectionChanged += GamesOnCollectionChanged;
-            PublicGames.CollectionChanged += PublicGamesOnCollectionChanged;
-        }
-
-        private static void PublicGamesOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
-        {
-            if (args.NewItems != null)
-            {
-                IEnumerable<MatchGameInfo> newAvailable = args.NewItems.OfType<MatchGameInfo>();
-                Hubs.Matches.HubContext.Clients.All.PublicMatchUpdate(newAvailable.ToArray());
-            }
-            if (args.OldItems != null)
-                Hubs.Matches.HubContext.Clients.All.PublicMatchRemove(args.OldItems.OfType<MatchGameInfo>().ToArray());
         }
 
         private static void GamesOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
@@ -52,11 +35,6 @@ namespace WLNetwork.Matches
                     args.NewItems.OfType<MatchGame>().Where(m => m.Info.Status == MatchStatus.Players);
                 var matchGames = newAvailable as MatchGame[] ?? newAvailable.ToArray();
                 Hubs.Matches.HubContext.Clients.All.AvailableGameUpdate(matchGames.ToArray());
-                foreach (
-                    var cli in
-                        BrowserClient.Clients.Values.Where(m => m.User != null && m.User.authItems.Contains("admin"))
-                            .SelectMany(client => client.MatchClients.Values))
-                    cli.AvailableGameUpdate(matchGames.ToArray());
             }
             if (args.OldItems != null)
             {

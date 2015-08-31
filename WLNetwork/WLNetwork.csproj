@@ -140,6 +140,7 @@
     <Compile Include="Bots\LobbyBot\Bot.cs" />
     <Compile Include="Bots\LobbyBot\Enums\State.cs" />
     <Compile Include="Bots\LobbyBot\Enums\Trigger.cs" />
+    <Compile Include="Challenge\ChallengeController.cs" />
     <Compile Include="Chat\ChatChannel.cs" />
     <Compile Include="Chat\ChatMember.cs" />
     <Compile Include="Chat\Enums\UserState.cs" />
@@ -153,7 +154,7 @@
     <Compile Include="Hubs\Matches.cs" />
     <Compile Include="Hubs\WebLeagueHub.cs" />
     <Compile Include="Leagues\LeagueDB.cs" />
-    <Compile Include="Matches\Challenge.cs" />
+    <Compile Include="Challenge\Challenge.cs" />
     <Compile Include="Matches\Enums\CaptainStatus.cs" />
     <Compile Include="Matches\Enums\GameMode.cs" />
     <Compile Include="Matches\Enums\MatchResult.cs" />

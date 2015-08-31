@@ -154,12 +154,8 @@ namespace WLNetwork.Matches
                 lock (value)
                 {
                     _players = value;
-                    Hubs.Matches.HubContext.Clients.All.MatchPlayersSnapshot();
-                    foreach (
-                        var cli in
-                            BrowserClient.Clients.Values.Where(m => m.User != null && m.User.authItems.Contains("admin"))
-                                .SelectMany(client => client.MatchClients.Values))
-                        cli.MatchPlayersSnapshot(Id, Players.ToArray());
+                    Hubs.Matches.HubContext.Clients.Group(Id.ToString()).MatchPlayersSnapshot(Id, value.ToArray());
+                    Hubs.Admin.HubContext.Clients.All.MatchPlayersSnapshot(Id, value.ToArray());
                     if (_activeMatch != null)
                         SaveActiveGame();
                 }
@@ -268,12 +264,9 @@ namespace WLNetwork.Matches
 
         private static void ApplyBinaryTeams(MatchPlayer[] playerPool, uint team)
         {
-            for (var i = 0; i < playerPool.Length; ++i)
+            foreach (MatchPlayer t in playerPool)
             {
-                if ((team & 1) == 1)
-                    playerPool[i].Team = MatchTeam.Radiant;
-                else
-                    playerPool[i].Team = MatchTeam.Dire;
+                t.Team = (team & 1) == 1 ? MatchTeam.Radiant : MatchTeam.Dire;
                 team >>= 1;
             }
         }
@@ -321,13 +314,19 @@ namespace WLNetwork.Matches
                 Mongo.ActiveMatches.Remove(Query<ActiveMatch>.EQ(m => m.Id, Id));
                 _activeMatch = null;
             }
-            foreach (BrowserClient cli in BrowserClient.Clients.Values.Where(m => m.Match == this))
-                cli.Match = null;
+
+            foreach (var cli in BrowserClient.Clients.Where(m => m.Value.Match == this))
+            {
+                Hubs.Matches.HubContext.Clients.Group(Id.ToString()).ClearMatch();
+                Hubs.Matches.HubContext.Groups.Remove(cli.Key, Id.ToString());
+            }
+
             if (Setup != null)
             {
                 BotDB.SetupQueue.Remove(Setup);
                 Setup.Details.Cleanup(true);
             }
+
             if (MatchesController.Games.Contains(this))
             {
                 MatchesController.Games.Remove(this);
@@ -341,20 +340,16 @@ namespace WLNetwork.Matches
             Destroy();
         }
 
+        /// <summary>
+        /// Send out a setup snapshot.
+        /// </summary>
         private void TransmitSetupUpdate()
         {
             if (_setup == null)
             {
-                foreach (
-                    var cli in
-                        BrowserClient.Clients.Values.Where(m => m.Match == this)
-                            .SelectMany(client => client.MatchClients.Values))
-                    cli.ClearSetupMatch(Id);
-                foreach (
-                    var cli in
-                        BrowserClient.Clients.Values.Where(m => m.User != null && m.User.authItems.Contains("admin"))
-                            .SelectMany(client => client.AdminClients.Values))
-                    cli.ClearSetupMatch(Id);
+                // Hubs.Matches.HubContext.Clients.Group(Id.ToString()).ClearSetup(Id.ToString());
+                // Hubs.Admin.HubContext.Clients.All.ClearSetup(Id.ToString());
+                Hubs.Matches.HubContext.Clients.All.ClearSetup(Id.ToString());
             }
             else
             {
@@ -362,31 +357,22 @@ namespace WLNetwork.Matches
                 {
                     Bot bot = _setup.Details.Bot;
                     _setup.Details.Bot = null;
-                    foreach (
-                        var cli in
-                            BrowserClient.Clients.Values.Where(m => m.Match == this)
-                                .SelectMany(client => client.MatchClients.Values))
-                        cli.SetupSnapshot(_setup);
-                    foreach (
-                        var cli in
-                            BrowserClient.Clients.Values.Where(m => m.User != null && m.User.authItems.Contains("admin"))
-                                .SelectMany(client => client.AdminClients.Values))
-                        cli.SetupSnapshot(_setup);
+                    // Hubs.Matches.HubContext.Clients.Group(Id.ToString()).SetupSnapshot(Id.ToString());
+                    // Hubs.Admin.HubContext.Clients.All.SetupSnapshot(Id.ToString());
+                    Hubs.Matches.HubContext.Clients.All.SetupSnapshot(Id.ToString());
                     _setup.Details.Bot = bot;
                     if (_activeMatch != null) SaveActiveGame();
                 }
             }
         }
 
+        /// <summary>
+        /// Send out an info snapshot.
+        /// </summary>
         private void TransmitInfoUpdate()
         {
             if (_info == null) return;
             Hubs.Matches.HubContext.Clients.All.InfoSnapshot(_info);
-            foreach (
-                var cli in
-                    BrowserClient.Clients.Values.Where(m => m.User != null && m.User.authItems.Contains("admin"))
-                        .SelectMany(client => client.AdminClients.Values))
-                cli.InfoSnapshot(_info);
             if (_activeMatch != null) SaveActiveGame();
         }
 
@@ -407,28 +393,24 @@ namespace WLNetwork.Matches
             Info = Info;
         }
 
+        /// <summary>
+        /// Kick unassigned players.
+        /// </summary>
         public void KickUnassigned()
         {
             MatchPlayer[] toRemove = Players.Where(m => m.Team == MatchTeam.Unassigned).ToArray();
             Players.RemoveRange(toRemove);
-            foreach (
-                var client in
-                    BrowserClient.Clients.Values.Where(
-                        m => m.User != null && toRemove.Any(x => x.SID == m.User.steam.steamid)))
-
-                client.Match = null;
+            TransmitSnapshot();
         }
 
+        /// <summary>
+        /// Kick all spectators.
+        /// </summary>
         public void KickSpectators()
         {
             MatchPlayer[] toRemove = Players.Where(m => m.Team == MatchTeam.Spectate).ToArray();
             Players.RemoveRange(toRemove);
-            foreach (
-                var client in
-                    BrowserClient.Clients.Values.Where(
-                        m => m.User != null && toRemove.Any(x => x.SID == m.User.steam.steamid)))
-
-                client.Match = null;
+            TransmitSnapshot();
         }
 
         /// <summary>
@@ -533,15 +515,7 @@ namespace WLNetwork.Matches
 
             if (countMatch)
             {
-                var plyrsids = Players.Select(m => m.SID);
-                foreach (
-                    BrowserClient c in
-                        BrowserClient.Clients.Values.Where(
-                            m =>
-                                m.User != null &&
-                                (plyrsids.Contains(m.User.steam.steamid) || m.User.authItems.Contains("admin") ||
-                                 m.User.authItems.Contains("spectateOnly"))))
-                    c.Result = result;
+                Hubs.Matches.HubContext.Clients.Group(Id.ToString()).ResultSnapshot(result);
 
                 var completeMsg = "Match " + Id.ToString().Substring(0, 4) + " (MatchID " + Setup.Details.MatchId +
                                   ") " + (manualResult ? "admin resulted" : "completed") + " with ";
@@ -614,14 +588,13 @@ namespace WLNetwork.Matches
             this.controller = controller;
         }
 
+        /// <summary>
+        /// Admin destroying this match
+        /// </summary>
         public void AdminDestroy()
         {
             log.Debug("ADMIN DESTROY " + Id);
-            foreach (
-                var cli in
-                    BrowserClient.Clients.Values.Where(m => m.Match == this)
-                        .SelectMany(client => client.MatchClients.Values))
-                cli.SystemMessage("Admin Closed Match", "An admin has destroyed the match you were in.");
+            Hubs.Matches.HubContext.Clients.Group(Id.ToString()).SystemMessage("Admin Closed Match", "An admin has destroyed the match you were in.");
             if (Setup != null) ProcessMatchResult(EMatchResult.DontCount);
             else Destroy();
         }
@@ -663,8 +636,7 @@ namespace WLNetwork.Matches
             var plyr = Players.FirstOrDefault(m => m.SID == sid);
             if (plyr != null && plyr.Team == MatchTeam.Spectate) return;
             first.LeaveMatch();
-            foreach (var cli in first.MatchClients.Values)
-                cli.OnKickedFromMatch();
+            Hubs.Matches.HubContext.Clients.Group(sid).OnKickedFromMatch();
             forbidSids.Add(sid);
         }
 
@@ -676,6 +648,16 @@ namespace WLNetwork.Matches
         public bool PlayerForbidden(string steamid)
         {
             return forbidSids.Contains(steamid);
+        }
+
+        /// <summary>
+        /// Transmits a snapshot to everyone in the match
+        /// </summary>
+        public void TransmitSnapshot()
+        {
+            // Send a match snapshot
+            Hubs.Matches.HubContext.Clients.Group(Id.ToString()).MatchSnapshot(this);
+            Hubs.Admin.HubContext.Clients.All.MatchSnapshot(this);
         }
     }
 

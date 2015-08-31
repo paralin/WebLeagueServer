@@ -22,23 +22,14 @@ namespace WLNetwork.Hubs
 
         public override Task OnConnected()
         {
-            BrowserClient.HandleConnection(this.Context, this.Clients.Caller, BrowserClient.ClientType.CHAT);
+            BrowserClient.HandleConnection(this.Context);
             return base.OnConnected();
         }
 
         public override Task OnDisconnected(bool stopCalled)
         {
-            BrowserClient.HandleDisconnected(this.Context, BrowserClient.ClientType.CHAT);
+            BrowserClient.HandleDisconnected(this.Context);
             return base.OnDisconnected(stopCalled);
-        }
-
-        /// <summary>
-        ///     Returns a snapshot of the public game list.
-        /// </summary>
-        /// <returns></returns>
-        public MatchGameInfo[] GetPublicGameList()
-        {
-            return MatchesController.PublicGames.ToArray();
         }
 
         /// <summary>
@@ -84,9 +75,10 @@ namespace WLNetwork.Hubs
             options.LeagueRegion = league.Region;
             options.SecondaryLeagueSeason = league.SecondaryCurrentSeason.ToArray();
             var match = new MatchGame(client.User.steam.steamid, options);
-            client.Match = match;
-            match.Players.Add(new MatchPlayer(client.User, league.Id, league.CurrentSeason,
-                league.SecondaryCurrentSeason.ToArray()) {IsCaptain = true});
+            foreach (var cli in BrowserClient.Clients.Where(m => m.Value == client))
+                HubContext.Groups.Add(cli.Key, match.Id.ToString());
+            match.TransmitSnapshot();
+            match.Players.Add(new MatchPlayer(client.User, league.Id, league.CurrentSeason, league.SecondaryCurrentSeason.ToArray()) {IsCaptain = true});
             ChatChannel.SystemMessage(league.Id, client.User.profile.name + " created a new match.");
             return null;
         }
@@ -157,16 +149,6 @@ namespace WLNetwork.Hubs
         }
 
         /// <summary>
-        ///     Dismiss a result.
-        /// </summary>
-        public void DismissResult()
-        {
-            BrowserClient client = Client;
-            if (client?.User == null) return;
-            client.Result = null;
-        }
-
-        /// <summary>
         ///     Starts the game in-game
         /// </summary>
         /// <returns></returns>
@@ -195,21 +177,19 @@ namespace WLNetwork.Hubs
             if (client?.User == null) return;
             if (client.Challenge == null || client.Challenge.ChallengedSID != client.User.steam.steamid) return;
             client.ChallengeTimer.Stop();
+            Challenge.Challenge chal = client.Challenge;
+            chal.Discard();
+
             BrowserClient other;
             if (!BrowserClient.ClientsBySteamID.TryGetValue(client.Challenge.ChallengerSID, out other)) return;
-            Challenge chal = client.Challenge;
-            client.Challenge = null;
-            if (other == null) return;
-            other.Challenge = null;
-            ChatChannel.SystemMessage(chal.League,
-                client.User.profile.name + (accept ? " accepted the challenge." : " declined the challenge."));
+
+            ChatChannel.SystemMessage(chal.League, client.User.profile.name + (accept ? " accepted the challenge." : " declined the challenge."));
             if (!accept) return;
 
-            League league = null;
+            League league;
             if (!LeagueDB.Leagues.TryGetValue(chal.League, out league))
             {
-                log.ErrorFormat("Unable to find league {0} for challenge created by {1}.", chal.League,
-                    chal.ChallengerName);
+                log.ErrorFormat("Unable to find league {0} for challenge created by {1}.", chal.League, chal.ChallengerName);
                 return;
             }
 
@@ -231,8 +211,9 @@ namespace WLNetwork.Hubs
                 LeagueRegion = league.Region,
                 SecondaryLeagueSeason = league.SecondaryCurrentSeason.ToArray()
             });
-            client.Match = match;
-            other.Match = match;
+            foreach (var cli in BrowserClient.Clients.Where(m => m.Value == other || m.Value == client))
+                HubContext.Groups.Add(cli.Key, match.Id.ToString());
+            match.TransmitSnapshot();
             match.Players.AddRange(new[]
             {
                 new MatchPlayer(other.User, league.Id, league.CurrentSeason, league.SecondaryCurrentSeason.ToArray())
@@ -260,23 +241,19 @@ namespace WLNetwork.Hubs
             if (client?.User == null) return;
 
             var tchallenge = client.Challenge;
-
-            client.Challenge = null;
             client.ChallengeTimer.Stop();
 
-            if (tchallenge == null || client.User == null) return;
+            if (tchallenge == null) return;
+            tchallenge.Discard();
+
+            if (client.User == null) return;
 
             var tsid = tchallenge.ChallengerSID == client.User.steam.steamid
                 ? tchallenge.ChallengedSID
                 : tchallenge.ChallengerSID;
             BrowserClient other;
             if (BrowserClient.ClientsBySteamID.TryGetValue(tsid, out other))
-            {
                 other.ChallengeTimer.Stop();
-                other.Challenge = null;
-            }
-
-            client.Challenge = null;
 
             ChatChannel.SystemMessage(tchallenge.League, client.User.profile.name + " canceled his challenge.");
         }
@@ -313,7 +290,9 @@ namespace WLNetwork.Hubs
             var league = LeagueDB.Leagues[match.Info.League];
             if (league != null && league.RequireTeamspeak && !client.User.tsonline && !spec)
                 return "Please join Teamspeak before joining games.";
-            client.Match = match;
+            foreach (var cli in BrowserClient.Clients.Where(m => m.Value == client))
+                HubContext.Groups.Add(cli.Key, match.Id.ToString());
+            match.TransmitSnapshot();
             match.Players.Add(new MatchPlayer(client.User, match.Info.League, match.Info.LeagueSeason,
                 match.Info.SecondaryLeagueSeason) {Team = spec ? MatchTeam.Spectate : MatchTeam.Unassigned});
             return null;
@@ -333,7 +312,7 @@ namespace WLNetwork.Hubs
 
             if (me == null)
             {
-                client.Match = null;
+                Clients.Group(client.User.steam.steamid).ClearMatch();
                 return null;
             }
 
@@ -348,7 +327,7 @@ namespace WLNetwork.Hubs
             {
                 MatchPlayer plyr = client.Match.Players.FirstOrDefault(m => m.SID == client.User.steam.steamid);
                 if (plyr != null) client.Match.Players.Remove(plyr);
-                client.Match = null;
+                Clients.Group(client.User.steam.steamid).ClearMatch();
             }
             return null;
         }
@@ -358,7 +337,7 @@ namespace WLNetwork.Hubs
         /// </summary>
         /// <param name="target"></param>
         /// <returns></returns>
-        public string StartChallenge(Challenge target)
+        public string StartChallenge(Challenge.Challenge target)
         {
             BrowserClient client = Client;
             //todo: Allow challenges without a league
@@ -399,9 +378,10 @@ namespace WLNetwork.Hubs
                 return $"The league '{league.Name}' hasn't started yet.";
             target.ChallengedName = tcont.User.profile.name;
             target.ChallengedSID = tcont.User.steam.steamid;
-            tcont.Challenge = target;
             tcont.ChallengeTimer.Start();
-            client.Challenge = target;
+            foreach(var cli in BrowserClient.Clients.Where(m=>m.Value.User != null && (m.Value.User.steam.steamid == target.ChallengedSID || m.Value.User.steam.steamid == target.ChallengerSID)))
+                Hubs.Matches.HubContext.Groups.Add(cli.Key, target.Id.ToString());
+            Hubs.Matches.HubContext.Clients.Group(target.Id.ToString()).ChallengeSnapshot(target);
             ChatChannel.SystemMessage(target.League,
                 $"{client.User.profile.name} challenged {tcont.User.profile.name} to a {(target.MatchType == MatchType.OneVsOne ? "1v1" : "captains")} match!");
             return null;
