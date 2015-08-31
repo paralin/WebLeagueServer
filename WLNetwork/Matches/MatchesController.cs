@@ -38,8 +38,8 @@ namespace WLNetwork.Matches
             }
             if (args.OldItems != null)
             {
-                Hubs.Matches.HubContext.Clients.All.AvailableGameRemove(args.OldItems.OfType<MatchGame>().ToArray());
-                Admin.HubContext.Clients.All.AvailableGameRemove(args.OldItems.OfType<MatchGame>().ToArray());
+                Hubs.Matches.HubContext.Clients.All.AvailableGameRemove(args.OldItems.OfType<MatchGame>().ToArray().Select(m=>m.Id.ToString()));
+                Admin.HubContext.Clients.All.AvailableGameRemove(args.OldItems.OfType<MatchGame>().ToArray().Select(m=>m.Id.ToString()));
             }
         }
     }

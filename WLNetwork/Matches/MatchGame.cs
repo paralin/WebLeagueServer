@@ -359,7 +359,7 @@ namespace WLNetwork.Matches
                     _setup.Details.Bot = null;
                     // Hubs.Matches.HubContext.Clients.Group(Id.ToString()).SetupSnapshot(Id.ToString());
                     // Hubs.Admin.HubContext.Clients.All.SetupSnapshot(Id.ToString());
-                    Hubs.Matches.HubContext.Clients.All.SetupSnapshot(Id.ToString());
+                    Hubs.Matches.HubContext.Clients.All.SetupSnapshot(_setup);
                     _setup.Details.Bot = bot;
                     if (_activeMatch != null) SaveActiveGame();
                 }

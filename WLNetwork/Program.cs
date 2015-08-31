@@ -42,6 +42,7 @@ namespace WLNetwork
 
 #if DEBUG
             using (WebApp.Start("http://localhost:7028"))
+            //using (WebApp.Start("http://*:7028"))
 #else
             using (WebApp.Start("http://*:7028"))
 #endif

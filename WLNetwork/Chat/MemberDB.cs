@@ -138,8 +138,7 @@ namespace WLNetwork.Chat
         {
             var member = sender as ChatMember;
             if (member == null) return;
-            Hubs.Chat.HubContext.Clients.All.GlobalMemberUpdate(member.SteamID, args.PropertyName,
-                member.GetType().GetProperty(args.PropertyName).GetValue(member));
+            Hubs.Chat.HubContext.Clients.All.GlobalMemberUpdate(member.SteamID, args.PropertyName, member.GetType().GetProperty(args.PropertyName).GetValue(member));
         }
     }
 }
