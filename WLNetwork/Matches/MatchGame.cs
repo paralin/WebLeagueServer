@@ -154,8 +154,8 @@ namespace WLNetwork.Matches
                 lock (value)
                 {
                     _players = value;
-                    Hubs.Matches.HubContext.Clients.Group(Id.ToString()).MatchPlayersSnapshot(Id, value.ToArray());
-                    Hubs.Admin.HubContext.Clients.All.MatchPlayersSnapshot(Id, value.ToArray());
+                    Hubs.Matches.HubContext.Clients.Group(Id.ToString()).MatchPlayersSnapshot(Id.ToString(), value.ToArray());
+                    Hubs.Admin.HubContext.Clients.All.MatchPlayersSnapshot(Id.ToString(), value.ToArray());
                     if (_activeMatch != null)
                         SaveActiveGame();
                 }
