@@ -66,7 +66,7 @@ namespace WLNetwork
         {
             // Temporary fix for disconnection problem
             GlobalHost.Configuration.DisconnectTimeout = TimeSpan.FromSeconds(110);
-            GlobalHost.Configuration.KeepAlive = TimeSpan.FromSeconds(30);
+            GlobalHost.Configuration.KeepAlive = TimeSpan.FromSeconds(15);
             app.UseCors(CorsOptions.AllowAll);
             app.MapSignalR();
         }

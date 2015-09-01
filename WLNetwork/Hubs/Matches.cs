@@ -142,7 +142,7 @@ namespace WLNetwork.Hubs
         {
             BrowserClient client = Client;
             if (client?.User == null) return;
-            if (client.Match == null || client.User == null || client.Match.Info.MatchType != MatchType.StartGame ||
+            if (client.Match == null || client.Match.Info.MatchType != MatchType.StartGame ||
                 client.Match.Info.Owner != client.User.steam.steamid || steamid == client.User.steam.steamid ||
                 client.Match.Info.Status > MatchStatus.Players) return;
             client.Match.KickPlayer(steamid);
@@ -306,31 +306,7 @@ namespace WLNetwork.Hubs
         public string LeaveMatch()
         {
             BrowserClient client = Client;
-            if (client?.User == null) return "You are not logged in.";
-            if (client.Match == null) return "You are not currently in a match.";
-            if (client.User == null) return "You are not signed in and thus cannot be in a match.";
-            MatchPlayer me = client.Match.Players.FirstOrDefault(m => m.SID == client.User.steam.steamid);
-
-            if (me == null)
-            {
-                Clients.Group(client.User.steam.steamid).ClearMatch();
-                return null;
-            }
-
-            bool isOwner = client.Match.Info.Owner == client.User.steam.steamid || me.IsCaptain;
-            if (me.Team < MatchTeam.Spectate &&
-                ((client.Match.Info.Status > MatchStatus.Lobby && isOwner) ||
-                 (client.Match.Info.Status > MatchStatus.Players && !isOwner)))
-                return "You cannot leave matches in progress.";
-            if (isOwner)
-                client.Match.Destroy();
-            else
-            {
-                MatchPlayer plyr = client.Match.Players.FirstOrDefault(m => m.SID == client.User.steam.steamid);
-                if (plyr != null) client.Match.Players.Remove(plyr);
-                Clients.Group(client.User.steam.steamid).ClearMatch();
-            }
-            return null;
+            return client?.User == null ? "You are not logged in." : client.LeaveMatch();
         }
 
         /// <summary>

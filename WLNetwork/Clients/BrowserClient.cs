@@ -17,6 +17,7 @@ using WLNetwork.Chat.Enums;
 using WLNetwork.Database;
 using WLNetwork.Leagues;
 using WLNetwork.Matches;
+using WLNetwork.Matches.Enums;
 using WLNetwork.Model;
 using WLNetwork.Properties;
 
@@ -336,8 +337,21 @@ namespace WLNetwork.Clients
         /// <summary>
         ///     Try to leave the current match.
         /// </summary>
-        public void LeaveMatch()
+        public string LeaveMatch()
         {
+            if (User == null) return "You are not logged in.";
+            var match = Match;
+            var me = match?.Players.FirstOrDefault(m => m.SID == User.steam.steamid);
+            if (me == null) return "You are not in any game.";
+
+            bool isOwner = Match.Info.Owner == User.steam.steamid || me.IsCaptain;
+            if (me.Team < MatchTeam.Spectate && ((Match.Info.Status > MatchStatus.Lobby) || (Match.Info.Status > MatchStatus.Players && !isOwner))) return "You cannot leave games in progress.";
+            if (isOwner)
+                Match.Destroy();
+            else
+                Match.Players.Remove(me);
+
+            return null;
         }
 
         /// <summary>
