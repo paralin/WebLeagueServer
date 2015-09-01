@@ -153,7 +153,10 @@ namespace WLNetwork.Chat
                     return;
                 }
             }
-            Hubs.Chat.HubContext.Clients.Group(Id.ToString()).OnChatMessage(Id.ToString(), memberid, text, service, DateTime.UtcNow, Name);
+            if (filterToId == null)
+                Hubs.Chat.HubContext.Clients.Group(Id.ToString()).OnChatMessage(Id.ToString(), memberid, text, service, DateTime.UtcNow, Name);
+            else
+                Hubs.Chat.HubContext.Clients.Group(filterToId).OnChatMessage(Id.ToString(), memberid, text, service, DateTime.UtcNow, Name);
         }
 
         /// <summary>
