@@ -77,7 +77,7 @@ namespace WLNetwork.Hubs
             var match = new MatchGame(client.User.steam.steamid, options);
             foreach (var cli in BrowserClient.Clients.Where(m => m.Value == client))
                 HubContext.Groups.Add(cli.Key, match.Id.ToString());
-            match.TransmitSnapshot();
+            // should be unnecessary match.TransmitSnapshot();
             match.Players.Add(new MatchPlayer(client.User, league.Id, league.CurrentSeason, league.SecondaryCurrentSeason.ToArray()) {IsCaptain = true});
             ChatChannel.SystemMessage(league.Id, client.User.profile.name + " created a new match.");
             return null;
@@ -214,7 +214,7 @@ namespace WLNetwork.Hubs
             });
             foreach (var cli in BrowserClient.Clients.Where(m => m.Value == other || m.Value == client))
                 HubContext.Groups.Add(cli.Key, match.Id.ToString());
-            match.TransmitSnapshot();
+            // should be unnecessary match.TransmitSnapshot();
             match.Players.AddRange(new[]
             {
                 new MatchPlayer(other.User, league.Id, league.CurrentSeason, league.SecondaryCurrentSeason.ToArray())
@@ -293,7 +293,7 @@ namespace WLNetwork.Hubs
                 return "Please join Teamspeak before joining games.";
             foreach (var cli in BrowserClient.Clients.Where(m => m.Value == client))
                 HubContext.Groups.Add(cli.Key, match.Id.ToString());
-            match.TransmitSnapshot();
+            // Should be unnecessary match.TransmitSnapshot();
             match.Players.Add(new MatchPlayer(client.User, match.Info.League, match.Info.LeagueSeason,
                 match.Info.SecondaryLeagueSeason) {Team = spec ? MatchTeam.Spectate : MatchTeam.Unassigned});
             return null;

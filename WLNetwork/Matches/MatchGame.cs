@@ -407,7 +407,6 @@ namespace WLNetwork.Matches
         {
             MatchPlayer[] toRemove = Players.Where(m => m.Team == MatchTeam.Unassigned).ToArray();
             Players.RemoveRange(toRemove);
-            TransmitSnapshot();
         }
 
         /// <summary>
@@ -417,7 +416,6 @@ namespace WLNetwork.Matches
         {
             MatchPlayer[] toRemove = Players.Where(m => m.Team == MatchTeam.Spectate).ToArray();
             Players.RemoveRange(toRemove);
-            TransmitSnapshot();
         }
 
         /// <summary>
