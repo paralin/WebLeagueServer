@@ -38,8 +38,6 @@ namespace KellermanSoftware.CompareNetObjects
             _rootComparer.TypeComparers.Add(new RuntimeTypeComparer(_rootComparer));
 #if !PORTABLE
             _rootComparer.TypeComparers.Add(new IpEndPointComparer(_rootComparer));
-            _rootComparer.TypeComparers.Add(new DatasetComparer(_rootComparer));
-            _rootComparer.TypeComparers.Add(new DataTableComparer(_rootComparer));
 #endif
             _rootComparer.TypeComparers.Add(new EnumerableComparer(_rootComparer));
             _rootComparer.TypeComparers.Add(new ByteArrayComparer(_rootComparer));

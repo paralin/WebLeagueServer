@@ -4,11 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 
-#if !PORTABLE
-using System.Data;
-using System.Drawing;
-#endif
-
 namespace KellermanSoftware.CompareNetObjects
 {
     /// <summary>
@@ -312,45 +307,6 @@ namespace KellermanSoftware.CompareNetObjects
                 return false;
 
             return type == typeof(IPEndPoint);
-        }
-
-        /// <summary>
-        /// Returns true if the type is a dataset
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public static bool IsDataset(Type type)
-        {
-            if (type == null)
-                return false;
-
-            return type == typeof(DataSet);
-        }
-
-        /// <summary>
-        /// Returns true if the type is a data table
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public static bool IsDataTable(Type type)
-        {
-            if (type == null)
-                return false;
-
-            return type == typeof(DataTable);
-        }
-
-        /// <summary>
-        /// Returns true if the type is a data row
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public static bool IsDataRow(Type type)
-        {
-            if (type == null)
-                return false;
-
-            return type == typeof(DataRow);
         }
 #endif
 
