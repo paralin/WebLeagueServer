@@ -361,8 +361,11 @@ namespace WLNetwork.Clients
                 Challenge.Discard();
             }
             Channels.CollectionChanged -= ChatChannelOnCollectionChanged;
-            foreach (var channel in Channels.ToArray())
+            foreach (var channel in Channels.ToArray()){
+              lock(channel.Members){
                 channel.Members.Remove(User.steam.steamid);
+              }
+            }
             Channels.Clear();
             Channels = null;
             ChallengeTimer?.Stop();
