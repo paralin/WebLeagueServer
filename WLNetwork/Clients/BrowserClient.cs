@@ -222,10 +222,8 @@ namespace WLNetwork.Clients
                     Hubs.Matches.HubContext.Groups.Add(ctx.ConnectionId, user.steam.steamid);
                     var match = exist.Match ?? MatchesController.Games.FirstOrDefault(m => m.Players.Any(x => x.SID == user.steam.steamid));
                     if (match != null)
-                    {
                         Hubs.Matches.HubContext.Groups.Add(ctx.ConnectionId, match.Id.ToString());
-                        match.TransmitSnapshot();
-                    }
+                    Hubs.Matches.HubContext.Clients.Client(ctx.ConnectionId).AvailableGameUpdate(MatchesController.Games.ToArray());
                     var chal = exist.Challenge ?? ChallengeController.Challenges.Values.FirstOrDefault(
                             m =>
                                 m.ChallengerSID == user.steam.steamid ||
