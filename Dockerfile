@@ -18,4 +18,4 @@ WORKDIR /usr/src/app/build
 RUN cp /usr/src/app/source/start.bash /usr/src/app/build/ && rm -rf /usr/src/app/source
 
 CMD bash start.bash
-EXPOSE 8080 4502
+EXPOSE 4502
