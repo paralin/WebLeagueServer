@@ -423,15 +423,15 @@ namespace WLNetwork.Bots.LobbyBot
                 log.DebugFormat("Current name is: {0}, flags {1}, ", a.PersonaName, a.AccountFlags.ToString("G"));
                 UpdatePersona();
             });
-            cb.Add<SteamClient.ConnectedCallback>(a => SteamUser.LogOn(_logonDetails));
-            cb.Add<SteamClient.DisconnectedCallback>(a => _state.Fire(Trigger.SteamDisconnected));
+            cb.Add<SteamClient.ConnectedCallback>(a => SteamUser?.LogOn(_logonDetails));
+            cb.Add<SteamClient.DisconnectedCallback>(a => _state?.Fire(Trigger.SteamDisconnected));
             cb.Add<SteamUser.LoggedOnCallback>(a =>
             {
                 log.DebugFormat("Steam signin result: {0}", a.Result.ToString("G"));
                 switch (a.Result)
                 {
                     case EResult.OK:
-                        _state.Fire(Trigger.SteamConnected);
+                        _state?.Fire(Trigger.SteamConnected);
                         break;
 
                     case EResult.ServiceUnavailable:
@@ -442,10 +442,10 @@ namespace WLNetwork.Bots.LobbyBot
                     case EResult.BadResponse:
                     case EResult.Busy:
                     case EResult.ConnectFailed:
-                        _state.Fire(Trigger.SteamDisconnected); //retry state
+                        _state?.Fire(Trigger.SteamDisconnected); //retry state
                         break;
                     default:
-                        _state.Fire(Trigger.SteamInvalidCreds);
+                        _state?.Fire(Trigger.SteamInvalidCreds);
                         break;
                 }
             });
