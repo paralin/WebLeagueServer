@@ -57,6 +57,14 @@ namespace WLNetwork.Challenge
         }
 
         /// <summary>
+        /// Sends out a snapshot.
+        /// </summary>
+        public void Transmit()
+        {
+            Hubs.Matches.HubContext.Clients.Group(Id.ToString()).ChallengeSnapshot(this);
+        }
+
+        /// <summary>
         /// Throw away the challenge.
         /// </summary>
         public void Discard()

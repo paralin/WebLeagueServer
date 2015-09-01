@@ -159,7 +159,7 @@ namespace WLNetwork.Matches
                     _players = value;
                     if (_initFinished)
                     {
-                        Hubs.Matches.HubContext.Clients.Group(Id.ToString()).MatchPlayersSnapshot(Id, value.ToArray());
+                        Hubs.Matches.HubContext.Clients.All.MatchPlayersSnapshot(Id, value.ToArray());
                         Hubs.Admin.HubContext.Clients.All.MatchPlayersSnapshot(Id, value.ToArray());
                         if (_activeMatch != null)
                             SaveActiveGame();
@@ -663,8 +663,8 @@ namespace WLNetwork.Matches
         public void TransmitSnapshot()
         {
             // Send a match snapshot
-            Hubs.Matches.HubContext.Clients.Group(Id.ToString()).MatchSnapshot(this);
-            Hubs.Admin.HubContext.Clients.All.MatchSnapshot(this);
+            //Hubs.Matches.HubContext.Clients.Group(Id.ToString()).AvailableGameUpdate(new [] { this });
+            Hubs.Matches.HubContext.Clients.All.AvailableGameUpdate(new [] { this });
         }
     }
 

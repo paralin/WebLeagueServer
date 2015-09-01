@@ -382,9 +382,8 @@ namespace WLNetwork.Hubs
             tcont.ChallengeTimer.Start();
             foreach(var cli in BrowserClient.Clients.Where(m=>m.Value.User != null && (m.Value.User.steam.steamid == target.ChallengedSID || m.Value.User.steam.steamid == target.ChallengerSID)))
                 Hubs.Matches.HubContext.Groups.Add(cli.Key, target.Id.ToString());
-            Hubs.Matches.HubContext.Clients.Group(target.Id.ToString()).ChallengeSnapshot(target);
-            ChatChannel.SystemMessage(target.League,
-                $"{client.User.profile.name} challenged {tcont.User.profile.name} to a {(target.MatchType == MatchType.OneVsOne ? "1v1" : "captains")} match!");
+            target.Transmit();
+            ChatChannel.SystemMessage(target.League, $"{client.User.profile.name} challenged {tcont.User.profile.name} to a {(target.MatchType == MatchType.OneVsOne ? "1v1" : "captains")} match!");
             return null;
         }
     }
