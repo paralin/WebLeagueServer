@@ -271,8 +271,11 @@ namespace WLNetwork.Hubs
             if (client.Match != null && id == client.Match.Id) return "You are already in that match.";
             if (client.User.authItems.Contains("spectateOnly") && !spec)
                 return "You cannot join matches, you can spectate only.";
-            //LeaveMatch();
-            if (client.Match != null) return "You are already in a match, leave that one first.";
+            var ematch = client.Match;
+            if (ematch?.Players.First(m => m.SID == client.User.steam.steamid).Team == MatchTeam.Spectate)
+                if (LeaveMatch() != null) return "Unable to leave your current spectator position first. ";
+            else
+                return "You are already in a match, leave that one first.";
             MatchGame match = MatchesController.Games.FirstOrDefault(m => m.Id == id && m.Info.Public);
             if (match == null) return "That match can't be found.";
             if (client.User != null && client.User.authItems.Contains("challengeOnly") &&
