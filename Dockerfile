@@ -11,7 +11,7 @@ RUN mkdir -p /usr/src/app/source /usr/src/app/build
 WORKDIR /usr/src/app/source
 
 COPY . /usr/src/app/source
-RUN nuget restore -NonInteractive
+RUN nuget restore -NonInteractive && cd ./Dependencies/Dota2/ && nuget restore -NonInteractive
 RUN xbuild /property:Configuration=Release /property:Platform=Mixed\ Platforms /property:OutDir=/usr/src/app/build/
 
 WORKDIR /usr/src/app/build
