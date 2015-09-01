@@ -309,7 +309,7 @@ namespace WLNetwork.Clients
                 lock (Channels)
                     Channels.Remove(league);
             }
-            foreach (var league in member.Leagues.Where(league => Channels.All(m => m.Name != league)))
+            foreach (var league in member.Leagues.ToArray().Where(league => Channels.ToArray().All(m => m.Name != league)))
             {
                 lock (Channels)
                 {
