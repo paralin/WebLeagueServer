@@ -45,7 +45,7 @@ namespace WLNetwork
             using (WebApp.Start("http://localhost:7028"))
             //using (WebApp.Start("http://*:7028"))
 #else
-            using (WebApp.Start("http://*:7028"))
+            using (WebApp.Start("http://*:4502"))
 #endif
             {
                 new ChatChannel("main", ChannelType.Public, false, true);
