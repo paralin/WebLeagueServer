@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Threading;
 using log4net;
 using log4net.Config;
+using Microsoft.AspNet.SignalR;
 using Microsoft.Owin.Cors;
 using Microsoft.Owin.Hosting;
 using Owin;

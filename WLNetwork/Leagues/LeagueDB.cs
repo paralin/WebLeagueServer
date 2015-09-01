@@ -38,10 +38,10 @@ namespace WLNetwork.Leagues
 
         static LeagueDB()
         {
-            UpdateTimer = new Timer(20000);
-			//UpdateTimer.Elapsed += UpdateTimerOnElapsed;
+            UpdateDB();
 
-			//UpdateDB();
+            UpdateTimer = new Timer(20000);
+            UpdateTimer.Elapsed += UpdateTimerOnElapsed;
             UpdateTimer.Start();
 
             Leagues.CollectionChanged += LeaguesOnCollectionChanged;
@@ -109,7 +109,7 @@ namespace WLNetwork.Leagues
                         {
                             Leagues[league.Id] = league;
                             log.Debug("LEAGUE UPDATED [" + league.Id + "] " + res.DifferencesString);
-							if (!league.MotdMessages.OrderBy(a => a).SequenceEqual(exist.MotdMessages.OrderBy(b=>b)))
+                            if((league.MotdMessages != null && exist.MotdMessages == null) || (league.MotdMessages != null && exist.MotdMessages != null && !league.MotdMessages.OrderBy(a => a).SequenceEqual(exist.MotdMessages.OrderBy(b=>b))))
                                 ChatChannel.TransmitMOTD(league.Id, league);
                             AnyUpdated = true;
                         }

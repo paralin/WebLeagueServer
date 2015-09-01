@@ -21,10 +21,10 @@ namespace WLNetwork.Hubs
         /// <returns>
         /// A <see cref="T:System.Threading.Tasks.Task"/>
         /// </returns>
-        public override Task OnConnected()
+        public override async Task OnConnected()
         {
-            BrowserClient.HandleConnection(this.Context);
-            return base.OnConnected();
+            await base.OnConnected();
+            BrowserClient.HandleConnection(this.Context, BrowserClient.HubType.Chat);
         }
 
         /// <summary>
@@ -38,10 +38,10 @@ namespace WLNetwork.Hubs
         /// <returns>
         /// A <see cref="T:System.Threading.Tasks.Task"/>
         /// </returns>
-        public override Task OnDisconnected(bool stopCalled)
+        public override async Task OnDisconnected(bool stopCalled)
         {
+            await base.OnDisconnected(stopCalled);
             BrowserClient.HandleDisconnected(this.Context);
-            return base.OnDisconnected(stopCalled);
         }
 
         /// <summary>

@@ -87,12 +87,13 @@ namespace WLNetwork.Matches
             controller.instance.Start();
 
             MatchesController.Games.Add(this);
-            log.Info("MATCH RESTORE [" + match.Id + "] [" + Info.Owner + "] [" + Info.GameMode + "] [" + Info.MatchType +
-                     "]");
+            log.Info("MATCH RESTORE [" + match.Id + "] [" + Info.Owner + "] [" + Info.GameMode + "] [" + Info.MatchType + "]");
 
             _activeMatch = match;
             SaveActiveGame();
         }
+
+        private bool _initFinished = false;
 
         /// <summary>
         ///     Create a new game with options
@@ -123,6 +124,7 @@ namespace WLNetwork.Matches
             MatchesController.Games.Add(this);
             //note: Don't add to public games as it's not started yet
             log.Info("MATCH CREATE [" + Id + "] [" + owner + "] [" + options.GameMode + "] [" + options.MatchType + "]");
+            _initFinished = true;
         }
 
         /// <summary>
@@ -139,6 +141,7 @@ namespace WLNetwork.Matches
             set
             {
                 _info = value;
+                if(_initFinished)
                 TransmitInfoUpdate();
             }
         }
@@ -154,10 +157,13 @@ namespace WLNetwork.Matches
                 lock (value)
                 {
                     _players = value;
-                    Hubs.Matches.HubContext.Clients.Group(Id.ToString()).MatchPlayersSnapshot(Id, value.ToArray());
-                    Hubs.Admin.HubContext.Clients.All.MatchPlayersSnapshot(Id, value.ToArray());
-                    if (_activeMatch != null)
-                        SaveActiveGame();
+                    if (_initFinished)
+                    {
+                        Hubs.Matches.HubContext.Clients.Group(Id.ToString()).MatchPlayersSnapshot(Id, value.ToArray());
+                        Hubs.Admin.HubContext.Clients.All.MatchPlayersSnapshot(Id, value.ToArray());
+                        if (_activeMatch != null)
+                            SaveActiveGame();
+                    }
                 }
             }
         }
@@ -168,6 +174,7 @@ namespace WLNetwork.Matches
             set
             {
                 _setup = value;
+                if(_initFinished)
                 TransmitSetupUpdate();
             }
         }
@@ -175,7 +182,7 @@ namespace WLNetwork.Matches
         /// <summary>
         ///     Called when the lobby is not recovered
         /// </summary>
-        public void LobbyNotRecovered()
+        public void LobbyNotRecovered() 
         {
             if (Setup?.Details != null && Setup.Details.MatchId != 0)
             {

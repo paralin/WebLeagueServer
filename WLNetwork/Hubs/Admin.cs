@@ -20,16 +20,16 @@ namespace WLNetwork.Hubs
     {
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public override Task OnConnected()
+        public override async Task OnConnected()
         {
-            BrowserClient.HandleConnection(this.Context);
-            return base.OnConnected();
+            await base.OnConnected();
+            BrowserClient.HandleConnection(this.Context, BrowserClient.HubType.Admin);
         }
 
-        public override Task OnDisconnected(bool stopCalled)
+        public override async Task OnDisconnected(bool stopCalled)
         {
+            await base.OnDisconnected(stopCalled);
             BrowserClient.HandleDisconnected(this.Context);
-            return base.OnDisconnected(stopCalled);
         }
 
         /// <summary>

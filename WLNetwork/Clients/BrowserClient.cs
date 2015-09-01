@@ -11,6 +11,7 @@ using log4net;
 using Microsoft.AspNet.SignalR.Hubs;
 using MongoDB.Driver.Builders;
 using Newtonsoft.Json.Linq;
+using SteamKit2.GC.TF2.Internal;
 using WLNetwork.Challenge;
 using WLNetwork.Chat;
 using WLNetwork.Chat.Enums;
@@ -40,7 +41,8 @@ namespace WLNetwork.Clients
         ///     Clients by Steam ID
         /// </summary>
         //todo: check usage and make sure Groups is used always
-        public static ConcurrentDictionary<string, BrowserClient> ClientsBySteamID = new ConcurrentDictionary<string, BrowserClient>();
+        public static ConcurrentDictionary<string, BrowserClient> ClientsBySteamID =
+            new ConcurrentDictionary<string, BrowserClient>();
 
         /// <summary>
         ///     Timer until the challenge times out.
@@ -110,87 +112,128 @@ namespace WLNetwork.Clients
         /// <summary>
         ///     The active match the player is in.
         /// </summary>
-        public MatchGame Match => MatchesController.Games.FirstOrDefault(m => m.Players.Any(x => x.SID == _user.steam.steamid));
+        public MatchGame Match
+            => MatchesController.Games.FirstOrDefault(m => m.Players.Any(x => x.SID == _user.steam.steamid));
 
         /// <summary>
         ///     The active challenge the player is in.
         /// </summary>
-        public Challenge.Challenge Challenge => ChallengeController.Challenges.Values.FirstOrDefault(m=>m.ChallengedSID == _user.steam.steamid || m.ChallengerSID == _user.steam.steamid);
+        public Challenge.Challenge Challenge
+            =>
+                ChallengeController.Challenges.Values.FirstOrDefault(
+                    m => m.ChallengedSID == _user.steam.steamid || m.ChallengerSID == _user.steam.steamid);
+
+        /// <summary>
+        /// Hub type
+        /// </summary>
+        public enum HubType
+        {
+            Chat,
+            Matches,
+            Admin
+        }
 
         /// <summary>
         ///     Build a browserclient from a CallerContext
         /// </summary>
         /// <param name="ctx"></param>
-        public static void HandleConnection(HubCallerContext ctx)
+        public static void HandleConnection(HubCallerContext ctx, HubType connType)
         {
-            if (Clients.ContainsKey(ctx.ConnectionId)) return;
-            log.Debug("CONNECTED [" + ctx.ConnectionId + "]");
-
-            // Check the authentication
-            try
+            BrowserClient exist = null;
+            if (!Clients.TryGetValue(ctx.ConnectionId, out exist))
             {
-                string token = ctx.QueryString["token"];
-                string jsonPayload = JsonWebToken.Decode(token, Settings.Default.AuthSecret);
-                var atoken = JObject.Parse(jsonPayload).ToObject<AuthToken>();
+                log.Debug("CONNECTED [" + ctx.ConnectionId + "]");
+
+                // Check the authentication
                 try
                 {
-                    var user =
-                        Mongo.Users.FindOneAs<User>(Query.And(Query.EQ("_id", atoken._id),
-                            Query.EQ("steam.steamid", atoken.steamid)));
-                    if (user != null)
+                    string token = ctx.QueryString["token"];
+                    string jsonPayload = JsonWebToken.Decode(token, Settings.Default.AuthSecret);
+                    var atoken = JObject.Parse(jsonPayload).ToObject<AuthToken>();
+                    try
                     {
-                        if (user.vouch != null)
+                        var nuser =
+                            Mongo.Users.FindOneAs<User>(Query.And(Query.EQ("_id", atoken._id),
+                                Query.EQ("steam.steamid", atoken.steamid)));
+                        if (nuser != null)
                         {
-                            log.Debug("AUTHED [" + ctx.ConnectionId + "] => [" + user.steam.steamid + "]");
-
-                            // Check for any existing client to use
-                            BrowserClient exist = null;
-                            if (!ClientsBySteamID.TryGetValue(user.steam.steamid, out exist))
-                                exist = ClientsBySteamID[user.steam.steamid] = new BrowserClient(user);
-
-                            // Register any groups here
-                            var match = MatchesController.Games.FirstOrDefault(m=>m.Players.Any(x=>x.SID == user.steam.steamid));
-                            if (match != null)
+                            if (nuser.vouch != null)
                             {
-                                Hubs.Matches.HubContext.Groups.Add(ctx.ConnectionId, exist.Match.Id.ToString());
-                                match.TransmitSnapshot();
+                                log.Debug("AUTHED [" + ctx.ConnectionId + "] => [" + nuser.steam.steamid + "]");
+                                if (!ClientsBySteamID.TryGetValue(nuser.steam.steamid, out exist))
+                                    exist = ClientsBySteamID[nuser.steam.steamid] = new BrowserClient(nuser);
                             }
-
-                            var chal = ChallengeController.Challenges.Values.FirstOrDefault(m=>m.ChallengerSID == user.steam.steamid || m.ChallengedSID == user.steam.steamid);
-                            if (chal != null)
-                                Hubs.Matches.HubContext.Groups.Add(ctx.ConnectionId, chal.Id.ToString());
-                            Hubs.Matches.HubContext.Clients.Client(ctx.ConnectionId).ChallengeSnapshot(chal);
-
-                            var hubctx = Hubs.Chat.HubContext;
-                            foreach (var chan in exist.Channels)
+                            else
                             {
-                                hubctx.Groups.Add(ctx.ConnectionId, chan.Id.ToString());
-                                hubctx.Clients.Client(ctx.ConnectionId).ChannelUpdate(chan);
-                                League leaguel;
-                                if (LeagueDB.Leagues.TryGetValue(chan.Name, out leaguel) && leaguel.MotdMessages != null)
-                                    foreach (var msg in leaguel.MotdMessages)
-                                        ChatChannel.SystemMessage(leaguel.Name, "MOTD: " + msg, user.steam.steamid);
+                                log.Warn("Unvouched user tried to connect.");
+                                return;
                             }
-
-                            // Add our new connection ID 
-                            Clients[ctx.ConnectionId] = exist;
+                        }
+                        else
+                        {
+                            log.Warn("Authentication token valid but no user for " + jsonPayload);
                             return;
                         }
-                        log.Warn("Unvouched user tried to connect.");
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        log.Warn("Authentication token valid but no user for " + jsonPayload);
+                        log.Warn("Issue authenticating decrypted token " + atoken._id, ex);
+                        return;
                     }
                 }
                 catch (Exception ex)
                 {
-                    log.Warn("Issue authenticating decrypted token " + atoken._id, ex);
+                    log.Error("Unable to authenticate user", ex);
+                    return;
                 }
             }
-            catch (Exception ex)
+
+            var user = exist.User;
+
+            // Add our new connection ID 
+            Clients[ctx.ConnectionId] = exist;
+
+            // Register any groups here
+            switch (connType)
             {
-                log.Error("Unable to authenticate user", ex);
+                case HubType.Admin:
+                    Hubs.Admin.HubContext.Groups.Add(ctx.ConnectionId, user.steam.steamid);
+                    break;
+                case HubType.Chat:
+                    Hubs.Chat.HubContext.Groups.Add(ctx.ConnectionId, user.steam.steamid);
+
+                    // Transmit the members snapshot
+                    Hubs.Chat.HubContext.Clients.Client(ctx.ConnectionId).GlobalMemberSnapshot(MemberDB.Members.Values.ToArray());
+
+                    var hubctx = Hubs.Chat.HubContext;
+                    foreach (var chan in exist.Channels)
+                    {
+                        hubctx.Groups.Add(ctx.ConnectionId, chan.Id.ToString());
+                        hubctx.Clients.Client(ctx.ConnectionId).ChannelUpdate(chan);
+                        League leaguel;
+                        if (LeagueDB.Leagues.TryGetValue(chan.Name, out leaguel) &&
+                            leaguel.MotdMessages != null)
+                            foreach (var msg in leaguel.MotdMessages)
+                                Hubs.Chat.HubContext.Clients.Client(ctx.ConnectionId).OnChatMessage(chan.Id.ToString(), "system", "MOTD: " + msg, true, DateTime.UtcNow, chan.Name);
+                    }
+
+                    break;
+                case HubType.Matches:
+                    Hubs.Matches.HubContext.Groups.Add(ctx.ConnectionId, user.steam.steamid);
+                    var match = exist.Match ?? MatchesController.Games.FirstOrDefault(m => m.Players.Any(x => x.SID == user.steam.steamid));
+                    if (match != null)
+                    {
+                        Hubs.Matches.HubContext.Groups.Add(ctx.ConnectionId, match.Id.ToString());
+                        match.TransmitSnapshot();
+                    }
+                    var chal = exist.Challenge ?? ChallengeController.Challenges.Values.FirstOrDefault(
+                            m =>
+                                m.ChallengerSID == user.steam.steamid ||
+                                m.ChallengedSID == user.steam.steamid);
+                    if (chal != null)
+                        Hubs.Matches.HubContext.Groups.Add(ctx.ConnectionId, chal.Id.ToString());
+                    Hubs.Matches.HubContext.Clients.Client(ctx.ConnectionId).ChallengeSnapshot(chal);
+                    break;
             }
         }
 
@@ -200,9 +243,9 @@ namespace WLNetwork.Clients
         /// <param name="ctx"></param>
         public static void HandleDisconnected(HubCallerContext ctx)
         {
-            log.Debug("DISCONNECTED [" + ctx.ConnectionId + "]");
             BrowserClient cli;
-            Clients.TryRemove(ctx.ConnectionId, out cli);
+            if (Clients.TryRemove(ctx.ConnectionId, out cli))
+                log.Debug("DISCONNECTED [" + ctx.ConnectionId + "]");
         }
 
         /// <summary>

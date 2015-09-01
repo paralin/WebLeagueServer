@@ -20,16 +20,16 @@ namespace WLNetwork.Hubs
     {
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public override Task OnConnected()
+        public override async Task OnConnected()
         {
-            BrowserClient.HandleConnection(this.Context);
-            return base.OnConnected();
+            await base.OnConnected();
+            BrowserClient.HandleConnection(this.Context, BrowserClient.HubType.Matches);
         }
 
-        public override Task OnDisconnected(bool stopCalled)
+        public override async Task OnDisconnected(bool stopCalled)
         {
+            await base.OnDisconnected(stopCalled);
             BrowserClient.HandleDisconnected(this.Context);
-            return base.OnDisconnected(stopCalled);
         }
 
         /// <summary>
@@ -345,6 +345,7 @@ namespace WLNetwork.Hubs
             if (target == null) return "You need some info start a challenge.";
             if (client.Match != null) return "You are already in a match.";
             if (client.Challenge != null) return "Waiting for a challenge response already...";
+            if (client.User.steam.steamid == target.ChallengedSID) return "Cannot challenge yourself.";
             League league = null;
             if (!LeagueDB.Leagues.TryGetValue(target.League, out league) || league == null)
                 return $"League {target.League} cannot be found.";
