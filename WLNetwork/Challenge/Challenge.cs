@@ -53,6 +53,13 @@ namespace WLNetwork.Challenge
         public Challenge()
         {
             Id = Guid.NewGuid();
+        }
+
+        /// <summary>
+        /// Confirm the challenge is about to happen
+        /// </summary>
+        public void Commit()
+        {
             ChallengeController.Challenges[Id] = this;
         }
 

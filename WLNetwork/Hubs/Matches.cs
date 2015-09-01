@@ -181,7 +181,8 @@ namespace WLNetwork.Hubs
             chal.Discard();
 
             BrowserClient other;
-            if (!BrowserClient.ClientsBySteamID.TryGetValue(client.Challenge.ChallengerSID, out other)) return;
+            if (!BrowserClient.ClientsBySteamID.TryGetValue(chal.ChallengerSID, out other)) return;
+            other.ChallengeTimer.Stop();
 
             ChatChannel.SystemMessage(chal.League, client.User.profile.name + (accept ? " accepted the challenge." : " declined the challenge."));
             if (!accept) return;
@@ -382,6 +383,7 @@ namespace WLNetwork.Hubs
             tcont.ChallengeTimer.Start();
             foreach(var cli in BrowserClient.Clients.Where(m=>m.Value.User != null && (m.Value.User.steam.steamid == target.ChallengedSID || m.Value.User.steam.steamid == target.ChallengerSID)))
                 Hubs.Matches.HubContext.Groups.Add(cli.Key, target.Id.ToString());
+            target.Commit();
             target.Transmit();
             ChatChannel.SystemMessage(target.League, $"{client.User.profile.name} challenged {tcont.User.profile.name} to a {(target.MatchType == MatchType.OneVsOne ? "1v1" : "captains")} match!");
             return null;

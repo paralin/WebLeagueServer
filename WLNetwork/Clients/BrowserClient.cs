@@ -84,7 +84,7 @@ namespace WLNetwork.Clients
         /// <param name="ctx">Caller context</param>
         private BrowserClient(User user)
         {
-            ChallengeTimer = new Timer(2000);
+            ChallengeTimer = new Timer(30000);
             ChallengeTimer.Elapsed += (sender, args) =>
             {
                 if (Challenge != null)
