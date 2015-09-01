@@ -246,6 +246,8 @@ namespace WLNetwork.Clients
             BrowserClient cli;
             if (Clients.TryRemove(ctx.ConnectionId, out cli))
                 log.Debug("DISCONNECTED [" + ctx.ConnectionId + "]");
+            if (cli != null && cli.User != null && !Clients.Values.Contains(cli))
+                ClientsBySteamID.TryRemove(cli.User.steam.steamid, out cli);
         }
 
         /// <summary>
@@ -367,9 +369,6 @@ namespace WLNetwork.Clients
             Channels = null;
             ChallengeTimer?.Stop();
             ChallengeTimer?.Close();
-            BrowserClient tmpcli;
-            if (User != null)
-                ClientsBySteamID.TryRemove(User.steam.steamid, out tmpcli);
             if (member != null)
             {
                 member.StateDesc = "Offline";
