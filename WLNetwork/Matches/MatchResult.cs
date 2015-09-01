@@ -9,6 +9,7 @@ using WLNetwork.Database;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Properties;
 using WLNetwork.Rating;
+using WLNetwork.Chat;
 using MatchType = WLNetwork.Matches.Enums.MatchType;
 
 namespace WLNetwork.Matches
@@ -207,8 +208,7 @@ namespace WLNetwork.Matches
                         update);
                 }
             }
-        }
-
+        } 
         public void ApplyRating(uint[] seasons, bool ignoreWinStreaks = false)
         {
             if (MatchCounted)
@@ -243,6 +243,7 @@ namespace WLNetwork.Matches
                 ApplyToUsers(Result, seasons);
             }
 
+            MemberDB.UpdateDB();
             foreach (var client in Players)
             {
                 BrowserClient cli;
