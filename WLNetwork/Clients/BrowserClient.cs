@@ -11,7 +11,6 @@ using log4net;
 using Microsoft.AspNet.SignalR.Hubs;
 using MongoDB.Driver.Builders;
 using Newtonsoft.Json.Linq;
-using SteamKit2.GC.TF2.Internal;
 using WLNetwork.Challenge;
 using WLNetwork.Chat;
 using WLNetwork.Chat.Enums;
@@ -245,7 +244,10 @@ namespace WLNetwork.Clients
             if (Clients.TryRemove(ctx.ConnectionId, out cli))
                 log.Debug("DISCONNECTED [" + ctx.ConnectionId + "]");
             if (cli != null && cli.User != null && !Clients.Values.Contains(cli))
+            {
                 ClientsBySteamID.TryRemove(cli.User.steam.steamid, out cli);
+                cli.Destroy();
+            }
         }
 
         /// <summary>
@@ -350,7 +352,7 @@ namespace WLNetwork.Clients
         /// <summary>
         ///     Deconstruct
         /// </summary>
-        ~BrowserClient()
+        private void Destroy()
         {
             LeaveMatch();
             if (Challenge != null && !userped)
