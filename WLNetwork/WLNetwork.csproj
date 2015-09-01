@@ -63,12 +63,10 @@
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="JWT, Version=1.3.3.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\packages\JWT.1.3.4\lib\3.5\JWT.dll</HintPath>
-    </Reference>
-    <Reference Include="KellermanSoftware.Compare-Net-Objects, Version=3.2.0.0, Culture=neutral, PublicKeyToken=d970ace04cc85217">
-      <HintPath>..\packages\CompareNETObjects.3.02.0.0\lib\net45\KellermanSoftware.Compare-NET-Objects.dll</HintPath>
     </Reference>
     <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a">
       <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
@@ -146,6 +144,47 @@
     <Compile Include="Chat\Enums\UserState.cs" />
     <Compile Include="Chat\MemberDB.cs" />
     <Compile Include="Clients\BrowserClient.cs" />
+    <Compile Include="Compare\Cache.cs" />
+    <Compile Include="Compare\CompareLogic.cs" />
+    <Compile Include="Compare\CompareParms.cs" />
+    <Compile Include="Compare\ComparisonConfig.cs" />
+    <Compile Include="Compare\ComparisonResult.cs" />
+    <Compile Include="Compare\Difference.cs" />
+    <Compile Include="Compare\ExcludeLogic.cs" />
+    <Compile Include="Compare\FileHelper.cs" />
+    <Compile Include="Compare\ICompareLogic.cs" />
+    <Compile Include="Compare\IgnoreOrderTypes\IgnoreOrderLogic.cs" />
+    <Compile Include="Compare\IgnoreOrderTypes\IndexerCollectionLooper.cs" />
+    <Compile Include="Compare\ProcessHelper.cs" />
+    <Compile Include="Compare\RootComparer.cs" />
+    <Compile Include="Compare\RootComparerFactory.cs" />
+    <Compile Include="Compare\StringHelper.cs" />
+    <Compile Include="Compare\TypeComparers\BaseComparer.cs" />
+    <Compile Include="Compare\TypeComparers\BaseTypeComparer.cs" />
+    <Compile Include="Compare\TypeComparers\ByteArrayComparer.cs" />
+    <Compile Include="Compare\TypeComparers\ClassComparer.cs" />
+    <Compile Include="Compare\TypeComparers\DatasetComparer.cs" />
+    <Compile Include="Compare\TypeComparers\DataTableComparer.cs" />
+    <Compile Include="Compare\TypeComparers\DateComparer.cs" />
+    <Compile Include="Compare\TypeComparers\DateTimeOffsetComparer.cs" />
+    <Compile Include="Compare\TypeComparers\DictionaryComparer.cs" />
+    <Compile Include="Compare\TypeComparers\DoubleComparer.cs" />
+    <Compile Include="Compare\TypeComparers\EnumComparer.cs" />
+    <Compile Include="Compare\TypeComparers\EnumerableComparer.cs" />
+    <Compile Include="Compare\TypeComparers\FieldComparer.cs" />
+    <Compile Include="Compare\TypeComparers\HashSetComparer.cs" />
+    <Compile Include="Compare\TypeComparers\IndexerComparer.cs" />
+    <Compile Include="Compare\TypeComparers\IpEndPointComparer.cs" />
+    <Compile Include="Compare\TypeComparers\ListComparer.cs" />
+    <Compile Include="Compare\TypeComparers\PointerComparer.cs" />
+    <Compile Include="Compare\TypeComparers\PropertyComparer.cs" />
+    <Compile Include="Compare\TypeComparers\RuntimeTypeComparer.cs" />
+    <Compile Include="Compare\TypeComparers\SimpleTypeComparer.cs" />
+    <Compile Include="Compare\TypeComparers\StringComparer.cs" />
+    <Compile Include="Compare\TypeComparers\StructComparer.cs" />
+    <Compile Include="Compare\TypeComparers\TimespanComparer.cs" />
+    <Compile Include="Compare\TypeComparers\UriComparer.cs" />
+    <Compile Include="Compare\TypeHelper.cs" />
     <Compile Include="Database\HeroCache.cs" />
     <Compile Include="Database\Mongo.cs" />
     <Compile Include="Env.cs" />
