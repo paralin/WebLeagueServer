@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Dota2.Base.Data;
 using Dota2.GC;
 using Dota2.GC.Dota.Internal;
 using Dota2.GC.Internal;
@@ -278,7 +279,8 @@ namespace WLNetwork.Bots.LobbyBot
             ReleaseSteamConnection();
 
             var c = SteamClient = new SteamClient();
-            DotaGCHandler.Bootstrap(c);
+            // Enable reborn!
+            DotaGCHandler.Bootstrap(c, Games.DOTA2, ESourceEngine.k_ESE_Source2);
             SteamUser = c.GetHandler<SteamUser>();
             SteamFriends = c.GetHandler<SteamFriends>();
 
