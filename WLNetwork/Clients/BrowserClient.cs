@@ -296,19 +296,20 @@ namespace WLNetwork.Clients
         /// </summary>
         private void RecheckChats()
         {
-            if (member?.Leagues == null) return;
+            if (member?.Leagues == null || Channels == null) return;
+            var memberleagues = member.Leagues;
             var chanarr = Channels.ToArray();
             var channames = chanarr.Select(m=>m.Name);
             var leagueChans = chanarr.Where(m => m!=null && m.ChannelType == ChannelType.League);
             lock (Channels)
             {
-                foreach (var league in leagueChans.ToArray().Where(league => !member.Leagues.Contains(league.Name)))
+                foreach (var league in leagueChans.Where(league => !memberleagues.Contains(league.Name)))
                 {
                     lock (league.Members)
                         league.Members.Remove(User.steam.steamid);
                     Channels.Remove(league);
                 }
-                foreach (var league in member.Leagues.ToArray().Where(league => !channames.Contains(league)))
+                foreach (var league in memberleagues.Where(league => !channames.Contains(league)))
                 {
                     ChatChannel chan = ChatChannel.JoinOrCreate(league, member, ChannelType.League);
                     if (chan != null)
