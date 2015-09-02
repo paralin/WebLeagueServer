@@ -281,11 +281,7 @@ namespace WLNetwork.Clients
             }
             else
             {
-                MemberDB.UpdateDB();
-                if (!MemberDB.Members.TryGetValue(User.steam.steamid, out memb) || memb == null)
-                {
-                    log.Warn("Unable to find ChatMember for user " + User.profile.name + "!");
-                }
+              log.Warn("Unable to find ChatMember for user " + User.profile.name + "!");
             }
             if (memb != null && oldMember != memb)
             {
@@ -301,7 +297,9 @@ namespace WLNetwork.Clients
         private void RecheckChats()
         {
             if (member?.Leagues == null) return;
-            var leagueChans = Channels.ToArray().Where(m => m!=null && m.ChannelType == ChannelType.League);
+            var chanarr = Channels.ToArray();
+            var channames = chanarr.Select(m=>m.Name);
+            var leagueChans = chanarr.Where(m => m!=null && m.ChannelType == ChannelType.League);
             lock (Channels)
             {
                 foreach (var league in leagueChans.ToArray().Where(league => !member.Leagues.Contains(league.Name)))
@@ -310,7 +308,7 @@ namespace WLNetwork.Clients
                         league.Members.Remove(User.steam.steamid);
                     Channels.Remove(league);
                 }
-                foreach (var league in member.Leagues.ToArray().Where(league => Channels.ToArray().All(m => m.Name != league)))
+                foreach (var league in member.Leagues.ToArray().Where(league => !channames.Contains(league)))
                 {
                     ChatChannel chan = ChatChannel.JoinOrCreate(league, member, ChannelType.League);
                     if (chan != null)
