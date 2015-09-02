@@ -463,9 +463,9 @@ namespace WLNetwork.Bots.LobbyBot
             cb.Add<DotaGCHandler.ConnectionStatus>(a =>
             {
                 log.DebugFormat("GC connection status: {0}", a.result.status.ToString("G"));
-                if (a.result.status == GCConnectionStatus.GCConnectionStatus_HAVE_SESSION)
-                    _state.Fire(Trigger.DotaConnected);
-                else _state.Fire(Trigger.DotaDisconnected);
+                _state.Fire(a.result.status == GCConnectionStatus.GCConnectionStatus_HAVE_SESSION
+                    ? Trigger.DotaConnected
+                    : Trigger.DotaDisconnected);
             });
             cb.Add<DotaGCHandler.Popup>(a => log.DebugFormat("GC popup message: {0}", a.result.id.ToString("G")));
             cb.Add<DotaGCHandler.PracticeLobbySnapshot>(a => HandleLobbyUpdate(a.lobby));
