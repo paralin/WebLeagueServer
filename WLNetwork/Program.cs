@@ -25,6 +25,11 @@ namespace WLNetwork
         public static void Main()
         {
             XmlConfigurator.Configure();
+
+            // Temporary fix for disconnection problem
+            GlobalHost.Configuration.DisconnectTimeout = TimeSpan.FromSeconds(110);
+            GlobalHost.Configuration.KeepAlive = TimeSpan.FromSeconds(15);
+
             //ThreadPool.SetMaxThreads (1500, 1500);
 #if !DEBUG
             AppDomain.CurrentDomain.UnhandledException +=
@@ -64,11 +69,8 @@ namespace WLNetwork
     {
         public void Configuration(IAppBuilder app)
         {
-            // Temporary fix for disconnection problem
-            GlobalHost.Configuration.DisconnectTimeout = TimeSpan.FromSeconds(110);
-            GlobalHost.Configuration.KeepAlive = TimeSpan.FromSeconds(15);
             app.UseCors(CorsOptions.AllowAll);
-            app.MapSignalR();
+            app.MapSignalR(new HubConfiguration() {EnableDetailedErrors = true, EnableJSONP = true});
         }
     }
 }

@@ -261,11 +261,9 @@ namespace WLNetwork.Bots.LobbyBot
         /// </summary>
         private void LeaveLobbyChat()
         {
-            if (lobbyChannelId != 0)
-            {
-                DotaGCHandler.LeaveChatChannel(lobbyChannelId);
-                lobbyChannelId = 0;
-            }
+            if (lobbyChannelId == 0) return;
+            DotaGCHandler.LeaveChatChannel(lobbyChannelId);
+            lobbyChannelId = 0;
         }
 
         #endregion
