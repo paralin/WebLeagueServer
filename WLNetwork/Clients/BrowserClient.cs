@@ -120,7 +120,7 @@ namespace WLNetwork.Clients
         /// </summary>
         public Challenge.Challenge Challenge
             =>
-                ChallengeController.Challenges.Values.FirstOrDefault(
+            ChallengeController.Challenges.Values.FirstOrDefault(
                     m => m.ChallengedSID == _user.steam.steamid || m.ChallengerSID == _user.steam.steamid);
 
         /// <summary>
@@ -154,7 +154,7 @@ namespace WLNetwork.Clients
                     {
                         var nuser =
                             Mongo.Users.FindOneAs<User>(Query.And(Query.EQ("_id", atoken._id),
-                                Query.EQ("steam.steamid", atoken.steamid)));
+                                        Query.EQ("steam.steamid", atoken.steamid)));
                         if (nuser != null)
                         {
                             if (nuser.vouch != null)
@@ -212,7 +212,7 @@ namespace WLNetwork.Clients
                         hubctx.Clients.Client(ctx.ConnectionId).ChannelUpdate(chan);
                         League leaguel;
                         if (LeagueDB.Leagues.TryGetValue(chan.Name, out leaguel) &&
-                            leaguel.MotdMessages != null)
+                                leaguel.MotdMessages != null)
                             foreach (var msg in leaguel.MotdMessages)
                                 Hubs.Chat.HubContext.Clients.Client(ctx.ConnectionId).OnChatMessage(chan.Id.ToString(), "system", "MOTD: " + msg, true, DateTime.UtcNow, chan.Name);
                     }
@@ -226,8 +226,8 @@ namespace WLNetwork.Clients
                     Hubs.Matches.HubContext.Clients.Client(ctx.ConnectionId).AvailableGameUpdate(MatchesController.Games.ToArray());
                     var chal = exist.Challenge ?? ChallengeController.Challenges.Values.FirstOrDefault(
                             m =>
-                                m.ChallengerSID == user.steam.steamid ||
-                                m.ChallengedSID == user.steam.steamid);
+                            m.ChallengerSID == user.steam.steamid ||
+                            m.ChallengedSID == user.steam.steamid);
                     if (chal != null)
                         Hubs.Matches.HubContext.Groups.Add(ctx.ConnectionId, chal.Id.ToString());
                     Hubs.Matches.HubContext.Clients.Client(ctx.ConnectionId).ChallengeSnapshot(chal);
@@ -301,24 +301,23 @@ namespace WLNetwork.Clients
         private void RecheckChats()
         {
             if (member?.Leagues == null) return;
-            var leagueChans = Channels.Where(m => m.ChannelType == ChannelType.League);
-            foreach (var league in leagueChans.ToArray().Where(league => !member.Leagues.Contains(league.Name)))
+            var leagueChans = Channels.ToArray().Where(m => m!=null && m.ChannelType == ChannelType.League);
+            lock (Channels)
             {
-                lock (league.Members)
-                    league.Members.Remove(User.steam.steamid);
-                lock (Channels)
+                foreach (var league in leagueChans.ToArray().Where(league => !member.Leagues.Contains(league.Name)))
+                {
+                    lock (league.Members)
+                        league.Members.Remove(User.steam.steamid);
                     Channels.Remove(league);
-            }
-            foreach (var league in member.Leagues.Where(league => Channels.All(m => m.Name != league)))
-            {
-                lock (Channels)
+                }
+                foreach (var league in member.Leagues.ToArray().Where(league => Channels.ToArray().All(m => m.Name != league)))
                 {
                     ChatChannel chan = ChatChannel.JoinOrCreate(league, member, ChannelType.League);
                     if (chan != null)
                         Channels.Add(chan);
                     League leaguel;
                     if (LeagueDB.Leagues.TryGetValue(league, out leaguel) && leaguel.MotdMessages != null)
-                        foreach (var msg in leaguel.MotdMessages)
+                        foreach (var msg in leaguel.MotdMessages.ToArray())
                             ChatChannel.SystemMessage(league, "MOTD: " + msg, User.steam.steamid);
                 }
             }
@@ -378,9 +377,9 @@ namespace WLNetwork.Clients
             }
             Channels.CollectionChanged -= ChatChannelOnCollectionChanged;
             foreach (var channel in Channels.ToArray()){
-              lock(channel.Members){
-                channel.Members.Remove(User.steam.steamid);
-              }
+                lock(channel.Members){
+                    channel.Members.Remove(User.steam.steamid);
+                }
             }
             Channels.Clear();
             Channels = null;
