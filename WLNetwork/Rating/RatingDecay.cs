@@ -33,6 +33,7 @@ namespace WLNetwork.Rating
                 var lprof = user.profile.leagues[pid];
                 var decayStart = lprof.lastGame.AddMinutes(decay.DecayStart);
                 if(now < decayStart) continue;
+                if(decay.LowerThreshold != 0 && lprof.rating <= decay.LowerThreshold) continue;
 
                 // Check how many hours after we are
                 // Add 1 hour to immediately take some pts away

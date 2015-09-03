@@ -83,6 +83,11 @@ namespace WLNetwork.Model
         ///     Rate to decay, in pts/hour.
         /// </summary>
         public uint DecayRate { get; set; }
+
+        /// <summary>
+        ///     Don't decay if lower or eq to this.
+        /// </summary>
+        public uint LowerThreshold { get; set; }
     }
 
     /// <summary>
