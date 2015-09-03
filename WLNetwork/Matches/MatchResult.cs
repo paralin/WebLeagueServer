@@ -244,12 +244,6 @@ namespace WLNetwork.Matches
             }
 
             MemberDB.UpdateDB();
-            foreach (var client in Players)
-            {
-                BrowserClient cli;
-                if (!BrowserClient.ClientsBySteamID.TryGetValue(client.SID, out cli)) continue;
-                cli.ReloadUser();
-            }
         }
 
         public void Save()

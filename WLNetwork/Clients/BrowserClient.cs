@@ -98,7 +98,9 @@ namespace WLNetwork.Clients
             };
             _user = user;
             Channels.CollectionChanged += ChatChannelOnCollectionChanged;
-            ReloadUser();
+            ChatMember memb;
+            if(MemberDB.Members.TryGetValue(_user.steam.steamid, out memb))
+                this.UpdateUser(_user, memb);
             if (member == null) return;
             member.State = UserState.ONLINE;
             member.StateDesc = "Online";
@@ -267,48 +269,24 @@ namespace WLNetwork.Clients
         }
 
         /// <summary>
-        ///     Lookup the ChatMember.
-        /// </summary>
-        public void ReloadUser()
-        {
-            if (User == null) return;
-            ChatMember oldMember = member;
-
-            ChatMember memb = null;
-            if (MemberDB.Members.TryGetValue(User.steam.steamid, out memb) && memb != null)
-            {
-                member = memb;
-            }
-            else
-            {
-              log.Warn("Unable to find ChatMember for user " + User.profile.name + "!");
-            }
-            if (memb != null && oldMember != memb)
-            {
-                if (oldMember != null) oldMember.PropertyChanged -= MemberPropertyChanged;
-                memb.PropertyChanged += MemberPropertyChanged;
-            }
-            RecheckChats();
-        }
-
-        /// <summary>
         ///     Recheck chats
         /// </summary>
         private void RecheckChats()
         {
-            if (member?.Leagues == null) return;
+            if (member?.Leagues == null || Channels == null) return;
+            var memberleagues = member.Leagues;
             var chanarr = Channels.ToArray();
             var channames = chanarr.Select(m=>m.Name);
             var leagueChans = chanarr.Where(m => m!=null && m.ChannelType == ChannelType.League);
             lock (Channels)
             {
-                foreach (var league in leagueChans.ToArray().Where(league => !member.Leagues.Contains(league.Name)))
+                foreach (var league in leagueChans.Where(league => !memberleagues.Contains(league.Name)))
                 {
                     lock (league.Members)
                         league.Members.Remove(User.steam.steamid);
                     Channels.Remove(league);
                 }
-                foreach (var league in member.Leagues.ToArray().Where(league => !channames.Contains(league)))
+                foreach (var league in memberleagues.Where(league => !channames.Contains(league)))
                 {
                     ChatChannel chan = ChatChannel.JoinOrCreate(league, member, ChannelType.League);
                     if (chan != null)
@@ -355,9 +333,17 @@ namespace WLNetwork.Clients
         ///     Force set the user.
         /// </summary>
         /// <param name="user">user object</param>
-        public void UpdateUser(User user)
+        public void UpdateUser(User user, ChatMember memb)
         {
             _user = user;
+
+            ChatMember oldMember = member;
+            if (memb != null && oldMember != memb)
+            {
+                if (oldMember != null) oldMember.PropertyChanged -= MemberPropertyChanged;
+                memb.PropertyChanged += MemberPropertyChanged;
+            }
+            RecheckChats();
         }
 
         /// <summary>

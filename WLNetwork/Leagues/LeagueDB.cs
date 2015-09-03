@@ -10,6 +10,7 @@ using WLNetwork.Chat;
 using WLNetwork.Database;
 using WLNetwork.Model;
 using WLNetwork.Utils;
+using WLNetwork.Rating;
 
 namespace WLNetwork.Leagues
 {
