@@ -99,5 +99,7 @@ namespace WLNetwork.Model
         public int abandons { get; set; }
         public int winStreak { get; set; }
         public int lossStreak { get; set; }
+        public DateTime lastGame { get; set; }
+        public int decaySinceLast { get; set; }
     }
 }

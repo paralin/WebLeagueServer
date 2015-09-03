@@ -92,6 +92,11 @@ namespace WLNetwork.Matches
         public Dictionary<string, uint> EndedWinStreaks { get; set; }
 
         /// <summary>
+        ///     Has this been stored at least once?
+        /// </summary>
+        public bool Stored { get; set; }
+
+        /// <summary>
         ///     Completely undo all changes made by saving the game
         /// </summary>
         public void VoidGame(EMatchResult nres, uint[] seasons)
@@ -180,6 +185,11 @@ namespace WLNetwork.Matches
 
                     update = update.Inc(lroot + ".rating", (player.RatingChange*(reverseRating ? -1 : 1)));
 
+                    if(!Stored) {
+                        update.Set(lroot+".decaySinceLast", 0);
+                        update.Set(lroot+".lastGame", DateTime.UtcNow);
+                    }
+
                     if ((result == EMatchResult.RadVictory && player.Team == MatchTeam.Radiant) ||
                         (result == EMatchResult.DireVictory && player.Team == MatchTeam.Dire)) // if they won
                     {
@@ -208,7 +218,8 @@ namespace WLNetwork.Matches
                         update);
                 }
             }
-        } 
+        }
+
         public void ApplyRating(uint[] seasons, bool ignoreWinStreaks = false)
         {
             if (MatchCounted)
@@ -248,6 +259,7 @@ namespace WLNetwork.Matches
 
         public void Save()
         {
+            Stored = true;
             lock (Mongo.ExclusiveLock) Mongo.Results.Save(this);
         }
     }

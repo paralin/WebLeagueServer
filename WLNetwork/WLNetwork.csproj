@@ -218,6 +218,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="Rating\RatingCalculator.cs" />
+    <Compile Include="Rating\RatingDecay.cs" />
     <Compile Include="Utils\Diff.cs" />
     <Compile Include="Utils\IPEndpointEx.cs" />
     <Compile Include="Utils\ObservableDictionary.cs" />

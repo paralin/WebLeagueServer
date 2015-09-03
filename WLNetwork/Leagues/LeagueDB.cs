@@ -114,6 +114,7 @@ namespace WLNetwork.Leagues
                             AnyUpdated = true;
                         }
                     }
+                    RatingDecay.CalculateDecay(league);
                 }
 
                 foreach (League league in Leagues.Values.Where(x => leagues.All(m => m.Id != x.Id)).ToArray())

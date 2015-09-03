@@ -61,6 +61,28 @@ namespace WLNetwork.Model
         ///     Motd messages
         /// </summary>
         public string[] MotdMessages { get; set; }
+
+        /// <summary>
+        ///     Decay settings
+        /// </summary>
+        public LeagueDecay Decay { get; set; }
+    }
+
+    /// <summary>
+    ///    League decay settings.
+    /// </summary>
+    [BsonIgnoreExtraElements]
+    public class LeagueDecay
+    {
+        /// <summary>
+        ///     How long until the decay starts, in minutes.
+        /// </summary>
+        public uint DecayStart { get; set; }
+
+        /// <summary>
+        ///     Rate to decay, in pts/hour.
+        /// </summary>
+        public uint DecayRate { get; set; }
     }
 
     /// <summary>
