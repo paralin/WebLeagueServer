@@ -98,7 +98,9 @@ namespace WLNetwork.Clients
             };
             _user = user;
             Channels.CollectionChanged += ChatChannelOnCollectionChanged;
-            ReloadUser();
+            ChatMember memb;
+            if(MemberDB.Members.TryGetValue(_user.steam.steamid, out memb))
+                this.UpdateUser(_user, memb);
             if (member == null) return;
             member.State = UserState.ONLINE;
             member.StateDesc = "Online";
@@ -267,31 +269,6 @@ namespace WLNetwork.Clients
         }
 
         /// <summary>
-        ///     Lookup the ChatMember.
-        /// </summary>
-        public void ReloadUser()
-        {
-            if (User == null) return;
-            ChatMember oldMember = member;
-
-            ChatMember memb = null;
-            if (MemberDB.Members.TryGetValue(User.steam.steamid, out memb) && memb != null)
-            {
-                member = memb;
-            }
-            else
-            {
-              log.Warn("Unable to find ChatMember for user " + User.profile.name + "!");
-            }
-            if (memb != null && oldMember != memb)
-            {
-                if (oldMember != null) oldMember.PropertyChanged -= MemberPropertyChanged;
-                memb.PropertyChanged += MemberPropertyChanged;
-            }
-            RecheckChats();
-        }
-
-        /// <summary>
         ///     Recheck chats
         /// </summary>
         private void RecheckChats()
@@ -356,9 +333,17 @@ namespace WLNetwork.Clients
         ///     Force set the user.
         /// </summary>
         /// <param name="user">user object</param>
-        public void UpdateUser(User user)
+        public void UpdateUser(User user, ChatMember memb)
         {
             _user = user;
+
+            ChatMember oldMember = member;
+            if (memb != null && oldMember != memb)
+            {
+                if (oldMember != null) oldMember.PropertyChanged -= MemberPropertyChanged;
+                memb.PropertyChanged += MemberPropertyChanged;
+            }
+            RecheckChats();
         }
 
         /// <summary>

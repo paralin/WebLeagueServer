@@ -93,8 +93,8 @@ namespace WLNetwork.Chat
                     {
                         log.Debug("MEMBER ADDED [" + user.Id + "]" + " [" + user.profile.name + "]");
                         // todo: avatar override?
-                        var memb = Members[user.steam.steamid] = new ChatMember(user);
-                        memb.PropertyChanged += MemberPropertyChanged;
+                        exist = Members[user.steam.steamid] = new ChatMember(user);
+                        exist.PropertyChanged += MemberPropertyChanged;
                     }
                     else
                     {
@@ -103,14 +103,10 @@ namespace WLNetwork.Chat
                     }
 
                     BrowserClient cli;
-                    if (BrowserClient.ClientsBySteamID.TryGetValue(user.Id, out cli))
-                    {
-                        cli.UpdateUser(user);
-                    }
+                    if (BrowserClient.ClientsBySteamID.TryGetValue(user.steam.steamid, out cli))
+                        cli.UpdateUser(user, exist);
                 }
-                foreach (
-                    ChatMember member in
-                        Members.Values.Where(x => users.All(m => m.steam.steamid != x.SteamID)).ToArray())
+                foreach (ChatMember member in Members.Values.Where(x => users.All(m => m.steam.steamid != x.SteamID)).ToArray())
                 {
                     Members.Remove(member.SteamID);
                     log.Debug("MEMBER REMOVED [" + member.SteamID + "] [" + member.Name + "]");
