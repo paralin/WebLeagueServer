@@ -33,7 +33,6 @@ namespace WLNetwork.Matches
             {
                 if (details.Bot != null)
                 {
-                    details.Bot.InUse = false;
                     details.Bot = null;
                 }
             }

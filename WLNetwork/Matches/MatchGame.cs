@@ -64,18 +64,12 @@ namespace WLNetwork.Matches
 
             var ebot = BotDB.Bots.Values.FirstOrDefault(m => m.Username == match.Details.Bot.Username);
             if (ebot != null)
-            {
-                ebot.InUse = true;
                 Setup.Details.Bot = ebot;
-            }
             else
             {
                 ebot = Mongo.Bots.FindOneAs<Bot>(Query<Bot>.EQ(m => m.Username, match.Details.Bot.Username));
                 if (ebot != null)
-                {
-                    ebot.InUse = true;
                     BotDB.Bots[ebot.Id] = ebot;
-                }
                 else
                 {
                     log.Warn("Can't find bot for " + match.Id + "! Dropping match...");

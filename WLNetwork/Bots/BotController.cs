@@ -61,7 +61,6 @@ namespace WLNetwork.Bots
         private void InvalidCreds(object sender, EventArgs eventArgs)
         {
             log.Debug("Bot setup failed for " + game.Bot.Username + ", finding another...");
-            game.Bot.InUse = false;
             game.Bot.Invalid = true;
             Mongo.Bots.Save(game.Bot);
             game.Cleanup();
