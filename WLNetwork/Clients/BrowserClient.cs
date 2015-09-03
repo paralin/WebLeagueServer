@@ -96,11 +96,10 @@ namespace WLNetwork.Clients
                 }
                 ChallengeTimer.Stop();
             };
-            _user = user;
             Channels.CollectionChanged += ChatChannelOnCollectionChanged;
             ChatMember memb;
-            if(MemberDB.Members.TryGetValue(_user.steam.steamid, out memb))
-                this.UpdateUser(_user, memb);
+            MemberDB.Members.TryGetValue(user.steam.steamid, out memb);
+            UpdateUser(user, memb);
             if (member == null) return;
             member.State = UserState.ONLINE;
             member.StateDesc = "Online";
@@ -333,6 +332,7 @@ namespace WLNetwork.Clients
         ///     Force set the user.
         /// </summary>
         /// <param name="user">user object</param>
+        /// <param name="memb">new member</param>
         public void UpdateUser(User user, ChatMember memb)
         {
             _user = user;
@@ -343,6 +343,7 @@ namespace WLNetwork.Clients
                 if (oldMember != null) oldMember.PropertyChanged -= MemberPropertyChanged;
                 memb.PropertyChanged += MemberPropertyChanged;
             }
+            member = memb;
             RecheckChats();
         }
 
