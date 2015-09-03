@@ -10,6 +10,7 @@ using JWT;
 using log4net;
 using Microsoft.AspNet.SignalR.Hubs;
 using MongoDB.Driver.Builders;
+using MongoDB.Driver.Core.WireProtocol.Messages;
 using Newtonsoft.Json.Linq;
 using WLNetwork.Challenge;
 using WLNetwork.Chat;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 using WLNetwork.Model;
 using WLNetwork.Database;
 using MongoDB.Driver.Builders;
@@ -19,7 +20,7 @@ namespace WLNetwork.Rating
             var now = DateTime.UtcNow;
             if(league.Decay == null || !league.IsActive) return;
             var decay = league.Decay;
-            var season = league.Seasons[league.CurrentSeason];
+            var season = league.Seasons[(int)league.CurrentSeason];
             if(season.Start > now) return;
 
             var pid = league.Id+":"+league.CurrentSeason;
@@ -35,7 +36,7 @@ namespace WLNetwork.Rating
 
                 // Check how many hours after we are
                 // Add 1 hour to immediately take some pts away
-                var points = ((now-decayStart).Add(TimeSpan.FromHours(1))).TotalHours*decay.DecayRate;
+                var points = (int)(Math.Floor(((now-decayStart).Add(TimeSpan.FromHours(1))).TotalHours)*decay.DecayRate);
 
                 // Check how many we need to remove (or if negative, add)
                 var delta = -(points-lprof.decaySinceLast);
