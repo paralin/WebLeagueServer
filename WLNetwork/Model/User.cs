@@ -5,22 +5,6 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace WLNetwork.Model
 {
-    public class UserIdentity : IIdentity
-    {
-        public UserIdentity(User user)
-        {
-            IsAuthenticated = true;
-            Name = user.profile.name;
-            AuthenticationType = "jwt";
-            User = user;
-        }
-
-        public User User { get; set; }
-        public string Name { get; }
-        public string AuthenticationType { get; }
-        public bool IsAuthenticated { get; }
-    }
-
     /// <summary>
     ///     A user stored in the database, auth through passport.
     /// </summary>

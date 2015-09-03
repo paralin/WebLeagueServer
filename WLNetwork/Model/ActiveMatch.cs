@@ -4,6 +4,9 @@ using WLNetwork.Matches;
 
 namespace WLNetwork.Model
 {
+    /// <summary>
+    /// A stored match that needs to be recovered.
+    /// </summary>
     [BsonIgnoreExtraElements]
     public class ActiveMatch
     {

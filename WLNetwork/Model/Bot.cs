@@ -1,8 +1,11 @@
-﻿namespace WLNetwork.Model
+﻿using MongoDB.Bson.Serialization.Attributes;
+
+namespace WLNetwork.Model
 {
     /// <summary>
     ///     An individual bot account with state.
     /// </summary>
+    [BsonIgnoreExtraElements]
     public class Bot
     {
         /// <summary>
