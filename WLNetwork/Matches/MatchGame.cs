@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dota2.GC.Internal;
 using log4net;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver.Builders;
 using WLNetwork.Bots;
 using WLNetwork.Chat;
@@ -664,6 +665,7 @@ namespace WLNetwork.Matches
     /// <summary>
     ///     Match information.
     /// </summary>
+    [BsonIgnoreExtraElements]
     public class MatchGameInfo
     {
         /// <summary>

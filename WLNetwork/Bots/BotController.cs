@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using Dota2.GC.Dota.Internal;
+using Dota2.GC.Internal;
 using log4net;
 using Newtonsoft.Json.Linq;
 using SteamKit2;
@@ -67,7 +68,7 @@ namespace WLNetwork.Bots
         {
             var g = game.GetGame();
             if (instance.bot.Lobby?.state != CSODOTALobby.State.UI || g == null) return;
-            instance.bot.DotaGCHandler.InviteToLobby(member);
+            if(instance.bot.Engine == ESourceEngine.k_ESE_Source2) instance.bot.DotaGCHandler.InviteToLobby(member);
         }
 
         private void InviteTimerOnElapsed(object sender, ElapsedEventArgs e)
@@ -79,6 +80,7 @@ namespace WLNetwork.Bots
                 return;
             }
 
+            if (instance.bot.Engine != ESourceEngine.k_ESE_Source2) return;
             foreach (var plyr in g.Players.Where(m=>instance.bot.Lobby.members.All(x=>x.id+"" != m.SID)))
                 instance.bot.DotaGCHandler.InviteToLobby(ulong.Parse(plyr.SID));
         }
