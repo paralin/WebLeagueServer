@@ -60,7 +60,7 @@ namespace WLNetwork.Bots
 #if USE_GAME_ENGINE
             , contrs: new BotGameController(this)
 #endif
-                    ) {Engine = Details.GetGame().Info.Engine};
+                    ) {Engine = (ESourceEngine)Details.GetGame().Info.Engine};
             bot.InvalidCreds +=
                 (sender, args) => { log.Warn("Steam reports invalid creds for " + details.Bot.Username + "!"); };
             bot.StateTransitioned += (sender, transition) =>

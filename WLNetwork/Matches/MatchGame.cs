@@ -112,7 +112,7 @@ namespace WLNetwork.Matches
                 LeagueTicket = options.LeagueTicket,
                 LeagueRegion = options.LeagueRegion,
                 SecondaryLeagueSeason = options.SecondaryLeagueSeason,
-                Engine = options.Engine
+                Engine = (int)options.Engine
             };
             pickedAlready = true;
             Players = new ObservableRangeCollection<MatchPlayer>();
@@ -736,7 +736,7 @@ namespace WLNetwork.Matches
         /// <summary>
         ///  Game engine this game is on.
         /// </summary>
-        public ESourceEngine Engine { get; set; }
+        public int Engine { get; set; }
     }
 
     public static class MatchGameExt
