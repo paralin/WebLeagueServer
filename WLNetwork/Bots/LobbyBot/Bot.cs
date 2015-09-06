@@ -234,7 +234,7 @@ namespace WLNetwork.Bots.LobbyBot
         private void JoinLobbySlot()
         {
             //DotaGCHandler.JoinTeam(DOTA_GC_TEAM.DOTA_GC_TEAM_GOOD_GUYS);
-            DotaGCHandler.JoinBroadcastChannel();
+            // DotaGCHandler.JoinBroadcastChannel();
         }
 
         /// <summary>
