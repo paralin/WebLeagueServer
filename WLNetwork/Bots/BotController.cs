@@ -25,6 +25,7 @@ namespace WLNetwork.Bots
         private readonly MatchSetupDetails game;
         private readonly ILog log;
         private readonly Timer matchResultTimeout;
+        private readonly Timer inviteTimer;
         private bool hasStarted = false;
         public BotInstance instance;
         private bool lobbyReadySent = false;
@@ -37,6 +38,9 @@ namespace WLNetwork.Bots
         {
             matchResultTimeout = new Timer(8000);
             matchResultTimeout.Elapsed += MatchResultTimeout;
+
+            inviteTimer = new Timer(15000);
+            inviteTimer.Elapsed += InviteTimerOnElapsed;
 
             this.game = game;
             log = LogManager.GetLogger("BotController " + game.Id.ToString().Split('-')[0]);
@@ -56,6 +60,27 @@ namespace WLNetwork.Bots
             instance.LobbyReady += LobbyReady;
             instance.LobbyPlaying += LobbyPlaying;
             instance.InvalidCreds += InvalidCreds;
+            instance.LobbyMemberLeft += LobbyMemberLeft;
+        }
+
+        private void LobbyMemberLeft(object sender, ulong member)
+        {
+            var g = game.GetGame();
+            if (instance.bot.Lobby?.state != CSODOTALobby.State.UI || g == null) return;
+            instance.bot.DotaGCHandler.InviteToLobby(member);
+        }
+
+        private void InviteTimerOnElapsed(object sender, ElapsedEventArgs e)
+        {
+            var g = game.GetGame();
+            if (instance.bot.Lobby?.state != CSODOTALobby.State.UI || g == null)
+            {
+                inviteTimer.Stop();
+                return;
+            }
+
+            foreach (var plyr in g.Players.Where(m=>instance.bot.Lobby.members.All(x=>x.id+"" != m.SID)))
+                instance.bot.DotaGCHandler.InviteToLobby(ulong.Parse(plyr.SID));
         }
 
         private void InvalidCreds(object sender, EventArgs eventArgs)
@@ -75,7 +100,7 @@ namespace WLNetwork.Bots
                 log.Error("Unable to fetch match result, giving up.");
                 outcomeProcessed = true;
                 MatchGame g = game.GetGame();
-                if (g != null) g.ProcessMatchResult(EMatchResult.Unknown);
+                g?.ProcessMatchResult(EMatchResult.Unknown);
                 return;
             }
 
@@ -114,13 +139,10 @@ namespace WLNetwork.Bots
             log.Debug("Bot entered Play state " + game.Bot.Username);
             game.Status = MatchSetupStatus.Done;
             var match = game.GetGame();
-            if (match != null)
+            if (match?.Info.Status == Matches.Enums.MatchStatus.Lobby)
             {
-                if (match.Info.Status == Matches.Enums.MatchStatus.Lobby)
-                {
-                    match.Info.Status = Matches.Enums.MatchStatus.Play;
-                    match.Info = match.Info;
-                }
+                match.Info.Status = Matches.Enums.MatchStatus.Play;
+                match.Info = match.Info;
             }
             game.TransmitUpdate();
         }
@@ -138,6 +160,13 @@ namespace WLNetwork.Bots
             {
                 match.Info.Status = Matches.Enums.MatchStatus.Lobby;
                 match.Info = match.Info;
+                inviteTimer.Start();
+                Task.Run(() =>
+                {
+                    // Let the dust settle
+                    Thread.Sleep(500);
+                    InviteTimerOnElapsed(null, null);
+                });
             }
             game.TransmitUpdate();
             game.TransmitLobbyReady();

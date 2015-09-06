@@ -40,12 +40,13 @@ namespace WLNetwork.Bots
         public event EventHandler<uint> SpectatorCountUpdate;
         public event EventHandler<PlayerHeroArgs> HeroId;
         public event EventHandler InvalidCreds;
-
+        public event EventHandler<ulong> LobbyMemberLeft;
 
         public Bot bot;
 
         private readonly MatchSetupDetails Details;
         private readonly HashSet<string> teamMsgSent = new HashSet<string>();
+        private ulong[] oldMembers = null;
 
         public BotInstance(MatchSetupDetails details)
         {
@@ -104,6 +105,7 @@ namespace WLNetwork.Bots
                         bot.LeaveLobby();
                         return;
                     }
+                    var newMembers = lobby.members.Select(m => m.id).OrderBy(m => m).ToArray();
                     if (lobby.state == CSODOTALobby.State.UI)
                     {
                         LobbyReady?.Invoke(this, EventArgs.Empty);
@@ -125,22 +127,23 @@ namespace WLNetwork.Bots
                                     IsReady = ready,
                                     SteamID = plyr.SID
                                 });
-                                if (!ready && !teamMsgSent.Contains(plyr.SID) &&
-                                    (plyr.Team == MatchTeam.Dire || plyr.Team == MatchTeam.Radiant))
-                                {
-                                    bot.SendLobbyMessage(plyr.Name + " is on " +
-                                                         (plyr.Team == MatchTeam.Dire ? "Dire" : "Radiant"));
-                                    teamMsgSent.Add(plyr.SID);
-                                }
+                                if (ready || teamMsgSent.Contains(plyr.SID) || (plyr.Team != MatchTeam.Dire && plyr.Team != MatchTeam.Radiant)) continue;
+                                bot.SendLobbyMessage(plyr.Name + " is on " + (plyr.Team == MatchTeam.Dire ? "Dire" : "Radiant"));
+                                teamMsgSent.Add(plyr.SID);
                             }
                             else
-                            {
-                                if (UnknownPlayer != null)
-                                    UnknownPlayer(this, member.id);
-                            }
+                                UnknownPlayer?.Invoke(this, member.id);
                         }
                         args.Players = players.ToArray();
-                        if (PlayerReady != null) PlayerReady(this, args);
+                        PlayerReady?.Invoke(this, args);
+
+                        if (oldMembers != null)
+                        {
+                            foreach (var member in oldMembers.Where(m => !newMembers.Contains(m)))
+                            {
+                                LobbyMemberLeft?.Invoke(this, member);
+                            }
+                        }
                     }
                     else if (lobby.state == CSODOTALobby.State.RUN &&
                              lobby.game_state > DOTA_GameState.DOTA_GAMERULES_STATE_WAIT_FOR_PLAYERS_TO_LOAD &&
@@ -153,7 +156,7 @@ namespace WLNetwork.Bots
                                 .ToArray(),
                             Lobby = lobby
                         };
-                        if (LeaverStatus != null) LeaverStatus(this, args);
+                        LeaverStatus?.Invoke(this, args);
                     }
 #if DUMP_LOBBY_POSTGAME
                     else if (lobby.game_state >= DOTA_GameState.DOTA_GAMERULES_STATE_POST_GAME)
@@ -161,7 +164,7 @@ namespace WLNetwork.Bots
 #endif
 
                     if (lobby.state == CSODOTALobby.State.RUN)
-                        if (LobbyPlaying != null) LobbyPlaying(this, EventArgs.Empty);
+                        LobbyPlaying?.Invoke(this, EventArgs.Empty);
 
                     if (HeroId != null)
                     {
@@ -170,16 +173,16 @@ namespace WLNetwork.Bots
                             HeroId(this, new PlayerHeroArgs() {hero_id = memb.hero_id, steam_id = memb.id});
                         }
                     }
-                    if (MatchStatus != null)
-                        MatchStatus(this, new MatchStateArgs {State = lobby.game_state, Status = lobby.state});
+                    MatchStatus?.Invoke(this, new MatchStateArgs {State = lobby.game_state, Status = lobby.state});
                     if (MatchId != null && lobby.match_id != 0) MatchId(this, lobby.match_id);
-                    if (lobby.match_outcome != EMatchOutcome.k_EMatchOutcome_Unknown && MatchOutcome != null)
-                        MatchOutcome(this, lobby.match_outcome);
+                    if (lobby.match_outcome != EMatchOutcome.k_EMatchOutcome_Unknown)
+                        MatchOutcome?.Invoke(this, lobby.match_outcome);
                     if (lobby.game_state == DOTA_GameState.DOTA_GAMERULES_STATE_HERO_SELECTION)
-                        if (GameStarted != null) GameStarted(this, EventArgs.Empty);
+                        GameStarted?.Invoke(this, EventArgs.Empty);
                     if (lobby.first_blood_happened)
-                        if (FirstBloodHappened != null) FirstBloodHappened(this, EventArgs.Empty);
-                    if (SpectatorCountUpdate != null) SpectatorCountUpdate(this, lobby.num_spectators);
+                        FirstBloodHappened?.Invoke(this, EventArgs.Empty);
+                    SpectatorCountUpdate?.Invoke(this, lobby.num_spectators);
+                    oldMembers = newMembers;
                 }
                 catch (Exception ex)
                 {
