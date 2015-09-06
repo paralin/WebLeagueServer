@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Timers;
+using Dota2.GC.Internal;
 using log4net;
 using MongoDB.Driver.Builders;
 using WLNetwork.Database;
@@ -79,7 +80,7 @@ namespace WLNetwork.Bots
                     var game = setup.Details.GetGame();
                     if (game != null)
                     {
-                        game.SetBotController(new BotController(setup.Details));
+                        game.SetBotController(new BotController(setup.Details, (ESourceEngine)game.Info.Engine));
                         game.GetBotController().instance.Start();
                     }
                     return;

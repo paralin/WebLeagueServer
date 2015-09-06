@@ -35,7 +35,7 @@ namespace WLNetwork.Bots
         private bool outcomeProcessed = false;
         private bool startedResultCheck = false;
 
-        public BotController(MatchSetupDetails game)
+        public BotController(MatchSetupDetails game, ESourceEngine engine)
         {
             matchResultTimeout = new Timer(8000);
             matchResultTimeout.Elapsed += MatchResultTimeout;
@@ -46,7 +46,7 @@ namespace WLNetwork.Bots
             this.game = game;
             log = LogManager.GetLogger("BotController " + game.Id.ToString().Split('-')[0]);
 
-            instance = new BotInstance(game);
+            instance = new BotInstance(game, engine);
             instance.PlayerReady += PlayerReady;
             instance.MatchId += MatchId;
             instance.LeaverStatus += LeaverStatus;

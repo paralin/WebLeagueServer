@@ -56,7 +56,8 @@ namespace WLNetwork.Matches
         {
             Id = match.Id;
             Info = match.Info;
-            Setup = new MatchSetup(match.Id, match.Details) {Details = {IsRecovered = true}};
+            Setup = new MatchSetup(match.Id, match.Details);
+            Setup.Details.IsRecovered = true;
             pickedAlready = true;
             Players = new ObservableRangeCollection<MatchPlayer>(match.Details.Players);
             KickSpectators();
@@ -78,7 +79,7 @@ namespace WLNetwork.Matches
                 }
             }
 
-            controller = new BotController(Setup.Details);
+            controller = new BotController(Setup.Details, (ESourceEngine)Info.Engine);
             controller.instance.Start();
 
             MatchesController.Games.Add(this);
