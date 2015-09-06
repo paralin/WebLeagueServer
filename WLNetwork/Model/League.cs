@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Dota2.GC.Internal;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace WLNetwork.Model
@@ -66,6 +67,11 @@ namespace WLNetwork.Model
         ///     Decay settings
         /// </summary>
         public LeagueDecay Decay { get; set; }
+
+        /// <summary>
+        /// The source version to force.
+        /// </summary>
+        public ESourceEngine ForceSourceVersion { get; set; }
     }
 
     /// <summary>

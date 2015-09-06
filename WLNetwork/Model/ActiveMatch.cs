@@ -1,4 +1,5 @@
 ﻿using System;
+using Dota2.GC.Internal;
 using MongoDB.Bson.Serialization.Attributes;
 using WLNetwork.Matches;
 

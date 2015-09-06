@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Dota2.GC.Internal;
 using log4net;
 using MongoDB.Driver.Builders;
 using WLNetwork.Bots;
@@ -54,8 +55,7 @@ namespace WLNetwork.Matches
         {
             Id = match.Id;
             Info = match.Info;
-            Setup = new MatchSetup(match.Id, match.Details);
-            Setup.Details.IsRecovered = true;
+            Setup = new MatchSetup(match.Id, match.Details) {Details = {IsRecovered = true}};
             pickedAlready = true;
             Players = new ObservableRangeCollection<MatchPlayer>(match.Details.Players);
             KickSpectators();
@@ -110,7 +110,8 @@ namespace WLNetwork.Matches
                 LeagueSeason = options.LeagueSeason,
                 LeagueTicket = options.LeagueTicket,
                 LeagueRegion = options.LeagueRegion,
-                SecondaryLeagueSeason = options.SecondaryLeagueSeason
+                SecondaryLeagueSeason = options.SecondaryLeagueSeason,
+                Engine = options.Engine
             };
             pickedAlready = true;
             Players = new ObservableRangeCollection<MatchPlayer>();
@@ -729,6 +730,11 @@ namespace WLNetwork.Matches
         ///     League season
         /// </summary>
         public uint[] SecondaryLeagueSeason { get; set; }
+
+        /// <summary>
+        ///  Game engine this game is on.
+        /// </summary>
+        public ESourceEngine Engine { get; set; }
     }
 
     public static class MatchGameExt

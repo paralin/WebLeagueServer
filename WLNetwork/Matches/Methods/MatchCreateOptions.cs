@@ -1,4 +1,5 @@
-﻿using WLNetwork.Matches.Enums;
+﻿using Dota2.GC.Internal;
+using WLNetwork.Matches.Enums;
 
 namespace WLNetwork.Matches.Methods
 {
@@ -44,5 +45,10 @@ namespace WLNetwork.Matches.Methods
         ///     League region
         /// </summary>
         public uint LeagueRegion { get; set; }
+
+        /// <summary>
+        /// Engine to use.
+        /// </summary>
+        public ESourceEngine Engine { get; set; }
     }
 }
