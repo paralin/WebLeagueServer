@@ -285,8 +285,7 @@ namespace WLNetwork.Bots.LobbyBot
 
             var c = SteamClient = new SteamClient();
 
-            // Enable reborn!
-            DotaGCHandler.Bootstrap(c, Games.DOTA2, ESourceEngine.k_ESE_Source2);
+            DotaGCHandler.Bootstrap(c, Games.DOTA2, Engine);
 
             SteamUser = c.GetHandler<SteamUser>();
             SteamFriends = c.GetHandler<SteamFriends>();
