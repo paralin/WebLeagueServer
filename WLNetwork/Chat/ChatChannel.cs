@@ -154,9 +154,11 @@ namespace WLNetwork.Chat
                 }
             }
             if (filterToId == null)
-                Hubs.Chat.HubContext.Clients.Group(Id.ToString()).OnChatMessage(Id.ToString(), memberid, text, service, DateTime.UtcNow, Name);
+                Hubs.Chat.HubContext.Clients.Group(Id.ToString())
+                    .OnChatMessage(Id.ToString(), memberid, text, service, DateTime.UtcNow, Name);
             else
-                Hubs.Chat.HubContext.Clients.Group(filterToId).OnChatMessage(Id.ToString(), memberid, text, service, DateTime.UtcNow, Name);
+                Hubs.Chat.HubContext.Clients.Group(filterToId)
+                    .OnChatMessage(Id.ToString(), memberid, text, service, DateTime.UtcNow, Name);
         }
 
         /// <summary>
@@ -185,9 +187,9 @@ namespace WLNetwork.Chat
             if (!Channels.TryGetValue(id, out chan)) return null;
             //if (chan.ChannelType != ChannelType.Public && chan.Name != "main")
             //    throw new JoinCreateException("That channel is not joinable this way.");
-            lock(chan.Members)
+            lock (chan.Members)
             {
-              if (!chan.Members.Contains(member.SteamID)) chan.Members.Add(member.SteamID);
+                if (!chan.Members.Contains(member.SteamID)) chan.Members.Add(member.SteamID);
             }
             return chan;
         }
@@ -219,8 +221,9 @@ namespace WLNetwork.Chat
             if (chan != null) return chan;
             chan = new ChatChannel(name, chanType);
             if (chanType == ChannelType.League) chan.Leavable = false;
-            lock(chan.Members){
-              if (!chan.Members.Contains(member.SteamID)) chan.Members.Add(member.SteamID);
+            lock (chan.Members)
+            {
+                if (!chan.Members.Contains(member.SteamID)) chan.Members.Add(member.SteamID);
             }
             return chan;
         }

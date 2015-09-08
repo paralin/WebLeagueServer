@@ -10,12 +10,12 @@ using JWT;
 using log4net;
 using Microsoft.AspNet.SignalR.Hubs;
 using MongoDB.Driver.Builders;
-using MongoDB.Driver.Core.WireProtocol.Messages;
 using Newtonsoft.Json.Linq;
 using WLNetwork.Challenge;
 using WLNetwork.Chat;
 using WLNetwork.Chat.Enums;
 using WLNetwork.Database;
+using WLNetwork.Hubs;
 using WLNetwork.Leagues;
 using WLNetwork.Matches;
 using WLNetwork.Matches.Enums;
@@ -29,6 +29,16 @@ namespace WLNetwork.Clients
     /// </summary>
     public class BrowserClient
     {
+        /// <summary>
+        ///     Hub type
+        /// </summary>
+        public enum HubType
+        {
+            Chat,
+            Matches,
+            Admin
+        }
+
         private static readonly ILog log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -51,27 +61,11 @@ namespace WLNetwork.Clients
         public readonly Timer ChallengeTimer;
 
         private readonly bool userped = false;
-        private User _user;
 
         /// <summary>
         ///     Current channels list.
         /// </summary>
         public ObservableCollection<ChatChannel> Channels = new ObservableCollection<ChatChannel>();
-
-        /// <summary>
-        ///     All currently connected admin clients.
-        /// </summary>
-        public dynamic AdminClients => Hubs.Admin.HubContext.Clients.Group(_user.steam.steamid);
-
-        /// <summary>
-        ///     All currently connected chat clients.
-        /// </summary>
-        public dynamic ChatClients => Hubs.Chat.HubContext.Clients.Group(_user.steam.steamid);
-
-        /// <summary>
-        ///     All currently connected match clients.
-        /// </summary>
-        public dynamic MatchClients => Hubs.Matches.HubContext.Clients.Group(_user.steam.steamid);
 
         /// <summary>
         ///     Current ChatMember match.
@@ -107,33 +101,38 @@ namespace WLNetwork.Clients
         }
 
         /// <summary>
+        ///     All currently connected admin clients.
+        /// </summary>
+        public dynamic AdminClients => Admin.HubContext.Clients.Group(User.steam.steamid);
+
+        /// <summary>
+        ///     All currently connected chat clients.
+        /// </summary>
+        public dynamic ChatClients => Hubs.Chat.HubContext.Clients.Group(User.steam.steamid);
+
+        /// <summary>
+        ///     All currently connected match clients.
+        /// </summary>
+        public dynamic MatchClients => Hubs.Matches.HubContext.Clients.Group(User.steam.steamid);
+
+        /// <summary>
         ///     Gets the local user.
         /// </summary>
-        public User User => _user;
+        public User User { get; private set; }
 
         /// <summary>
         ///     The active match the player is in.
         /// </summary>
         public MatchGame Match
-            => MatchesController.Games.FirstOrDefault(m => m.Players.Any(x => x.SID == _user.steam.steamid));
+            => MatchesController.Games.FirstOrDefault(m => m.Players.Any(x => x.SID == User.steam.steamid));
 
         /// <summary>
         ///     The active challenge the player is in.
         /// </summary>
         public Challenge.Challenge Challenge
             =>
-            ChallengeController.Challenges.Values.FirstOrDefault(
-                    m => m.ChallengedSID == _user.steam.steamid || m.ChallengerSID == _user.steam.steamid);
-
-        /// <summary>
-        /// Hub type
-        /// </summary>
-        public enum HubType
-        {
-            Chat,
-            Matches,
-            Admin
-        }
+                ChallengeController.Challenges.Values.FirstOrDefault(
+                    m => m.ChallengedSID == User.steam.steamid || m.ChallengerSID == User.steam.steamid);
 
         /// <summary>
         ///     Build a browserclient from a CallerContext
@@ -156,7 +155,7 @@ namespace WLNetwork.Clients
                     {
                         var nuser =
                             Mongo.Users.FindOneAs<User>(Query.And(Query.EQ("_id", atoken._id),
-                                        Query.EQ("steam.steamid", atoken.steamid)));
+                                Query.EQ("steam.steamid", atoken.steamid)));
                         if (nuser != null)
                         {
                             if (nuser.vouch != null)
@@ -199,13 +198,14 @@ namespace WLNetwork.Clients
             switch (connType)
             {
                 case HubType.Admin:
-                    Hubs.Admin.HubContext.Groups.Add(ctx.ConnectionId, user.steam.steamid);
+                    Admin.HubContext.Groups.Add(ctx.ConnectionId, user.steam.steamid);
                     break;
                 case HubType.Chat:
                     Hubs.Chat.HubContext.Groups.Add(ctx.ConnectionId, user.steam.steamid);
 
                     // Transmit the members snapshot
-                    Hubs.Chat.HubContext.Clients.Client(ctx.ConnectionId).GlobalMemberSnapshot(MemberDB.Members.Values.ToArray());
+                    Hubs.Chat.HubContext.Clients.Client(ctx.ConnectionId)
+                        .GlobalMemberSnapshot(MemberDB.Members.Values.ToArray());
 
                     var hubctx = Hubs.Chat.HubContext;
                     foreach (var chan in exist.Channels)
@@ -214,20 +214,25 @@ namespace WLNetwork.Clients
                         hubctx.Clients.Client(ctx.ConnectionId).ChannelUpdate(chan);
                         League leaguel;
                         if (LeagueDB.Leagues.TryGetValue(chan.Name, out leaguel) &&
-                                leaguel.MotdMessages != null)
+                            leaguel.MotdMessages != null)
                             foreach (var msg in leaguel.MotdMessages)
-                                Hubs.Chat.HubContext.Clients.Client(ctx.ConnectionId).OnChatMessage(chan.Id.ToString(), "system", "MOTD: " + msg, true, DateTime.UtcNow, chan.Name);
+                                Hubs.Chat.HubContext.Clients.Client(ctx.ConnectionId)
+                                    .OnChatMessage(chan.Id.ToString(), "system", "MOTD: " + msg, true, DateTime.UtcNow,
+                                        chan.Name);
                     }
 
                     break;
                 case HubType.Matches:
                     Hubs.Matches.HubContext.Groups.Add(ctx.ConnectionId, user.steam.steamid);
-                    var match = exist.Match ?? MatchesController.Games.FirstOrDefault(m => m.Players.Any(x => x.SID == user.steam.steamid));
+                    var match = exist.Match ??
+                                MatchesController.Games.FirstOrDefault(
+                                    m => m.Players.Any(x => x.SID == user.steam.steamid));
                     if (match != null)
                         Hubs.Matches.HubContext.Groups.Add(ctx.ConnectionId, match.Id.ToString());
-                    Hubs.Matches.HubContext.Clients.Client(ctx.ConnectionId).AvailableGameUpdate(MatchesController.Games.ToArray());
+                    Hubs.Matches.HubContext.Clients.Client(ctx.ConnectionId)
+                        .AvailableGameUpdate(MatchesController.Games.ToArray());
                     var chal = exist.Challenge ?? ChallengeController.Challenges.Values.FirstOrDefault(
-                            m =>
+                        m =>
                             m.ChallengerSID == user.steam.steamid ||
                             m.ChallengedSID == user.steam.steamid);
                     if (chal != null)
@@ -276,8 +281,8 @@ namespace WLNetwork.Clients
             if (member?.Leagues == null || Channels == null) return;
             var memberleagues = member.Leagues;
             var chanarr = Channels.ToArray();
-            var channames = chanarr.Select(m=>m.Name);
-            var leagueChans = chanarr.Where(m => m!=null && m.ChannelType == ChannelType.League);
+            var channames = chanarr.Select(m => m.Name);
+            var leagueChans = chanarr.Where(m => m != null && m.ChannelType == ChannelType.League);
             lock (Channels)
             {
                 foreach (var league in leagueChans.Where(league => !memberleagues.Contains(league.Name)))
@@ -320,7 +325,9 @@ namespace WLNetwork.Clients
             if (me == null) return "You are not in any game.";
 
             bool isOwner = Match.Info.Owner == User.steam.steamid || me.IsCaptain;
-            if (me.Team < MatchTeam.Spectate && ((Match.Info.Status > MatchStatus.Lobby) || (Match.Info.Status > MatchStatus.Players && !isOwner))) return "You cannot leave games in progress.";
+            if (me.Team < MatchTeam.Spectate &&
+                ((Match.Info.Status > MatchStatus.Lobby) || (Match.Info.Status > MatchStatus.Players && !isOwner)))
+                return "You cannot leave games in progress.";
             if (isOwner)
                 Match.Destroy();
             else
@@ -336,7 +343,7 @@ namespace WLNetwork.Clients
         /// <param name="memb">new member</param>
         public void UpdateUser(User user, ChatMember memb)
         {
-            _user = user;
+            User = user;
 
             ChatMember oldMember = member;
             if (memb != null && oldMember != memb)
@@ -362,8 +369,10 @@ namespace WLNetwork.Clients
                 Challenge.Discard();
             }
             Channels.CollectionChanged -= ChatChannelOnCollectionChanged;
-            foreach (var channel in Channels.ToArray()){
-                lock(channel.Members){
+            foreach (var channel in Channels.ToArray())
+            {
+                lock (channel.Members)
+                {
                     channel.Members.Remove(User.steam.steamid);
                 }
             }
@@ -377,7 +386,7 @@ namespace WLNetwork.Clients
                 member.State = UserState.OFFLINE;
             }
             member = null;
-            _user = null;
+            User = null;
         }
     }
 }

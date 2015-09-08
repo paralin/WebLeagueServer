@@ -6,9 +6,9 @@ namespace KellermanSoftware.CompareNetObjects.IgnoreOrderTypes
 {
     internal class IndexerCollectionLooper : IEnumerable
     {
+        private readonly int _cnt;
         private readonly object _indexer;
         private readonly PropertyInfo _info;
-        private readonly int _cnt;
 
         public IndexerCollectionLooper(object obj, PropertyInfo info, int cnt)
         {
@@ -24,7 +24,7 @@ namespace KellermanSoftware.CompareNetObjects.IgnoreOrderTypes
         {
             for (var i = 0; i < _cnt; i++)
             {
-                object value = _info.GetValue(_indexer, new object[] { i });
+                object value = _info.GetValue(_indexer, new object[] {i});
                 yield return value;
             }
         }

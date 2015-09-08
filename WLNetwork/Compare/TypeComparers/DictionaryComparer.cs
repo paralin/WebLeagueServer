@@ -6,12 +6,12 @@ using KellermanSoftware.CompareNetObjects.IgnoreOrderTypes;
 namespace KellermanSoftware.CompareNetObjects.TypeComparers
 {
     /// <summary>
-    /// Logic to compare two dictionaries
+    ///     Logic to compare two dictionaries
     /// </summary>
     public class DictionaryComparer : BaseTypeComparer
     {
         /// <summary>
-        /// Constructor that takes a root comparer
+        ///     Constructor that takes a root comparer
         /// </summary>
         /// <param name="rootComparer"></param>
         public DictionaryComparer(RootComparer rootComparer) : base(rootComparer)
@@ -19,7 +19,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// Returns true if both types are dictionaries
+        ///     Returns true if both types are dictionaries
         /// </summary>
         /// <param name="type1">The type of the first object</param>
         /// <param name="type2">The type of the second object</param>
@@ -30,7 +30,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// Compare two dictionaries
+        ///     Compare two dictionaries
         /// </summary>
         public override void CompareType(CompareParms parms)
         {
@@ -58,7 +58,6 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
                 {
                     CompareEachItem(parms);
                 }
-
             }
             finally
             {
@@ -126,16 +125,16 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
             if (iDict1.Count != iDict2.Count)
             {
                 Difference difference = new Difference
-                                            {
-                                                ParentObject1 = new WeakReference(parms.ParentObject1),
-                                                ParentObject2 = new WeakReference(parms.ParentObject2),
-                                                PropertyName = parms.BreadCrumb,
-                                                Object1Value = iDict1.Count.ToString(CultureInfo.InvariantCulture),
-                                                Object2Value = iDict2.Count.ToString(CultureInfo.InvariantCulture),
-                                                ChildPropertyName = "Count",
-                                                Object1 = new WeakReference(iDict1),
-                                                Object2 = new WeakReference(iDict2)
-                                            };
+                {
+                    ParentObject1 = new WeakReference(parms.ParentObject1),
+                    ParentObject2 = new WeakReference(parms.ParentObject2),
+                    PropertyName = parms.BreadCrumb,
+                    Object1Value = iDict1.Count.ToString(CultureInfo.InvariantCulture),
+                    Object2Value = iDict2.Count.ToString(CultureInfo.InvariantCulture),
+                    ChildPropertyName = "Count",
+                    Object1 = new WeakReference(iDict1),
+                    Object2 = new WeakReference(iDict2)
+                };
 
                 AddDifference(parms.Result, difference);
 

@@ -106,7 +106,9 @@ namespace WLNetwork.Chat
                     if (BrowserClient.ClientsBySteamID.TryGetValue(user.steam.steamid, out cli))
                         cli.UpdateUser(user, exist);
                 }
-                foreach (ChatMember member in Members.Values.Where(x => users.All(m => m.steam.steamid != x.SteamID)).ToArray())
+                foreach (
+                    ChatMember member in
+                        Members.Values.Where(x => users.All(m => m.steam.steamid != x.SteamID)).ToArray())
                 {
                     Members.Remove(member.SteamID);
                     log.Debug("MEMBER REMOVED [" + member.SteamID + "] [" + member.Name + "]");
@@ -134,7 +136,8 @@ namespace WLNetwork.Chat
         {
             var member = sender as ChatMember;
             if (member == null) return;
-            Hubs.Chat.HubContext.Clients.All.GlobalMemberUpdate(member.SteamID, args.PropertyName, member.GetType().GetProperty(args.PropertyName).GetValue(member));
+            Hubs.Chat.HubContext.Clients.All.GlobalMemberUpdate(member.SteamID, args.PropertyName,
+                member.GetType().GetProperty(args.PropertyName).GetValue(member));
         }
     }
 }

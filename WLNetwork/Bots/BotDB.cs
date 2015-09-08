@@ -39,6 +39,16 @@ namespace WLNetwork.Bots
             UpdateTimer.Start();
         }
 
+        /// <summary>
+        ///     List all bots that are in use.
+        /// </summary>
+        /// <returns></returns>
+        public static Bot[] InUseBots
+            =>
+                MatchesController.Games.Where(m => m.Setup?.Details.Bot != null)
+                    .Select(m => m.Setup.Details.Bot)
+                    .ToArray();
+
         private static void UpdateTimerOnElapsed(object sender, ElapsedEventArgs elapsedEventArgs)
         {
             UpdateTimer.Stop();
@@ -51,12 +61,6 @@ namespace WLNetwork.Bots
             var inUse = InUseBots;
             return Bots.Values.FirstOrDefault(m => !m.Invalid && inUse.All(x => x.Id != m.Id));
         }
-
-        /// <summary>
-        /// List all bots that are in use.
-        /// </summary>
-        /// <returns></returns>
-        public static Bot[] InUseBots => MatchesController.Games.Where(m=>m.Setup?.Details.Bot != null).Select(m=>m.Setup.Details.Bot).ToArray();
 
         public static void RegisterSetup(MatchSetup setup)
         {
@@ -80,7 +84,7 @@ namespace WLNetwork.Bots
                     var game = setup.Details.GetGame();
                     if (game != null)
                     {
-                        game.SetBotController(new BotController(setup.Details, (ESourceEngine)game.Info.Engine));
+                        game.SetBotController(new BotController(setup.Details, (ESourceEngine) game.Info.Engine));
                         game.GetBotController().instance.Start();
                     }
                     return;

@@ -9,8 +9,8 @@ using MongoDB.Driver.Builders;
 using WLNetwork.Chat;
 using WLNetwork.Database;
 using WLNetwork.Model;
-using WLNetwork.Utils;
 using WLNetwork.Rating;
+using WLNetwork.Utils;
 
 namespace WLNetwork.Leagues
 {
@@ -19,17 +19,17 @@ namespace WLNetwork.Leagues
     /// </summary>
     public static class LeagueDB
     {
-		private static readonly ILog log = LogManager.GetLogger(typeof(LeagueDB));
+        private static readonly ILog log = LogManager.GetLogger(typeof (LeagueDB));
 
         /// <summary>
-		///     League Dictionary
+        ///     League Dictionary
         /// </summary>
-		public static ObservableDictionary<string, League> Leagues = new ObservableDictionary<string, League>();
+        public static ObservableDictionary<string, League> Leagues = new ObservableDictionary<string, League>();
 
         /// <summary>
-		///     Update timer for the DB
+        ///     Update timer for the DB
         /// </summary>
-		public static Timer UpdateTimer;
+        public static Timer UpdateTimer;
 
         /// <summary>
         ///     Any updated this update
@@ -109,7 +109,9 @@ namespace WLNetwork.Leagues
                         {
                             Leagues[league.Id] = league;
                             log.Debug("LEAGUE UPDATED [" + league.Id + "] " + res.DifferencesString);
-                            if((league.MotdMessages != null && exist.MotdMessages == null) || (league.MotdMessages != null && exist.MotdMessages != null && !league.MotdMessages.OrderBy(a => a).SequenceEqual(exist.MotdMessages.OrderBy(b=>b))))
+                            if ((league.MotdMessages != null && exist.MotdMessages == null) ||
+                                (league.MotdMessages != null && exist.MotdMessages != null &&
+                                 !league.MotdMessages.OrderBy(a => a).SequenceEqual(exist.MotdMessages.OrderBy(b => b))))
                                 ChatChannel.TransmitMOTD(league.Id, league);
                             AnyUpdated = true;
                         }

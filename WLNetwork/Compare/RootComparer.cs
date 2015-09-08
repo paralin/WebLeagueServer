@@ -6,23 +6,23 @@ using KellermanSoftware.CompareNetObjects.TypeComparers;
 namespace KellermanSoftware.CompareNetObjects
 {
     /// <summary>
-    /// The base comparer which contains all the type comparers
+    ///     The base comparer which contains all the type comparers
     /// </summary>
     public class RootComparer : BaseComparer
     {
         #region Properties
 
-
         /// <summary>
-        /// A list of the type comparers
+        ///     A list of the type comparers
         /// </summary>
         internal List<BaseTypeComparer> TypeComparers { get; set; }
+
         #endregion
 
         #region Methods
 
         /// <summary>
-        /// Compare two objects
+        ///     Compare two objects
         /// </summary>
         public bool Compare(CompareParms parms)
         {
@@ -30,7 +30,7 @@ namespace KellermanSoftware.CompareNetObjects
                 return true;
 
             Type t1 = parms.Object1 != null ? parms.Object1.GetType() : null;
-            Type t2 = parms.Object2 != null ? parms.Object2.GetType() : null;           
+            Type t2 = parms.Object2 != null ? parms.Object2.GetType() : null;
 
             BaseTypeComparer customComparer = parms.Config.CustomComparers.FirstOrDefault(o => o.IsTypeMatch(t1, t2));
 
@@ -65,8 +65,8 @@ namespace KellermanSoftware.CompareNetObjects
         {
             //Objects must be the same type and not be null
             if (!parms.Config.IgnoreObjectTypes
-                && parms.Object1 != null 
-                && parms.Object2 != null 
+                && parms.Object1 != null
+                && parms.Object2 != null
                 && t1 != t2)
             {
                 Difference difference = new Difference

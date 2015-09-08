@@ -6,22 +6,20 @@ using KellermanSoftware.CompareNetObjects.IgnoreOrderTypes;
 namespace KellermanSoftware.CompareNetObjects.TypeComparers
 {
     /// <summary>
-    /// Compare objects that implement IList
+    ///     Compare objects that implement IList
     /// </summary>
     public class ListComparer : BaseTypeComparer
     {
-
         /// <summary>
-        /// Constructor that takes a root comparer
+        ///     Constructor that takes a root comparer
         /// </summary>
         /// <param name="rootComparer"></param>
         public ListComparer(RootComparer rootComparer) : base(rootComparer)
         {
-            
         }
 
         /// <summary>
-        /// Returns true if both objects implement IList
+        ///     Returns true if both objects implement IList
         /// </summary>
         /// <param name="type1">The type of the first object</param>
         /// <param name="type2">The type of the second object</param>
@@ -31,9 +29,8 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
             return TypeHelper.IsIList(type1) && TypeHelper.IsIList(type2);
         }
 
-
         /// <summary>
-        /// Compare two objects that implement IList
+        ///     Compare two objects that implement IList
         /// </summary>
         public override void CompareType(CompareParms parms)
         {
@@ -66,7 +63,6 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
                 parms.Result.RemoveParent(parms.Object1.GetHashCode());
                 parms.Result.RemoveParent(parms.Object2.GetHashCode());
             }
-
         }
 
         private bool ListsHaveDifferentCounts(CompareParms parms)
@@ -110,18 +106,19 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
 
             while (enumerator1.MoveNext() && enumerator2.MoveNext())
             {
-                string currentBreadCrumb = AddBreadCrumb(parms.Config, parms.BreadCrumb, string.Empty, string.Empty, count);
+                string currentBreadCrumb = AddBreadCrumb(parms.Config, parms.BreadCrumb, string.Empty, string.Empty,
+                    count);
 
                 CompareParms childParms = new CompareParms
-                                          {
-                                              Result = parms.Result,
-                                              Config = parms.Config,
-                                              ParentObject1 = parms.Object1,
-                                              ParentObject2 = parms.Object2,
-                                              Object1 = enumerator1.Current,
-                                              Object2 = enumerator2.Current,
-                                              BreadCrumb = currentBreadCrumb
-                                          };
+                {
+                    Result = parms.Result,
+                    Config = parms.Config,
+                    ParentObject1 = parms.Object1,
+                    ParentObject2 = parms.Object2,
+                    Object1 = enumerator1.Current,
+                    Object2 = enumerator2.Current,
+                    BreadCrumb = currentBreadCrumb
+                };
 
                 RootComparer.Compare(childParms);
 
@@ -131,7 +128,5 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
                 count++;
             }
         }
-
-
     }
 }

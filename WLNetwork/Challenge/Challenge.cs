@@ -8,7 +8,15 @@ namespace WLNetwork.Challenge
     public class Challenge
     {
         /// <summary>
-        /// Challenge ID
+        ///     Create a new challenge
+        /// </summary>
+        public Challenge()
+        {
+            Id = Guid.NewGuid();
+        }
+
+        /// <summary>
+        ///     Challenge ID
         /// </summary>
         public Guid Id { get; set; }
 
@@ -48,15 +56,7 @@ namespace WLNetwork.Challenge
         public MatchType MatchType { get; set; }
 
         /// <summary>
-        /// Create a new challenge
-        /// </summary>
-        public Challenge()
-        {
-            Id = Guid.NewGuid();
-        }
-
-        /// <summary>
-        /// Confirm the challenge is about to happen
+        ///     Confirm the challenge is about to happen
         /// </summary>
         public void Commit()
         {
@@ -64,7 +64,7 @@ namespace WLNetwork.Challenge
         }
 
         /// <summary>
-        /// Sends out a snapshot.
+        ///     Sends out a snapshot.
         /// </summary>
         public void Transmit()
         {
@@ -72,14 +72,20 @@ namespace WLNetwork.Challenge
         }
 
         /// <summary>
-        /// Throw away the challenge.
+        ///     Throw away the challenge.
         /// </summary>
         public void Discard()
         {
             Challenge thechallenge;
             ChallengeController.Challenges.TryRemove(Id, out thechallenge);
             Hubs.Matches.HubContext.Clients.Group(Id.ToString()).ClearChallenge();
-            foreach (var cli in BrowserClient.Clients.Where(m => m.Value.User != null && (m.Value.User.steam.steamid == ChallengerSID || m.Value.User.steam.steamid == ChallengedSID)))
+            foreach (
+                var cli in
+                    BrowserClient.Clients.Where(
+                        m =>
+                            m.Value.User != null &&
+                            (m.Value.User.steam.steamid == ChallengerSID || m.Value.User.steam.steamid == ChallengedSID))
+                )
                 Hubs.Matches.HubContext.Groups.Remove(cli.Key, Id.ToString());
         }
     }

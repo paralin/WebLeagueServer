@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Dota2.GC.Internal;
 using log4net;
 using WLNetwork.Chat;
 using WLNetwork.Clients;
@@ -80,7 +79,8 @@ namespace WLNetwork.Hubs
             foreach (var cli in BrowserClient.Clients.Where(m => m.Value == client))
                 HubContext.Groups.Add(cli.Key, match.Id.ToString());
             // should be unnecessary match.TransmitSnapshot();
-            match.Players.Add(new MatchPlayer(client.User, league.Id, league.CurrentSeason, league.SecondaryCurrentSeason.ToArray()) {IsCaptain = true});
+            match.Players.Add(new MatchPlayer(client.User, league.Id, league.CurrentSeason,
+                league.SecondaryCurrentSeason.ToArray()) {IsCaptain = true});
             ChatChannel.SystemMessage(league.Id, client.User.profile.name + " created a new match.");
             return null;
         }
@@ -186,13 +186,15 @@ namespace WLNetwork.Hubs
             if (!BrowserClient.ClientsBySteamID.TryGetValue(chal.ChallengerSID, out other)) return;
             other.ChallengeTimer.Stop();
 
-            ChatChannel.SystemMessage(chal.League, client.User.profile.name + (accept ? " accepted the challenge." : " declined the challenge."));
+            ChatChannel.SystemMessage(chal.League,
+                client.User.profile.name + (accept ? " accepted the challenge." : " declined the challenge."));
             if (!accept) return;
 
             League league;
             if (!LeagueDB.Leagues.TryGetValue(chal.League, out league))
             {
-                log.ErrorFormat("Unable to find league {0} for challenge created by {1}.", chal.League, chal.ChallengerName);
+                log.ErrorFormat("Unable to find league {0} for challenge created by {1}.", chal.League,
+                    chal.ChallengerName);
                 return;
             }
 
@@ -364,11 +366,18 @@ namespace WLNetwork.Hubs
             target.ChallengedName = tcont.User.profile.name;
             target.ChallengedSID = tcont.User.steam.steamid;
             tcont.ChallengeTimer.Start();
-            foreach(var cli in BrowserClient.Clients.Where(m=>m.Value.User != null && (m.Value.User.steam.steamid == target.ChallengedSID || m.Value.User.steam.steamid == target.ChallengerSID)))
-                Hubs.Matches.HubContext.Groups.Add(cli.Key, target.Id.ToString());
+            foreach (
+                var cli in
+                    BrowserClient.Clients.Where(
+                        m =>
+                            m.Value.User != null &&
+                            (m.Value.User.steam.steamid == target.ChallengedSID ||
+                             m.Value.User.steam.steamid == target.ChallengerSID)))
+                HubContext.Groups.Add(cli.Key, target.Id.ToString());
             target.Commit();
             target.Transmit();
-            ChatChannel.SystemMessage(target.League, $"{client.User.profile.name} challenged {tcont.User.profile.name} to a {(target.MatchType == MatchType.OneVsOne ? "1v1" : "captains")} match!");
+            ChatChannel.SystemMessage(target.League,
+                $"{client.User.profile.name} challenged {tcont.User.profile.name} to a {(target.MatchType == MatchType.OneVsOne ? "1v1" : "captains")} match!");
             return null;
         }
     }

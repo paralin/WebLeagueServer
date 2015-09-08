@@ -3,12 +3,12 @@
 namespace KellermanSoftware.CompareNetObjects.TypeComparers
 {
     /// <summary>
-    /// Compare two URIs
+    ///     Compare two URIs
     /// </summary>
     public class UriComparer : BaseTypeComparer
     {
         /// <summary>
-        /// Constructor that takes a root comparer
+        ///     Constructor that takes a root comparer
         /// </summary>
         /// <param name="rootComparer"></param>
         public UriComparer(RootComparer rootComparer) : base(rootComparer)
@@ -16,7 +16,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// Returns true if both types are a URI
+        ///     Returns true if both types are a URI
         /// </summary>
         /// <param name="type1">The type of the first object</param>
         /// <param name="type2">The type of the second object</param>
@@ -27,7 +27,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// Compare two URIs
+        ///     Compare two URIs
         /// </summary>
         public override void CompareType(CompareParms parms)
         {

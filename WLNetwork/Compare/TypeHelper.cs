@@ -7,12 +7,12 @@ using System.Net;
 namespace KellermanSoftware.CompareNetObjects
 {
     /// <summary>
-    /// Methods for detecting 
+    ///     Methods for detecting
     /// </summary>
     public static class TypeHelper
     {
         /// <summary>
-        /// Returns true if it is a byte array
+        ///     Returns true if it is a byte array
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -28,7 +28,7 @@ namespace KellermanSoftware.CompareNetObjects
         }
 
         /// <summary>
-        /// Returns true if the type can have children
+        ///     Returns true if the type can have children
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -38,18 +38,18 @@ namespace KellermanSoftware.CompareNetObjects
                 return false;
 
             return !IsSimpleType(type)
-                && (IsClass(type)
-                    || IsInterface(type)
-                    || IsArray(type)
-                    || IsIDictionary(type)
-                    || IsIList(type)
-                    || IsStruct(type)
-                    || IsHashSet(type)
-                    );
+                   && (IsClass(type)
+                       || IsInterface(type)
+                       || IsArray(type)
+                       || IsIDictionary(type)
+                       || IsIList(type)
+                       || IsStruct(type)
+                       || IsHashSet(type)
+                       );
         }
 
         /// <summary>
-        /// True if the type is an array
+        ///     True if the type is an array
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -61,10 +61,8 @@ namespace KellermanSoftware.CompareNetObjects
             return type.IsArray;
         }
 
-
-
         /// <summary>
-        /// Returns true if it is a struct
+        ///     Returns true if it is a struct
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -77,7 +75,7 @@ namespace KellermanSoftware.CompareNetObjects
         }
 
         /// <summary>
-        /// Returns true if the type is a timespan
+        ///     Returns true if the type is a timespan
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -86,11 +84,11 @@ namespace KellermanSoftware.CompareNetObjects
             if (type == null)
                 return false;
 
-            return type == typeof(TimeSpan);
+            return type == typeof (TimeSpan);
         }
 
         /// <summary>
-        /// Return true if the type is a class
+        ///     Return true if the type is a class
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -103,7 +101,7 @@ namespace KellermanSoftware.CompareNetObjects
         }
 
         /// <summary>
-        /// Return true if the type is an interface
+        ///     Return true if the type is an interface
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -116,7 +114,7 @@ namespace KellermanSoftware.CompareNetObjects
         }
 
         /// <summary>
-        /// Return true if the type is a URI
+        ///     Return true if the type is a URI
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -125,11 +123,11 @@ namespace KellermanSoftware.CompareNetObjects
             if (type == null)
                 return false;
 
-            return (typeof(Uri).IsAssignableFrom(type));
+            return (typeof (Uri).IsAssignableFrom(type));
         }
 
         /// <summary>
-        /// Return true if the type is a pointer
+        ///     Return true if the type is a pointer
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -138,11 +136,11 @@ namespace KellermanSoftware.CompareNetObjects
             if (type == null)
                 return false;
 
-            return type == typeof(IntPtr) || type == typeof(UIntPtr);
+            return type == typeof (IntPtr) || type == typeof (UIntPtr);
         }
 
         /// <summary>
-        /// Return true if the type is an enum
+        ///     Return true if the type is an enum
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -155,7 +153,7 @@ namespace KellermanSoftware.CompareNetObjects
         }
 
         /// <summary>
-        /// Return true if the type is a dictionary
+        ///     Return true if the type is a dictionary
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -164,11 +162,11 @@ namespace KellermanSoftware.CompareNetObjects
             if (type == null)
                 return false;
 
-            return (typeof(IDictionary).IsAssignableFrom(type));
+            return (typeof (IDictionary).IsAssignableFrom(type));
         }
 
         /// <summary>
-        /// Return true if the type is a hashset
+        ///     Return true if the type is a hashset
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -178,11 +176,11 @@ namespace KellermanSoftware.CompareNetObjects
                 return false;
 
             return type.IsGenericType
-                && type.GetGenericTypeDefinition() == typeof(HashSet<>);
+                   && type.GetGenericTypeDefinition() == typeof (HashSet<>);
         }
 
         /// <summary>
-        /// Return true if the type is a List
+        ///     Return true if the type is a List
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -191,11 +189,11 @@ namespace KellermanSoftware.CompareNetObjects
             if (type == null)
                 return false;
 
-            return (typeof(IList).IsAssignableFrom(type));
+            return (typeof (IList).IsAssignableFrom(type));
         }
 
         /// <summary>
-        /// Return true if the type is an Enumerable
+        ///     Return true if the type is an Enumerable
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -205,11 +203,11 @@ namespace KellermanSoftware.CompareNetObjects
                 return false;
 
             return type.ReflectedType != null
-              && type.ReflectedType == typeof(Enumerable);
+                   && type.ReflectedType == typeof (Enumerable);
         }
 
         /// <summary>
-        /// Return true if the type is a Double
+        ///     Return true if the type is a Double
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -218,11 +216,11 @@ namespace KellermanSoftware.CompareNetObjects
             if (type == null)
                 return false;
 
-            return type == typeof(Double);
+            return type == typeof (double);
         }
 
         /// <summary>
-        /// Return true if the type is a DateTime
+        ///     Return true if the type is a DateTime
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -235,7 +233,7 @@ namespace KellermanSoftware.CompareNetObjects
         }
 
         /// <summary>
-        /// Return true if the type is a DateTimeOffset
+        ///     Return true if the type is a DateTimeOffset
         /// </summary>
         /// <param name="type"></param>
         public static bool IsDateTimeOffset(Type type)
@@ -243,11 +241,11 @@ namespace KellermanSoftware.CompareNetObjects
             if (type == null)
                 return false;
 
-            return type == typeof(DateTimeOffset);
+            return type == typeof (DateTimeOffset);
         }
 
         /// <summary>
-        /// Return true if the type is a string
+        ///     Return true if the type is a string
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -256,11 +254,11 @@ namespace KellermanSoftware.CompareNetObjects
             if (type == null)
                 return false;
 
-            return type == typeof(string);
+            return type == typeof (string);
         }
 
         /// <summary>
-        /// Return true if the type is a primitive type, date, decimal, string, or GUID
+        ///     Return true if the type is a primitive type, date, decimal, string, or GUID
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -269,21 +267,20 @@ namespace KellermanSoftware.CompareNetObjects
             if (type == null)
                 return false;
 
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof (Nullable<>))
             {
                 type = Nullable.GetUnderlyingType(type);
             }
 
             return type.IsPrimitive
-                   || type == typeof(DateTime)
-                   || type == typeof(decimal)
-                   || type == typeof(string)
-                   || type == typeof(Guid);
-
+                   || type == typeof (DateTime)
+                   || type == typeof (decimal)
+                   || type == typeof (string)
+                   || type == typeof (Guid);
         }
 
         /// <summary>
-        /// Returns true if the Type is a Runtime type
+        ///     Returns true if the Type is a Runtime type
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -292,12 +289,12 @@ namespace KellermanSoftware.CompareNetObjects
             if (type == null)
                 return false;
 
-            return (typeof(Type).IsAssignableFrom(type));
+            return (typeof (Type).IsAssignableFrom(type));
         }
 
 #if !PORTABLE
         /// <summary>
-        /// Returns true if the type is an IPEndPoint
+        ///     Returns true if the type is an IPEndPoint
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -306,11 +303,8 @@ namespace KellermanSoftware.CompareNetObjects
             if (type == null)
                 return false;
 
-            return type == typeof(IPEndPoint);
+            return type == typeof (IPEndPoint);
         }
 #endif
-
-
-
     }
 }

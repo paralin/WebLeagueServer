@@ -6,14 +6,14 @@ using System.Reflection;
 namespace KellermanSoftware.CompareNetObjects.TypeComparers
 {
     /// <summary>
-    /// Logic to compare two LINQ enumerators
+    ///     Logic to compare two LINQ enumerators
     /// </summary>
-    public class EnumerableComparer :BaseTypeComparer
+    public class EnumerableComparer : BaseTypeComparer
     {
         private readonly ListComparer _compareIList;
 
         /// <summary>
-        /// Constructor that takes a root comparer
+        ///     Constructor that takes a root comparer
         /// </summary>
         /// <param name="rootComparer"></param>
         public EnumerableComparer(RootComparer rootComparer) : base(rootComparer)
@@ -22,7 +22,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// Returns true if either object is of type LINQ Enumerator
+        ///     Returns true if either object is of type LINQ Enumerator
         /// </summary>
         /// <param name="type1">The type of the first object</param>
         /// <param name="type2">The type of the second object</param>
@@ -36,7 +36,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// Compare two objects that implement LINQ Enumerator
+        ///     Compare two objects that implement LINQ Enumerator
         /// </summary>
         public override void CompareType(CompareParms parms)
         {
@@ -62,7 +62,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
             Type enumerableGenArg = null;
             foreach (var inter in type.GetInterfaces())
             {
-                if (inter.IsGenericType && inter.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                if (inter.IsGenericType && inter.GetGenericTypeDefinition() == typeof (IEnumerable<>))
                 {
                     enumerableGenArg = inter.GetGenericArguments()[0];
                     break;
@@ -72,9 +72,9 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
             if (enumerableGenArg == null)
                 throw new ApplicationException("Cannot get IEnumerable definition");
 
-            MethodInfo toList = typeof(Enumerable).GetMethod("ToList");
+            MethodInfo toList = typeof (Enumerable).GetMethod("ToList");
             MethodInfo constructedToList = toList.MakeGenericMethod(enumerableGenArg);
-            object resultList = constructedToList.Invoke(null, new[] { source });
+            object resultList = constructedToList.Invoke(null, new[] {source});
 
             return resultList;
         }

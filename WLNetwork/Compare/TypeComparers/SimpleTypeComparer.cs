@@ -3,12 +3,12 @@
 namespace KellermanSoftware.CompareNetObjects.TypeComparers
 {
     /// <summary>
-    /// Compare primitive types (long, int, short, byte etc.) and DateTime, decimal, and Guid
+    ///     Compare primitive types (long, int, short, byte etc.) and DateTime, decimal, and Guid
     /// </summary>
     public class SimpleTypeComparer : BaseTypeComparer
     {
         /// <summary>
-        /// Constructor that takes a root comparer
+        ///     Constructor that takes a root comparer
         /// </summary>
         /// <param name="rootComparer"></param>
         public SimpleTypeComparer(RootComparer rootComparer) : base(rootComparer)
@@ -16,7 +16,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// Returns true if the type is a simple type
+        ///     Returns true if the type is a simple type
         /// </summary>
         /// <param name="type1">The type of the first object</param>
         /// <param name="type2">The type of the second object</param>
@@ -27,7 +27,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// Compare two simple types
+        ///     Compare two simple types
         /// </summary>
         public override void CompareType(CompareParms parms)
         {

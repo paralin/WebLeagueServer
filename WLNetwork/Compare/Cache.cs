@@ -6,27 +6,27 @@ using System.Reflection;
 namespace KellermanSoftware.CompareNetObjects
 {
     /// <summary>
-    /// Cache for properties, fields, and methods to speed up reflection
+    ///     Cache for properties, fields, and methods to speed up reflection
     /// </summary>
     internal static class Cache
     {
         /// <summary>
-        /// Reflection Cache for property info
+        ///     Reflection Cache for property info
         /// </summary>
         private static readonly Dictionary<Type, PropertyInfo[]> _propertyCache;
 
         /// <summary>
-        /// Reflection Cache for field info
+        ///     Reflection Cache for field info
         /// </summary>
         private static readonly Dictionary<Type, FieldInfo[]> _fieldCache;
 
         /// <summary>
-        /// Reflection Cache for methods
+        ///     Reflection Cache for methods
         /// </summary>
         private static readonly Dictionary<Type, MethodInfo[]> _methodList;
 
         /// <summary>
-        /// Static constructor
+        ///     Static constructor
         /// </summary>
         static Cache()
         {
@@ -36,22 +36,22 @@ namespace KellermanSoftware.CompareNetObjects
         }
 
         /// <summary>
-        /// Clear the cache
+        ///     Clear the cache
         /// </summary>
         public static void ClearCache()
         {
-            lock(_propertyCache)
+            lock (_propertyCache)
                 _propertyCache.Clear();
 
-            lock(_fieldCache)
+            lock (_fieldCache)
                 _fieldCache.Clear();
 
-            lock(_methodList)
+            lock (_methodList)
                 _methodList.Clear();
         }
 
         /// <summary>
-        /// Get a list of the fields within a type
+        ///     Get a list of the fields within a type
         /// </summary>
         /// <param name="config"> </param>
         /// <param name="type"></param>
@@ -102,21 +102,22 @@ namespace KellermanSoftware.CompareNetObjects
         }
 
         /// <summary>
-        /// Get the value of a property
+        ///     Get the value of a property
         /// </summary>
         /// <param name="result"> </param>
         /// <param name="type"></param>
         /// <param name="objectValue"></param>
         /// <param name="propertyName"></param>
         /// <returns></returns>
-        public static object GetPropertyValue(ComparisonResult result, Type type, object objectValue, string propertyName)
+        public static object GetPropertyValue(ComparisonResult result, Type type, object objectValue,
+            string propertyName)
         {
             lock (_propertyCache)
                 return GetPropertyInfo(result, type).First(o => o.Name == propertyName).GetValue(objectValue, null);
         }
 
         /// <summary>
-        /// Get a list of the properties in a type
+        ///     Get a list of the properties in a type
         /// </summary>
         /// <param name="result"> </param>
         /// <param name="type"></param>
@@ -157,7 +158,7 @@ namespace KellermanSoftware.CompareNetObjects
         }
 
         /// <summary>
-        /// Get a method by name
+        ///     Get a method by name
         /// </summary>
         /// <param name="type"></param>
         /// <param name="methodName"></param>
@@ -169,7 +170,7 @@ namespace KellermanSoftware.CompareNetObjects
         }
 
         /// <summary>
-        /// Get the cached methods for a type
+        ///     Get the cached methods for a type
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -185,6 +186,5 @@ namespace KellermanSoftware.CompareNetObjects
                 return myMethodInfo;
             }
         }
-
     }
 }

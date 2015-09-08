@@ -6,7 +6,7 @@ using log4net;
 namespace WLNetwork.Challenge
 {
     /// <summary>
-    /// Lists all challenges.
+    ///     Lists all challenges.
     /// </summary>
     public class ChallengeController
     {

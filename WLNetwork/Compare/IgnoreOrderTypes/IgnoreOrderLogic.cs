@@ -9,16 +9,15 @@ using KellermanSoftware.CompareNetObjects.TypeComparers;
 namespace KellermanSoftware.CompareNetObjects.IgnoreOrderTypes
 {
     /// <summary>
-    /// Logic for comparing lists that are out of order based on a key
+    ///     Logic for comparing lists that are out of order based on a key
     /// </summary>
     public class IgnoreOrderLogic : BaseComparer
     {
-        private readonly RootComparer _rootComparer;
         private readonly List<string> _alreadyCompared = new List<string>();
-
+        private readonly RootComparer _rootComparer;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IgnoreOrderLogic"/> class.
+        ///     Initializes a new instance of the <see cref="IgnoreOrderLogic" /> class.
         /// </summary>
         /// <param name="rootComparer">The root comparer.</param>
         public IgnoreOrderLogic(RootComparer rootComparer)
@@ -27,7 +26,7 @@ namespace KellermanSoftware.CompareNetObjects.IgnoreOrderTypes
         }
 
         /// <summary>
-        /// Compares the enumerators and ignores the order
+        ///     Compares the enumerators and ignores the order
         /// </summary>
         public void CompareEnumeratorIgnoreOrder(CompareParms parms, bool countsDifferent)
         {
@@ -55,7 +54,6 @@ namespace KellermanSoftware.CompareNetObjects.IgnoreOrderTypes
                 }
             }
         }
-
 
         private bool CompareInOrder(CompareParms parms)
         {
@@ -132,7 +130,7 @@ namespace KellermanSoftware.CompareNetObjects.IgnoreOrderTypes
             }
             else
             {
-                enumerator1 = ((IEnumerable)parms.Object2).GetEnumerator();
+                enumerator1 = ((IEnumerable) parms.Object2).GetEnumerator();
             }
 
             while (enumerator1.MoveNext())
@@ -159,7 +157,7 @@ namespace KellermanSoftware.CompareNetObjects.IgnoreOrderTypes
                 }
                 else
                 {
-                    enumerator2 = ((IEnumerable)parms.Object1).GetEnumerator();
+                    enumerator2 = ((IEnumerable) parms.Object1).GetEnumerator();
                 }
 
                 bool found = false;
@@ -207,17 +205,12 @@ namespace KellermanSoftware.CompareNetObjects.IgnoreOrderTypes
                         Object2 = reverseCompare ? new WeakReference(enumerator1) : null
                     };
 
-                    AddDifference(parms.Result, difference);                    
+                    AddDifference(parms.Result, difference);
                 }
                 if (parms.Result.ExceededDifferences)
                     return;
-
             }
-
-         
         }
-
-
 
         private string GetMatchIndex(ComparisonResult result, List<string> spec, object currentObject)
         {
@@ -230,16 +223,17 @@ namespace KellermanSoftware.CompareNetObjects.IgnoreOrderTypes
 
                 if (info == null)
                 {
-                    throw new Exception(string.Format("Invalid CollectionMatchingSpec.  No such property {0} for type {1} ",
-                        item,
-                        currentObject.GetType().Name));
+                    throw new Exception(
+                        string.Format("Invalid CollectionMatchingSpec.  No such property {0} for type {1} ",
+                            item,
+                            currentObject.GetType().Name));
                 }
 
                 var propertyValue = info.GetValue(currentObject, null);
 
                 if (propertyValue == null)
                 {
-                    sb.AppendFormat("{0}:(null),",item);
+                    sb.AppendFormat("{0}:(null),", item);
                 }
                 else
                 {
@@ -253,9 +247,7 @@ namespace KellermanSoftware.CompareNetObjects.IgnoreOrderTypes
             return sb.ToString().TrimEnd(',');
         }
 
-
-
-        private List<string> GetMatchingSpec(ComparisonResult result,Type type)
+        private List<string> GetMatchingSpec(ComparisonResult result, Type type)
         {
             //The user defined a key for the order
             if (result.Config.CollectionMatchingSpec.Keys.Contains(type))
@@ -276,17 +268,5 @@ namespace KellermanSoftware.CompareNetObjects.IgnoreOrderTypes
 
             return list;
         }
-
-
-
-
-
-
-
-
-
-
-
-
     }
 }

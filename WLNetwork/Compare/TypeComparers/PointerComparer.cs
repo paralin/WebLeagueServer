@@ -3,12 +3,12 @@
 namespace KellermanSoftware.CompareNetObjects.TypeComparers
 {
     /// <summary>
-    /// Logic to compare to pointers
+    ///     Logic to compare to pointers
     /// </summary>
     public class PointerComparer : BaseTypeComparer
     {
         /// <summary>
-        /// Constructor that takes a root comparer
+        ///     Constructor that takes a root comparer
         /// </summary>
         /// <param name="rootComparer"></param>
         public PointerComparer(RootComparer rootComparer) : base(rootComparer)
@@ -16,7 +16,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// Returns true if both types are a pointer
+        ///     Returns true if both types are a pointer
         /// </summary>
         /// <param name="type1">The type of the first object</param>
         /// <param name="type2">The type of the second object</param>
@@ -27,12 +27,15 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// Compare two pointers
+        ///     Compare two pointers
         /// </summary>
         public override void CompareType(CompareParms parms)
         {
-            if ((parms.Object1 is IntPtr && parms.Object2 is IntPtr && ((IntPtr)parms.Object1) != ((IntPtr)parms.Object2))
-                || (parms.Object1 is UIntPtr && parms.Object2 is UIntPtr && ((UIntPtr)parms.Object1) != ((UIntPtr)parms.Object2)))
+            if ((parms.Object1 is IntPtr && parms.Object2 is IntPtr &&
+                 ((IntPtr) parms.Object1) != ((IntPtr) parms.Object2))
+                ||
+                (parms.Object1 is UIntPtr && parms.Object2 is UIntPtr &&
+                 ((UIntPtr) parms.Object1) != ((UIntPtr) parms.Object2)))
             {
                 Difference difference = new Difference
                 {

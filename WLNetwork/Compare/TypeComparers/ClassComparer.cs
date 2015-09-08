@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Collections;
 
-
 namespace KellermanSoftware.CompareNetObjects.TypeComparers
 {
     /// <summary>
-    /// Compare two objects of type class
+    ///     Compare two objects of type class
     /// </summary>
     public class ClassComparer : BaseTypeComparer
     {
-        private readonly PropertyComparer _propertyComparer;
         private readonly FieldComparer _fieldComparer;
+        private readonly PropertyComparer _propertyComparer;
 
         /// <summary>
-        /// Constructor for the class comparer
+        ///     Constructor for the class comparer
         /// </summary>
         /// <param name="rootComparer">The root comparer instantiated by the RootComparerFactory</param>
         public ClassComparer(RootComparer rootComparer) : base(rootComparer)
@@ -23,7 +22,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// Returns true if the both objects are a class
+        ///     Returns true if the both objects are a class
         /// </summary>
         /// <param name="type1">The type of the first object</param>
         /// <param name="type2">The type of the second object</param>
@@ -31,11 +30,11 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         public override bool IsTypeMatch(Type type1, Type type2)
         {
             return (TypeHelper.IsClass(type1) && TypeHelper.IsClass(type2))
-                || (TypeHelper.IsInterface(type1) && TypeHelper.IsInterface(type2));
+                   || (TypeHelper.IsInterface(type1) && TypeHelper.IsInterface(type2));
         }
 
         /// <summary>
-        /// Compare two classes
+        ///     Compare two classes
         /// </summary>
         public override void CompareType(CompareParms parms)
         {

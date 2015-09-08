@@ -69,13 +69,13 @@ namespace WLNetwork.Model
         public LeagueDecay Decay { get; set; }
 
         /// <summary>
-        /// The source version to force.
+        ///     The source version to force.
         /// </summary>
         public ESourceEngine ForceSourceVersion { get; set; }
     }
 
     /// <summary>
-    ///    League decay settings.
+    ///     League decay settings.
     /// </summary>
     [BsonIgnoreExtraElements]
     public class LeagueDecay

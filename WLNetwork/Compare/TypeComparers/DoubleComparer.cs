@@ -3,12 +3,12 @@
 namespace KellermanSoftware.CompareNetObjects.TypeComparers
 {
     /// <summary>
-    /// Compare Double values with the ability to specify the precision
+    ///     Compare Double values with the ability to specify the precision
     /// </summary>
     public class DoubleComparer : BaseTypeComparer
     {
         /// <summary>
-        /// Constructor that takes a root comparer
+        ///     Constructor that takes a root comparer
         /// </summary>
         /// <param name="rootComparer"></param>
         public DoubleComparer(RootComparer rootComparer) : base(rootComparer)
@@ -26,10 +26,10 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
             if (parms.Object1 == null || parms.Object2 == null)
                 return;
 
-            Double double1 = (Double)parms.Object1;
-            Double double2 = (Double)parms.Object2;
+            double double1 = (double) parms.Object1;
+            double double2 = (double) parms.Object2;
 
-            double difference = Math.Abs(double1 * parms.Config.DoublePrecision);
+            double difference = Math.Abs(double1*parms.Config.DoublePrecision);
 
             if (Math.Abs(double1 - double2) > difference)
                 AddDifference(parms);

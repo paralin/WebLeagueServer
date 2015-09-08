@@ -24,9 +24,9 @@ namespace WLNetwork.Bots
     public class BotController
     {
         private readonly MatchSetupDetails game;
+        private readonly Timer inviteTimer;
         private readonly ILog log;
         private readonly Timer matchResultTimeout;
-        private readonly Timer inviteTimer;
         private bool hasStarted = false;
         public BotInstance instance;
         private bool lobbyReadySent = false;
@@ -68,7 +68,7 @@ namespace WLNetwork.Bots
         {
             var g = game.GetGame();
             if (instance.bot.Lobby?.state != CSODOTALobby.State.UI || g == null) return;
-            if(instance.bot.Engine == ESourceEngine.k_ESE_Source2) instance.bot.DotaGCHandler.InviteToLobby(member);
+            if (instance.bot.Engine == ESourceEngine.k_ESE_Source2) instance.bot.DotaGCHandler.InviteToLobby(member);
         }
 
         private void InviteTimerOnElapsed(object sender, ElapsedEventArgs e)
@@ -81,7 +81,7 @@ namespace WLNetwork.Bots
             }
 
             if (instance.bot.Engine != ESourceEngine.k_ESE_Source2) return;
-            foreach (var plyr in g.Players.Where(m=>instance.bot.Lobby.members.All(x=>x.id+"" != m.SID)))
+            foreach (var plyr in g.Players.Where(m => instance.bot.Lobby.members.All(x => x.id + "" != m.SID)))
                 instance.bot.DotaGCHandler.InviteToLobby(ulong.Parse(plyr.SID));
         }
 

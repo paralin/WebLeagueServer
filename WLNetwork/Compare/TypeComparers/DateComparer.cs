@@ -3,12 +3,12 @@
 namespace KellermanSoftware.CompareNetObjects.TypeComparers
 {
     /// <summary>
-    /// Compare dates with the option to ignore based on milliseconds
+    ///     Compare dates with the option to ignore based on milliseconds
     /// </summary>
     public class DateComparer : BaseTypeComparer
     {
         /// <summary>
-        /// Constructor that takes a root comparer
+        ///     Constructor that takes a root comparer
         /// </summary>
         /// <param name="rootComparer"></param>
         public DateComparer(RootComparer rootComparer) : base(rootComparer)
@@ -31,7 +31,6 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
 
             if (Math.Abs(date1.Subtract(date2).TotalMilliseconds) > parms.Config.MaxMillisecondsDateDifference)
                 AddDifference(parms);
-
         }
     }
 }

@@ -4,7 +4,6 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
 using log4net;
-using WLNetwork.Clients;
 using WLNetwork.Hubs;
 using WLNetwork.Matches.Enums;
 
@@ -38,8 +37,10 @@ namespace WLNetwork.Matches
             }
             if (args.OldItems != null)
             {
-                Hubs.Matches.HubContext.Clients.All.AvailableGameRemove(args.OldItems.OfType<MatchGame>().ToArray().Select(m=>m.Id.ToString()));
-                Admin.HubContext.Clients.All.AvailableGameRemove(args.OldItems.OfType<MatchGame>().ToArray().Select(m=>m.Id.ToString()));
+                Hubs.Matches.HubContext.Clients.All.AvailableGameRemove(
+                    args.OldItems.OfType<MatchGame>().ToArray().Select(m => m.Id.ToString()));
+                Admin.HubContext.Clients.All.AvailableGameRemove(
+                    args.OldItems.OfType<MatchGame>().ToArray().Select(m => m.Id.ToString()));
             }
         }
     }

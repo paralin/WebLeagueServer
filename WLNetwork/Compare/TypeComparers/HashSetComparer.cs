@@ -7,12 +7,12 @@ using KellermanSoftware.CompareNetObjects.IgnoreOrderTypes;
 namespace KellermanSoftware.CompareNetObjects.TypeComparers
 {
     /// <summary>
-    /// Logic to compare two hash sets
+    ///     Logic to compare two hash sets
     /// </summary>
     public class HashSetComparer : BaseTypeComparer
     {
         /// <summary>
-        /// Constructor that takes a root comparer
+        ///     Constructor that takes a root comparer
         /// </summary>
         /// <param name="rootComparer"></param>
         public HashSetComparer(RootComparer rootComparer) : base(rootComparer)
@@ -20,7 +20,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// Returns true if both objects are hash sets
+        ///     Returns true if both objects are hash sets
         /// </summary>
         /// <param name="type1">The type of the first object</param>
         /// <param name="type2">The type of the second object</param>
@@ -31,7 +31,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// Compare two hash sets
+        ///     Compare two hash sets
         /// </summary>
         public override void CompareType(CompareParms parms)
         {
@@ -76,7 +76,8 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
 
             while (enumerator1.MoveNext() && enumerator2.MoveNext())
             {
-                string currentBreadCrumb = AddBreadCrumb(parms.Config, parms.BreadCrumb, string.Empty, string.Empty, count);
+                string currentBreadCrumb = AddBreadCrumb(parms.Config, parms.BreadCrumb, string.Empty, string.Empty,
+                    count);
 
                 CompareParms childParms = new CompareParms
                 {
@@ -108,16 +109,16 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
             if (hashSet1Count != hashSet2Count)
             {
                 Difference difference = new Difference
-                                            {
-                                                ParentObject1 = new WeakReference(parms.ParentObject1),
-                                                ParentObject2 = new WeakReference(parms.ParentObject2),
-                                                PropertyName = parms.BreadCrumb,
-                                                Object1Value = hashSet1Count.ToString(CultureInfo.InvariantCulture),
-                                                Object2Value = hashSet2Count.ToString(CultureInfo.InvariantCulture),
-                                                ChildPropertyName = "Count",
-                                                Object1 = new WeakReference(parms.Object1),
-                                                Object2 = new WeakReference(parms.Object2)
-                                            };
+                {
+                    ParentObject1 = new WeakReference(parms.ParentObject1),
+                    ParentObject2 = new WeakReference(parms.ParentObject2),
+                    PropertyName = parms.BreadCrumb,
+                    Object1Value = hashSet1Count.ToString(CultureInfo.InvariantCulture),
+                    Object2Value = hashSet2Count.ToString(CultureInfo.InvariantCulture),
+                    ChildPropertyName = "Count",
+                    Object1 = new WeakReference(parms.Object1),
+                    Object2 = new WeakReference(parms.Object2)
+                };
 
                 AddDifference(parms.Result, difference);
 

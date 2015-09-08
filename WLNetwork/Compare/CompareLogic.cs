@@ -1,33 +1,11 @@
-﻿// This software is provided free of charge from Kellerman Software.
-// It may be used in any project, including commercial for sale projects.
-//
-// Check out our other great software at:
-// http://www.kellermansoftware.com
-// *  Free Quick Reference Pack for Developers
-// *  Free Sharp Zip Wrapper
-// *  NUnit Test Generator
-// * .NET Caching Library
-// * .NET Email Validation Library
-// * .NET FTP Library
-// * .NET Encryption Library
-// * .NET Logging Library
-// * Themed Winform Wizard
-// * Unused Stored Procedures
-// * AccessDiff
-// * .NET SFTP Library
-// * Ninja Database Pro (Object database for .NET, Silverlight, Windows Phone 7)
-// * Ninja WinRT Database (Object database for Windows 8 Runtime, Windows Phone 8)
-// * Knight Data Access Layer (ORM, LINQ Provider, Generator)
-// * CSV Reports (CSV Reader, Writer)
-// * What's Changed? (Compare words, strings, streams, and text files)
-#region Includes
+﻿#region Includes
 
-using System;
-using System.Collections.Generic;
+
 
 #endregion
 
 #region License
+
 //Microsoft Public License (Ms-PL)
 
 //This license governs use of the accompanying software. If you use the software, you accept this license. If you do not accept the license, do not use the software.
@@ -59,36 +37,33 @@ using System.Collections.Generic;
 //(D) If you distribute any portion of the software in source code form, you may do so only under this license by including a complete copy of this license with your distribution. If you distribute any portion of the software in compiled or object code form, you may only do so under a license that complies with this license.
 
 //(E) The software is licensed "as-is." You bear the risk of using it. The contributors give no express warranties, guarantees or conditions. You may have additional consumer rights under your local laws which this license cannot change. To the extent permitted under your local laws, the contributors exclude the implied warranties of merchantability, fitness for a particular purpose and non-infringement.
+
 #endregion
 
 namespace KellermanSoftware.CompareNetObjects
 {
     /// <summary>
-    /// Class that allows comparison of two objects of the same type to each other.  Supports classes, lists, arrays, dictionaries, child comparison and more.
+    ///     Class that allows comparison of two objects of the same type to each other.  Supports classes, lists, arrays,
+    ///     dictionaries, child comparison and more.
     /// </summary>
     /// <example>
-    /// CompareLogic compareLogic = new CompareLogic();
-    /// 
-    /// Person person1 = new Person();
-    /// person1.DateCreated = DateTime.Now;
-    /// person1.Name = "Greg";
-    ///
-    /// Person person2 = new Person();
-    /// person2.Name = "John";
-    /// person2.DateCreated = person1.DateCreated;
-    ///
-    /// ComparisonResult result = compareLogic.Compare(person1, person2);
-    /// 
-    /// if (!result.AreEqual)
-    ///    Console.WriteLine(result.DifferencesString);
-    /// 
+    ///     CompareLogic compareLogic = new CompareLogic();
+    ///     Person person1 = new Person();
+    ///     person1.DateCreated = DateTime.Now;
+    ///     person1.Name = "Greg";
+    ///     Person person2 = new Person();
+    ///     person2.Name = "John";
+    ///     person2.DateCreated = person1.DateCreated;
+    ///     ComparisonResult result = compareLogic.Compare(person1, person2);
+    ///     if (!result.AreEqual)
+    ///     Console.WriteLine(result.DifferencesString);
     /// </example>
     public class CompareLogic : ICompareLogic
     {
         #region Properties
 
         /// <summary>
-        /// The default configuration
+        ///     The default configuration
         /// </summary>
         public ComparisonConfig Config { get; set; }
 
@@ -97,7 +72,7 @@ namespace KellermanSoftware.CompareNetObjects
         #region Constructor
 
         /// <summary>
-        /// Set up defaults for the comparison
+        ///     Set up defaults for the comparison
         /// </summary>
         public CompareLogic()
         {
@@ -105,7 +80,7 @@ namespace KellermanSoftware.CompareNetObjects
         }
 
         /// <summary>
-        /// Pass in the configuration
+        ///     Pass in the configuration
         /// </summary>
         /// <param name="config"></param>
         public CompareLogic(ComparisonConfig config)
@@ -116,12 +91,13 @@ namespace KellermanSoftware.CompareNetObjects
         #endregion
 
         #region Public Methods
+
         /// <summary>
-        /// Compare two objects of the same type to each other.
+        ///     Compare two objects of the same type to each other.
         /// </summary>
         /// <remarks>
-        /// Check the Differences or DifferencesString Properties for the differences.
-        /// Default MaxDifferences is 1 for performance
+        ///     Check the Differences or DifferencesString Properties for the differences.
+        ///     Default MaxDifferences is 1 for performance
         /// </remarks>
         /// <param name="object1"></param>
         /// <param name="object2"></param>
@@ -130,9 +106,9 @@ namespace KellermanSoftware.CompareNetObjects
         {
             ComparisonResult result = new ComparisonResult(Config);
 
-            #if !PORTABLE
-                result.Watch.Start();
-            #endif
+#if !PORTABLE
+            result.Watch.Start();
+#endif
 
             RootComparer rootComparer = RootComparerFactory.GetRootComparer();
 
@@ -150,15 +126,15 @@ namespace KellermanSoftware.CompareNetObjects
             if (Config.AutoClearCache)
                 ClearCache();
 
-            #if !PORTABLE
-                result.Watch.Stop();
-            #endif
+#if !PORTABLE
+            result.Watch.Stop();
+#endif
 
             return result;
         }
 
         /// <summary>
-        /// Reflection properties and fields are cached. By default this cache is cleared automatically after each compare.
+        ///     Reflection properties and fields are cached. By default this cache is cleared automatically after each compare.
         /// </summary>
         public void ClearCache()
         {
@@ -166,6 +142,5 @@ namespace KellermanSoftware.CompareNetObjects
         }
 
         #endregion
-
     }
 }

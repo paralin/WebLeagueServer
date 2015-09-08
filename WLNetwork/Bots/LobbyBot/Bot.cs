@@ -12,6 +12,7 @@ using SteamKit2;
 using WLNetwork.Bots.LobbyBot.Enums;
 using WLNetwork.Utils;
 using Timer = System.Timers.Timer;
+
 #if USE_GAME_ENGINE
 using Dota2.Engine;
 using Dota2.Engine.Control;
@@ -48,7 +49,7 @@ namespace WLNetwork.Bots.LobbyBot
         public DotaGCHandler DotaGCHandler { get; private set; }
 
         /// <summary>
-        /// Which engine to use?
+        ///     Which engine to use?
         /// </summary>
         public ESourceEngine Engine { get; set; }
 

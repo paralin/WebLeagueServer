@@ -1,30 +1,31 @@
 ﻿using System.Collections.Generic;
 using KellermanSoftware.CompareNetObjects.TypeComparers;
 
-
 namespace KellermanSoftware.CompareNetObjects
 {
     /// <summary>
-    /// Factory to create a root comparer
+    ///     Factory to create a root comparer
     /// </summary>
     public static class RootComparerFactory
     {
         #region Class Variables
+
         private static readonly object _locker = new object();
         private static RootComparer _rootComparer;
+
         #endregion
 
         #region Methods
 
         /// <summary>
-        /// Get the current root comparer
+        ///     Get the current root comparer
         /// </summary>
         /// <returns></returns>
         public static RootComparer GetRootComparer()
         {
-            lock(_locker)
+            lock (_locker)
                 if (_rootComparer == null)
-                    _rootComparer= BuildRootComparer();
+                    _rootComparer = BuildRootComparer();
 
             return _rootComparer;
         }
@@ -57,6 +58,7 @@ namespace KellermanSoftware.CompareNetObjects
             _rootComparer.TypeComparers.Add(new StructComparer(_rootComparer));
             return _rootComparer;
         }
+
         #endregion
     }
 }

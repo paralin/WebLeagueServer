@@ -1,17 +1,16 @@
-﻿
-using System;
+﻿using System;
 using System.Linq;
 using System.Reflection;
 
 namespace KellermanSoftware.CompareNetObjects
 {
     /// <summary>
-    /// Exclude types depending upon the configuration
+    ///     Exclude types depending upon the configuration
     /// </summary>
-    internal static class ExcludeLogic 
+    internal static class ExcludeLogic
     {
         /// <summary>
-        /// Returns true if the property or field should be excluded
+        ///     Returns true if the property or field should be excluded
         /// </summary>
         /// <param name="config"></param>
         /// <param name="info"></param>
@@ -33,7 +32,7 @@ namespace KellermanSoftware.CompareNetObjects
         }
 
         /// <summary>
-        /// Check if the class type should be excluded based on the configuration
+        ///     Check if the class type should be excluded based on the configuration
         /// </summary>
         /// <param name="config"></param>
         /// <param name="t1"></param>
@@ -42,8 +41,8 @@ namespace KellermanSoftware.CompareNetObjects
         public static bool ShouldExcludeClassType(ComparisonConfig config, Type t1, Type t2)
         {
             //Only include specific class types
-            if (config.ClassTypesToInclude.Count > 0 
-                && (!config.ClassTypesToInclude.Contains(t1) 
+            if (config.ClassTypesToInclude.Count > 0
+                && (!config.ClassTypesToInclude.Contains(t1)
                     || !config.ClassTypesToInclude.Contains(t2)))
             {
                 return true;
@@ -65,7 +64,7 @@ namespace KellermanSoftware.CompareNetObjects
         }
 
         /// <summary>
-        /// Check if any type has attributes that should be bypassed
+        ///     Check if any type has attributes that should be bypassed
         /// </summary>
         /// <returns></returns>
         public static bool IgnoredByAttribute(ComparisonConfig config, MemberInfo info)
@@ -74,6 +73,5 @@ namespace KellermanSoftware.CompareNetObjects
 
             return attributes.Any(a => config.AttributesToIgnore.Contains(a.GetType()));
         }
-
     }
 }

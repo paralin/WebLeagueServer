@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Linq;
+using System.Reflection;
 
 namespace KellermanSoftware.CompareNetObjects.TypeComparers
 {
     /// <summary>
-    /// Compare two properties (Note inherits from BaseComparer instead of TypeComparer
+    ///     Compare two properties (Note inherits from BaseComparer instead of TypeComparer
     /// </summary>
     public class PropertyComparer : BaseComparer
     {
-        private readonly RootComparer _rootComparer;
         private readonly IndexerComparer _indexerComparer;
+        private readonly RootComparer _rootComparer;
 
         /// <summary>
-        /// Constructor that takes a root comparer
+        ///     Constructor that takes a root comparer
         /// </summary>
         /// <param name="rootComparer"></param>
         public PropertyComparer(RootComparer rootComparer)
@@ -24,7 +24,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// Compare the properties of a class
+        ///     Compare the properties of a class
         /// </summary>
         public void PerformCompareProperties(CompareParms parms)
         {
@@ -42,7 +42,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
 
                 //Skip if it should be excluded based on the configuration
                 if (ExcludeLogic.ShouldExcludeMember(parms.Config, info))
-                    continue;    
+                    continue;
 
                 //If we should ignore read only, skip it
                 if (!parms.Config.CompareReadOnly && info.CanWrite == false)
@@ -64,11 +64,16 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
                     continue;
                 }
 
-                bool object1IsParent = objectValue1 != null && (objectValue1 == parms.Object1 || parms.Result.Parents.ContainsKey(objectValue1.GetHashCode()));
-                bool object2IsParent = objectValue2 != null && (objectValue2 == parms.Object2 || parms.Result.Parents.ContainsKey(objectValue2.GetHashCode()));
+                bool object1IsParent = objectValue1 != null &&
+                                       (objectValue1 == parms.Object1 ||
+                                        parms.Result.Parents.ContainsKey(objectValue1.GetHashCode()));
+                bool object2IsParent = objectValue2 != null &&
+                                       (objectValue2 == parms.Object2 ||
+                                        parms.Result.Parents.ContainsKey(objectValue2.GetHashCode()));
 
                 //Skip properties where both point to the corresponding parent
-                if ((TypeHelper.IsClass(info.PropertyType) || TypeHelper.IsInterface(info.PropertyType) || TypeHelper.IsStruct(info.PropertyType)) 
+                if ((TypeHelper.IsClass(info.PropertyType) || TypeHelper.IsInterface(info.PropertyType) ||
+                     TypeHelper.IsStruct(info.PropertyType))
                     && (object1IsParent && object2IsParent))
                 {
                     continue;
@@ -158,7 +163,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
                 throw new Exception("Cannot compare objects with more than one indexer for object " + breadCrumb);
             }
 
-            if (indexers[0].ParameterType != typeof(Int32))
+            if (indexers[0].ParameterType != typeof (int))
             {
                 if (config.SkipInvalidIndexers)
                     return false;
@@ -175,12 +180,13 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
             }
 
             if (info.ReflectedType.GetProperty("Count") == null
-                || info.ReflectedType.GetProperty("Count").PropertyType != typeof(Int32))
+                || info.ReflectedType.GetProperty("Count").PropertyType != typeof (int))
             {
                 if (config.SkipInvalidIndexers)
                     return false;
 
-                throw new Exception("Indexer must have a corresponding Count property that is an integer for object " + breadCrumb);
+                throw new Exception("Indexer must have a corresponding Count property that is an integer for object " +
+                                    breadCrumb);
             }
 
             return true;

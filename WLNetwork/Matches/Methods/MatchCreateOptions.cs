@@ -47,7 +47,7 @@ namespace WLNetwork.Matches.Methods
         public uint LeagueRegion { get; set; }
 
         /// <summary>
-        /// Engine to use.
+        ///     Engine to use.
         /// </summary>
         public ESourceEngine Engine { get; set; }
     }

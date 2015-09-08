@@ -6,13 +6,14 @@ using System.Text;
 namespace KellermanSoftware.CompareNetObjects
 {
     /// <summary>
-    /// Details about the comparison
+    ///     Details about the comparison
     /// </summary>
     public class ComparisonResult
     {
         #region Constructors
+
         /// <summary>
-        /// Set the configuration for the comparison
+        ///     Set the configuration for the comparison
         /// </summary>
         /// <param name="config"></param>
         public ComparisonResult(ComparisonConfig config)
@@ -20,47 +21,49 @@ namespace KellermanSoftware.CompareNetObjects
             Config = config;
             Differences = new List<Difference>();
 
-            #if !PORTABLE
-                Watch = new Stopwatch();
-            #endif
+#if !PORTABLE
+            Watch = new Stopwatch();
+#endif
         }
+
         #endregion
 
         #region Properties
+
         /// <summary>
-        /// Keep track of the depth of structs being compared.  Used with ComparisonConfig.MaxStructDepth
+        ///     Keep track of the depth of structs being compared.  Used with ComparisonConfig.MaxStructDepth
         /// </summary>
         internal int CurrentStructDepth { get; set; }
 
         /// <summary>
-        /// Configuration
+        ///     Configuration
         /// </summary>
-        public ComparisonConfig Config { get; private set; }
+        public ComparisonConfig Config { get; }
 
-        #if !PORTABLE
-            internal Stopwatch Watch { get; set; }
-
-            /// <summary>
-            /// The amount of time in milliseconds it took for the comparison
-            /// </summary>
-            public long ElapsedMilliseconds
-            {
-                get { return Watch.ElapsedMilliseconds; }
-            }
-        #endif
+#if !PORTABLE
+        internal Stopwatch Watch { get; set; }
 
         /// <summary>
-        /// Keep track of parent objects in the object hiearchy
+        ///     The amount of time in milliseconds it took for the comparison
+        /// </summary>
+        public long ElapsedMilliseconds
+        {
+            get { return Watch.ElapsedMilliseconds; }
+        }
+#endif
+
+        /// <summary>
+        ///     Keep track of parent objects in the object hiearchy
         /// </summary>
         internal readonly Dictionary<int, int> Parents = new Dictionary<int, int>();
 
         /// <summary>
-        /// The differences found during the compare
+        ///     The differences found during the compare
         /// </summary>
         public List<Difference> Differences { get; set; }
 
         /// <summary>
-        /// The differences found in a string suitable for a textbox
+        ///     The differences found in a string suitable for a textbox
         /// </summary>
         public string DifferencesString
         {
@@ -83,7 +86,7 @@ namespace KellermanSoftware.CompareNetObjects
         }
 
         /// <summary>
-        /// Returns true if the objects are equal
+        ///     Returns true if the objects are equal
         /// </summary>
         public bool AreEqual
         {
@@ -91,17 +94,19 @@ namespace KellermanSoftware.CompareNetObjects
         }
 
         /// <summary>
-        /// Returns true if the number of differences has reached the maximum
+        ///     Returns true if the number of differences has reached the maximum
         /// </summary>
         public bool ExceededDifferences
         {
             get { return Differences.Count >= Config.MaxDifferences; }
         }
+
         #endregion
 
         #region Methods
+
         /// <summary>
-        /// Add parent, handle references count
+        ///     Add parent, handle references count
         /// </summary>
         /// <param name="hash"></param>
         internal void AddParent(int hash)
@@ -122,9 +127,8 @@ namespace KellermanSoftware.CompareNetObjects
         }
 
 
-
         /// <summary>
-        /// Remove parent, handle references count
+        ///     Remove parent, handle references count
         /// </summary>
         /// <param name="hash"></param>
         internal void RemoveParent(int hash)
@@ -136,8 +140,7 @@ namespace KellermanSoftware.CompareNetObjects
                 else Parents[hash]--;
             }
         }
+
         #endregion
-
-
     }
 }

@@ -5,20 +5,21 @@ using System.Net;
 namespace KellermanSoftware.CompareNetObjects.TypeComparers
 {
     /// <summary>
-    /// Logic to compare two IP End Points
+    ///     Logic to compare two IP End Points
     /// </summary>
-    public class IpEndPointComparer : BaseTypeComparer 
+    public class IpEndPointComparer : BaseTypeComparer
     {
         /// <summary>
-        /// Constructor that takes a root comparer
+        ///     Constructor that takes a root comparer
         /// </summary>
         /// <param name="rootComparer"></param>
         public IpEndPointComparer(RootComparer rootComparer)
             : base(rootComparer)
-        {}
+        {
+        }
 
         /// <summary>
-        /// Returns true if both objects are an IP End Point
+        ///     Returns true if both objects are an IP End Point
         /// </summary>
         /// <param name="type1">The type of the first object</param>
         /// <param name="type2">The type of the second object</param>
@@ -29,7 +30,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// Compare two IP End Points
+        ///     Compare two IP End Points
         /// </summary>
         public override void CompareType(CompareParms parms)
         {
@@ -48,23 +49,21 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
             CompareAddress(parms, ipEndPoint1, ipEndPoint2);
         }
 
-
-
         private void ComparePort(CompareParms parms, IPEndPoint ipEndPoint1, IPEndPoint ipEndPoint2)
         {
             if (ipEndPoint1.Port != ipEndPoint2.Port)
             {
                 Difference difference = new Difference
-                                            {
-                                                ParentObject1 = new WeakReference(parms.ParentObject1),
-                                                ParentObject2 = new WeakReference(parms.ParentObject2),
-                                                PropertyName = parms.BreadCrumb,
-                                                Object1Value = ipEndPoint1.Port.ToString(CultureInfo.InvariantCulture),
-                                                Object2Value = ipEndPoint2.Port.ToString(CultureInfo.InvariantCulture),
-                                                ChildPropertyName = "Port",
-                                                Object1 = new WeakReference(ipEndPoint1),
-                                                Object2 = new WeakReference(ipEndPoint2)
-                                            };
+                {
+                    ParentObject1 = new WeakReference(parms.ParentObject1),
+                    ParentObject2 = new WeakReference(parms.ParentObject2),
+                    PropertyName = parms.BreadCrumb,
+                    Object1Value = ipEndPoint1.Port.ToString(CultureInfo.InvariantCulture),
+                    Object2Value = ipEndPoint2.Port.ToString(CultureInfo.InvariantCulture),
+                    ChildPropertyName = "Port",
+                    Object1 = new WeakReference(ipEndPoint1),
+                    Object2 = new WeakReference(ipEndPoint2)
+                };
 
                 AddDifference(parms.Result, difference);
             }

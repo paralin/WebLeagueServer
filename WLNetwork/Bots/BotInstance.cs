@@ -14,6 +14,7 @@ using WLNetwork.Matches;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Utils;
 using MatchType = WLNetwork.Matches.Enums.MatchType;
+
 #if USE_GAME_ENGINE
 using Dota2.Engine.Control;
 using Dota2.Engine.Game;
@@ -128,8 +129,10 @@ namespace WLNetwork.Bots
                                     IsReady = ready,
                                     SteamID = plyr.SID
                                 });
-                                if (ready || teamMsgSent.Contains(plyr.SID) || (plyr.Team != MatchTeam.Dire && plyr.Team != MatchTeam.Radiant)) continue;
-                                bot.SendLobbyMessage(plyr.Name + " is on " + (plyr.Team == MatchTeam.Dire ? "Dire" : "Radiant"));
+                                if (ready || teamMsgSent.Contains(plyr.SID) ||
+                                    (plyr.Team != MatchTeam.Dire && plyr.Team != MatchTeam.Radiant)) continue;
+                                bot.SendLobbyMessage(plyr.Name + " is on " +
+                                                     (plyr.Team == MatchTeam.Dire ? "Dire" : "Radiant"));
                                 teamMsgSent.Add(plyr.SID);
                             }
                             else

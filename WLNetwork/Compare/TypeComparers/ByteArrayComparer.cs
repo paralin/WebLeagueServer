@@ -5,12 +5,12 @@ using System.Globalization;
 namespace KellermanSoftware.CompareNetObjects.TypeComparers
 {
     /// <summary>
-    /// Compare two byte arrays
+    ///     Compare two byte arrays
     /// </summary>
     public class ByteArrayComparer : BaseTypeComparer
     {
         /// <summary>
-        /// Protected constructor that references the root comparer
+        ///     Protected constructor that references the root comparer
         /// </summary>
         /// <param name="rootComparer">The root comparer.</param>
         public ByteArrayComparer(RootComparer rootComparer) : base(rootComparer)
@@ -18,7 +18,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// If true the type comparer will handle the comparison for the type
+        ///     If true the type comparer will handle the comparison for the type
         /// </summary>
         /// <param name="type1">The type of the first object</param>
         /// <param name="type2">The type of the second object</param>
@@ -30,7 +30,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// Compare two byte array objects
+        ///     Compare two byte array objects
         /// </summary>
         public override void CompareType(CompareParms parms)
         {
@@ -38,10 +38,10 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
             if (parms == null || parms.Object1 == null || parms.Object2 == null)
                 return;
 
-            if (ListsHaveDifferentCounts(parms)) 
+            if (ListsHaveDifferentCounts(parms))
                 return;
-                
-            CompareItems(parms);                
+
+            CompareItems(parms);
         }
 
         private bool ListsHaveDifferentCounts(CompareParms parms)
@@ -92,7 +92,8 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
 
                 if (b1 != b2)
                 {
-                    string currentBreadCrumb = AddBreadCrumb(parms.Config, parms.BreadCrumb, string.Empty, string.Empty, count);
+                    string currentBreadCrumb = AddBreadCrumb(parms.Config, parms.BreadCrumb, string.Empty, string.Empty,
+                        count);
 
                     Difference difference = new Difference
                     {

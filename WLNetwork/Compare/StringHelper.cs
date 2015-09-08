@@ -1,31 +1,30 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 
 namespace KellermanSoftware.CompareNetObjects
 {
     /// <summary>
-    /// Methods for manipulating strings
+    ///     Methods for manipulating strings
     /// </summary>
     public static class StringHelper
     {
         /// <summary>
-        /// Insert spaces into a string 
+        ///     Insert spaces into a string
         /// </summary>
         /// <example>
-        /// OrderDetails = Order Details
-        /// 10Net30 = 10 Net 30
-        /// FTPHost = FTP Host
-        /// </example> 
+        ///     OrderDetails = Order Details
+        ///     10Net30 = 10 Net 30
+        ///     FTPHost = FTP Host
+        /// </example>
         /// <param name="input"></param>
         /// <returns></returns>
         public static string InsertSpaces(string input)
         {
             bool isLastUpper = true;
 
-            if (String.IsNullOrEmpty(input))
+            if (string.IsNullOrEmpty(input))
                 return string.Empty;
 
-            StringBuilder sb = new StringBuilder(input.Length + (input.Length / 2));
+            StringBuilder sb = new StringBuilder(input.Length + (input.Length/2));
 
             //Replace underline with spaces
             input = input.Replace("_", " ");
@@ -53,7 +52,7 @@ namespace KellermanSoftware.CompareNetObjects
                 //Look for upper case characters that have lower case characters before
                 //Or upper case characters where the next character is lower
                 else if ((isUpperOrNumber && isLastUpper == false)
-                    || (isUpperOrNumber && isNextCharLower))
+                         || (isUpperOrNumber && isNextCharLower))
                 {
                     sb.Append(' ');
                     isLastUpper = true;
@@ -64,7 +63,6 @@ namespace KellermanSoftware.CompareNetObjects
                 }
 
                 sb.Append(chars[i]);
-
             }
 
             //Replace double spaces

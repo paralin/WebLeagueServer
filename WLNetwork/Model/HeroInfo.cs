@@ -3,7 +3,7 @@
 namespace WLNetwork.Model
 {
     /// <summary>
-    /// Cached hero name data.
+    ///     Cached hero name data.
     /// </summary>
     [BsonIgnoreExtraElements]
     public class HeroInfo

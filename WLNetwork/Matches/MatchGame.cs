@@ -16,6 +16,7 @@ using WLNetwork.Bots;
 using WLNetwork.Chat;
 using WLNetwork.Clients;
 using WLNetwork.Database;
+using WLNetwork.Hubs;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Matches.Methods;
 using WLNetwork.Model;
@@ -33,6 +34,7 @@ namespace WLNetwork.Matches
     public class MatchGame
     {
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private readonly bool _initFinished = false;
         private readonly ConcurrentBag<string> forbidSids = new ConcurrentBag<string>();
         private ActiveMatch _activeMatch = null;
         private bool _alreadyAttemptedMatchResult = false;
@@ -79,17 +81,16 @@ namespace WLNetwork.Matches
                 }
             }
 
-            controller = new BotController(Setup.Details, (ESourceEngine)Info.Engine);
+            controller = new BotController(Setup.Details, (ESourceEngine) Info.Engine);
             controller.instance.Start();
 
             MatchesController.Games.Add(this);
-            log.Info("MATCH RESTORE [" + match.Id + "] [" + Info.Owner + "] [" + Info.GameMode + "] [" + Info.MatchType + "]");
+            log.Info("MATCH RESTORE [" + match.Id + "] [" + Info.Owner + "] [" + Info.GameMode + "] [" + Info.MatchType +
+                     "]");
 
             _activeMatch = match;
             SaveActiveGame();
         }
-
-        private bool _initFinished = false;
 
         /// <summary>
         ///     Create a new game with options
@@ -113,7 +114,7 @@ namespace WLNetwork.Matches
                 LeagueTicket = options.LeagueTicket,
                 LeagueRegion = options.LeagueRegion,
                 SecondaryLeagueSeason = options.SecondaryLeagueSeason,
-                Engine = (int)options.Engine
+                Engine = (int) options.Engine
             };
             pickedAlready = true;
             Players = new ObservableRangeCollection<MatchPlayer>();
@@ -138,8 +139,8 @@ namespace WLNetwork.Matches
             set
             {
                 _info = value;
-                if(_initFinished)
-                TransmitInfoUpdate();
+                if (_initFinished)
+                    TransmitInfoUpdate();
             }
         }
 
@@ -157,7 +158,7 @@ namespace WLNetwork.Matches
                     if (_initFinished)
                     {
                         Hubs.Matches.HubContext.Clients.All.MatchPlayersSnapshot(Id, value.ToArray());
-                        Hubs.Admin.HubContext.Clients.All.MatchPlayersSnapshot(Id, value.ToArray());
+                        Admin.HubContext.Clients.All.MatchPlayersSnapshot(Id, value.ToArray());
                         if (_activeMatch != null)
                             SaveActiveGame();
                     }
@@ -171,15 +172,15 @@ namespace WLNetwork.Matches
             set
             {
                 _setup = value;
-                if(_initFinished)
-                TransmitSetupUpdate();
+                if (_initFinished)
+                    TransmitSetupUpdate();
             }
         }
 
         /// <summary>
         ///     Called when the lobby is not recovered
         /// </summary>
-        public void LobbyNotRecovered() 
+        public void LobbyNotRecovered()
         {
             if (Setup?.Details != null && Setup.Details.MatchId != 0)
             {
@@ -345,7 +346,7 @@ namespace WLNetwork.Matches
         }
 
         /// <summary>
-        /// Send out a setup snapshot.
+        ///     Send out a setup snapshot.
         /// </summary>
         private void TransmitSetupUpdate()
         {
@@ -371,7 +372,7 @@ namespace WLNetwork.Matches
         }
 
         /// <summary>
-        /// Send out an info snapshot.
+        ///     Send out an info snapshot.
         /// </summary>
         private void TransmitInfoUpdate()
         {
@@ -398,7 +399,7 @@ namespace WLNetwork.Matches
         }
 
         /// <summary>
-        /// Kick unassigned players.
+        ///     Kick unassigned players.
         /// </summary>
         public void KickUnassigned()
         {
@@ -407,7 +408,7 @@ namespace WLNetwork.Matches
         }
 
         /// <summary>
-        /// Kick all spectators.
+        ///     Kick all spectators.
         /// </summary>
         public void KickSpectators()
         {
@@ -591,12 +592,13 @@ namespace WLNetwork.Matches
         }
 
         /// <summary>
-        /// Admin destroying this match
+        ///     Admin destroying this match
         /// </summary>
         public void AdminDestroy()
         {
             log.Debug("ADMIN DESTROY " + Id);
-            Hubs.Matches.HubContext.Clients.Group(Id.ToString()).SystemMessage("Admin Closed Match", "An admin has destroyed the match you were in.");
+            Hubs.Matches.HubContext.Clients.Group(Id.ToString())
+                .SystemMessage("Admin Closed Match", "An admin has destroyed the match you were in.");
             if (Setup != null) ProcessMatchResult(EMatchResult.DontCount);
             else Destroy();
         }
@@ -653,13 +655,13 @@ namespace WLNetwork.Matches
         }
 
         /// <summary>
-        /// Transmits a snapshot to everyone in the match
+        ///     Transmits a snapshot to everyone in the match
         /// </summary>
         public void TransmitSnapshot()
         {
             // Send a match snapshot
             //Hubs.Matches.HubContext.Clients.Group(Id.ToString()).AvailableGameUpdate(new [] { this });
-            Hubs.Matches.HubContext.Clients.All.AvailableGameUpdate(new [] { this });
+            Hubs.Matches.HubContext.Clients.All.AvailableGameUpdate(new[] {this});
         }
     }
 
@@ -735,7 +737,7 @@ namespace WLNetwork.Matches
         public uint[] SecondaryLeagueSeason { get; set; }
 
         /// <summary>
-        ///  Game engine this game is on.
+        ///     Game engine this game is on.
         /// </summary>
         public int Engine { get; set; }
     }

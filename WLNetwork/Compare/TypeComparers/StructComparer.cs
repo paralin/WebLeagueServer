@@ -3,15 +3,15 @@
 namespace KellermanSoftware.CompareNetObjects.TypeComparers
 {
     /// <summary>
-    /// Compare two structs
+    ///     Compare two structs
     /// </summary>
     public class StructComparer : BaseTypeComparer
     {
-        private readonly PropertyComparer _propertyComparer;
         private readonly FieldComparer _fieldComparer;
+        private readonly PropertyComparer _propertyComparer;
 
         /// <summary>
-        /// Constructor that takes a root comparer
+        ///     Constructor that takes a root comparer
         /// </summary>
         /// <param name="rootComparer"></param>
         public StructComparer(RootComparer rootComparer) : base(rootComparer)
@@ -21,7 +21,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// Returns true if both objects are of type struct
+        ///     Returns true if both objects are of type struct
         /// </summary>
         /// <param name="type1"></param>
         /// <param name="type2"></param>
@@ -32,7 +32,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// Compare two structs
+        ///     Compare two structs
         /// </summary>
         public override void CompareType(CompareParms parms)
         {
@@ -42,7 +42,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
             try
             {
                 parms.Result.CurrentStructDepth++;
-                parms.Object1Type  = parms.Object1.GetType();
+                parms.Object1Type = parms.Object1.GetType();
                 _fieldComparer.PerformCompareFields(parms);
                 _propertyComparer.PerformCompareProperties(parms);
             }

@@ -4,12 +4,11 @@ using System.Linq;
 using Dota2.GC.Dota.Internal;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver.Builders;
-using WLNetwork.Clients;
+using WLNetwork.Chat;
 using WLNetwork.Database;
 using WLNetwork.Matches.Enums;
 using WLNetwork.Properties;
 using WLNetwork.Rating;
-using WLNetwork.Chat;
 using MatchType = WLNetwork.Matches.Enums.MatchType;
 
 namespace WLNetwork.Matches
@@ -185,9 +184,10 @@ namespace WLNetwork.Matches
 
                     update = update.Inc(lroot + ".rating", (player.RatingChange*(reverseRating ? -1 : 1)));
 
-                    if(!Stored) {
-                        update.Set(lroot+".decaySinceLast", 0);
-                        update.Set(lroot+".lastGame", DateTime.UtcNow);
+                    if (!Stored)
+                    {
+                        update.Set(lroot + ".decaySinceLast", 0);
+                        update.Set(lroot + ".lastGame", DateTime.UtcNow);
                     }
 
                     if ((result == EMatchResult.RadVictory && player.Team == MatchTeam.Radiant) ||

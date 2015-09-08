@@ -1,12 +1,11 @@
 ﻿using System;
-using Dota2.GC.Internal;
 using MongoDB.Bson.Serialization.Attributes;
 using WLNetwork.Matches;
 
 namespace WLNetwork.Model
 {
     /// <summary>
-    /// A stored match that needs to be recovered.
+    ///     A stored match that needs to be recovered.
     /// </summary>
     [BsonIgnoreExtraElements]
     public class ActiveMatch

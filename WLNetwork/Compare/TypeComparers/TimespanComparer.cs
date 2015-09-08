@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Globalization;
 
-
 namespace KellermanSoftware.CompareNetObjects.TypeComparers
 {
     /// <summary>
-    /// Logic to compare two timespans
+    ///     Logic to compare two timespans
     /// </summary>
     public class TimespanComparer : BaseTypeComparer
     {
         /// <summary>
-        /// Constructor that takes a root comparer
+        ///     Constructor that takes a root comparer
         /// </summary>
         /// <param name="rootComparer"></param>
         public TimespanComparer(RootComparer rootComparer) : base(rootComparer)
@@ -18,7 +17,7 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// Returns true if both objects are timespans
+        ///     Returns true if both objects are timespans
         /// </summary>
         /// <param name="type1">The type of the first object</param>
         /// <param name="type2">The type of the second object</param>
@@ -29,19 +28,19 @@ namespace KellermanSoftware.CompareNetObjects.TypeComparers
         }
 
         /// <summary>
-        /// Compare two timespans
+        ///     Compare two timespans
         /// </summary>
         public override void CompareType(CompareParms parms)
         {
-            if (((TimeSpan)parms.Object1).Ticks != ((TimeSpan)parms.Object2).Ticks)
+            if (((TimeSpan) parms.Object1).Ticks != ((TimeSpan) parms.Object2).Ticks)
             {
                 Difference difference = new Difference
                 {
-                    ParentObject1 =  new WeakReference(parms.ParentObject1),
-                    ParentObject2 =  new WeakReference(parms.ParentObject2),
+                    ParentObject1 = new WeakReference(parms.ParentObject1),
+                    ParentObject2 = new WeakReference(parms.ParentObject2),
                     PropertyName = parms.BreadCrumb,
-                    Object1Value = ((TimeSpan)parms.Object1).Ticks.ToString(CultureInfo.InvariantCulture),
-                    Object2Value = ((TimeSpan)parms.Object2).Ticks.ToString(CultureInfo.InvariantCulture),
+                    Object1Value = ((TimeSpan) parms.Object1).Ticks.ToString(CultureInfo.InvariantCulture),
+                    Object2Value = ((TimeSpan) parms.Object2).Ticks.ToString(CultureInfo.InvariantCulture),
                     ChildPropertyName = "Ticks",
                     Object1 = new WeakReference(parms.Object1),
                     Object2 = new WeakReference(parms.Object2)
