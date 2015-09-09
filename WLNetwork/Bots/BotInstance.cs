@@ -50,7 +50,7 @@ namespace WLNetwork.Bots
         private readonly HashSet<string> teamMsgSent = new HashSet<string>();
         private ulong[] oldMembers = null;
 
-        public BotInstance(MatchSetupDetails details, ESourceEngine engine)
+        public BotInstance(MatchSetupDetails details)
         {
             Details = details;
 
@@ -61,7 +61,7 @@ namespace WLNetwork.Bots
 #if USE_GAME_ENGINE
             , contrs: new BotGameController(this)
 #endif
-                    ) {Engine = engine};
+                    );
             bot.InvalidCreds +=
                 (sender, args) => { log.Warn("Steam reports invalid creds for " + details.Bot.Username + "!"); };
             bot.StateTransitioned += (sender, transition) =>

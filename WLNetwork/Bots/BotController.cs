@@ -35,7 +35,7 @@ namespace WLNetwork.Bots
         private bool outcomeProcessed = false;
         private bool startedResultCheck = false;
 
-        public BotController(MatchSetupDetails game, ESourceEngine engine)
+        public BotController(MatchSetupDetails game)
         {
             matchResultTimeout = new Timer(8000);
             matchResultTimeout.Elapsed += MatchResultTimeout;
@@ -46,7 +46,7 @@ namespace WLNetwork.Bots
             this.game = game;
             log = LogManager.GetLogger("BotController " + game.Id.ToString().Split('-')[0]);
 
-            instance = new BotInstance(game, engine);
+            instance = new BotInstance(game);
             instance.PlayerReady += PlayerReady;
             instance.MatchId += MatchId;
             instance.LeaverStatus += LeaverStatus;
@@ -68,7 +68,7 @@ namespace WLNetwork.Bots
         {
             var g = game.GetGame();
             if (instance.bot.Lobby?.state != CSODOTALobby.State.UI || g == null) return;
-            if (instance.bot.Engine == ESourceEngine.k_ESE_Source2) instance.bot.DotaGCHandler.InviteToLobby(member);
+            instance.bot.DotaGCHandler.InviteToLobby(member);
         }
 
         private void InviteTimerOnElapsed(object sender, ElapsedEventArgs e)
@@ -80,7 +80,6 @@ namespace WLNetwork.Bots
                 return;
             }
 
-            if (instance.bot.Engine != ESourceEngine.k_ESE_Source2) return;
             foreach (var plyr in g.Players.Where(m => instance.bot.Lobby.members.All(x => x.id + "" != m.SID)))
                 instance.bot.DotaGCHandler.InviteToLobby(ulong.Parse(plyr.SID));
         }

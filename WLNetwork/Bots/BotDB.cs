@@ -84,7 +84,7 @@ namespace WLNetwork.Bots
                     var game = setup.Details.GetGame();
                     if (game != null)
                     {
-                        game.SetBotController(new BotController(setup.Details, (ESourceEngine) game.Info.Engine));
+                        game.SetBotController(new BotController(setup.Details));
                         game.GetBotController().instance.Start();
                     }
                     return;

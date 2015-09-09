@@ -81,7 +81,7 @@ namespace WLNetwork.Matches
                 }
             }
 
-            controller = new BotController(Setup.Details, (ESourceEngine) Info.Engine);
+            controller = new BotController(Setup.Details);
             controller.instance.Start();
 
             MatchesController.Games.Add(this);
@@ -114,7 +114,6 @@ namespace WLNetwork.Matches
                 LeagueTicket = options.LeagueTicket,
                 LeagueRegion = options.LeagueRegion,
                 SecondaryLeagueSeason = options.SecondaryLeagueSeason,
-                Engine = (int) options.Engine
             };
             pickedAlready = true;
             Players = new ObservableRangeCollection<MatchPlayer>();
@@ -735,11 +734,6 @@ namespace WLNetwork.Matches
         ///     League season
         /// </summary>
         public uint[] SecondaryLeagueSeason { get; set; }
-
-        /// <summary>
-        ///     Game engine this game is on.
-        /// </summary>
-        public int Engine { get; set; }
     }
 
     public static class MatchGameExt

@@ -49,11 +49,6 @@ namespace WLNetwork.Bots.LobbyBot
         public DotaGCHandler DotaGCHandler { get; private set; }
 
         /// <summary>
-        ///     Which engine to use?
-        /// </summary>
-        public ESourceEngine Engine { get; set; }
-
-        /// <summary>
         ///     The lobby before the current update
         /// </summary>
         public CSODOTALobby Lobby { get; private set; }
@@ -286,7 +281,7 @@ namespace WLNetwork.Bots.LobbyBot
 
             var c = SteamClient = new SteamClient();
 
-            DotaGCHandler.Bootstrap(c, Games.DOTA2, Engine);
+            DotaGCHandler.Bootstrap(c, Games.DOTA2);
 
             SteamUser = c.GetHandler<SteamUser>();
             SteamFriends = c.GetHandler<SteamFriends>();

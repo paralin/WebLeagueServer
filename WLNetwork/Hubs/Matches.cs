@@ -74,7 +74,6 @@ namespace WLNetwork.Hubs
             options.LeagueTicket = league.Seasons[(int) league.CurrentSeason].Ticket;
             options.LeagueRegion = league.Region;
             options.SecondaryLeagueSeason = league.SecondaryCurrentSeason.ToArray();
-            options.Engine = league.ForceSourceVersion;
             var match = new MatchGame(client.User.steam.steamid, options);
             foreach (var cli in BrowserClient.Clients.Where(m => m.Value == client))
                 HubContext.Groups.Add(cli.Key, match.Id.ToString());
@@ -215,7 +214,6 @@ namespace WLNetwork.Hubs
                 LeagueTicket = league.Seasons[(int) league.CurrentSeason].Ticket,
                 LeagueRegion = league.Region,
                 SecondaryLeagueSeason = league.SecondaryCurrentSeason.ToArray(),
-                Engine = league.ForceSourceVersion
             });
             foreach (var cli in BrowserClient.Clients.Where(m => m.Value == other || m.Value == client))
                 HubContext.Groups.Add(cli.Key, match.Id.ToString());
