@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -235,7 +236,8 @@ namespace WLNetwork.Hubs
                     return msg;
                 }
 
-                var team = ((8 & (1 << plyr["player_slot"].Value<byte>() - 1)) == 0) ? MatchTeam.Dire : MatchTeam.Radiant;
+                var bits = new BitArray(new[] {plyr["player_slot"].Value<byte>()});
+                var team = bits[7] ? MatchTeam.Dire : MatchTeam.Radiant;
                 var player = new MatchPlayer(user, league.Id, league.CurrentSeason,
                     league.SecondaryCurrentSeason.ToArray())
                 {
