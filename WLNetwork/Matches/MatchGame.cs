@@ -386,11 +386,7 @@ namespace WLNetwork.Matches
         public void StartMatch()
         {
             if (Info.Status == MatchStatus.Play) return;
-            if (controller != null)
-            {
-                controller.instance.bot.DotaGCHandler.JoinBroadcastChannel();
-                controller.instance.StartMatch();
-            }
+            controller?.instance.StartMatch();
             Setup.Details.Status = MatchSetupStatus.Done;
             Setup = Setup;
             Info.Status = MatchStatus.Play;
