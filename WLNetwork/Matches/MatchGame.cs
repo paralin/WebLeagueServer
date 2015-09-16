@@ -349,20 +349,14 @@ namespace WLNetwork.Matches
         /// </summary>
         private void TransmitSetupUpdate()
         {
-            if (_setup == null)
-            {
-                // Hubs.Matches.HubContext.Clients.Group(Id.ToString()).ClearSetup(Id.ToString());
-                // Hubs.Admin.HubContext.Clients.All.ClearSetup(Id.ToString());
+            if (_setup == null || _setup.Details == null)
                 Hubs.Matches.HubContext.Clients.All.ClearSetup(Id.ToString());
-            }
             else
             {
                 lock (_setup)
                 {
                     Bot bot = _setup.Details.Bot;
                     _setup.Details.Bot = null;
-                    // Hubs.Matches.HubContext.Clients.Group(Id.ToString()).SetupSnapshot(Id.ToString());
-                    // Hubs.Admin.HubContext.Clients.All.SetupSnapshot(Id.ToString());
                     Hubs.Matches.HubContext.Clients.All.SetupSnapshot(_setup);
                     _setup.Details.Bot = bot;
                     if (_activeMatch != null) SaveActiveGame();
