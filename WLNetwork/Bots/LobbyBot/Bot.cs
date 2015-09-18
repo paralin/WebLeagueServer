@@ -494,9 +494,10 @@ namespace WLNetwork.Bots.LobbyBot
             {
                 Action<CMsgDOTAMatch> cbx;
                 ulong id;
-                id = c.result.match != null ? c.result.match.match_id : MatchId;
+                id = c.result.match?.match_id ?? MatchId;
                 if (!Callbacks.TryGetValue(id, out cbx)) return;
                 Callbacks.Remove(id);
+                log.Warn("Match result response for "+id+": "+((EResult)c.result.result).ToString("G"));
                 cbx(c.result.match);
             });
         }
