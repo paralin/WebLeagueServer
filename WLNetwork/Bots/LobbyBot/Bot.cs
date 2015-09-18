@@ -378,7 +378,7 @@ namespace WLNetwork.Bots.LobbyBot
         private void UpdatePersona()
         {
             var cname = SteamFriends.GetPersonaName();
-            var tname = "WebLeagueBot";
+            var tname = "FACEIT.com Bot";
             if (cname != tname)
             {
                 log.DebugFormat("Changed persona name to {0} from {1}.", tname, cname);
