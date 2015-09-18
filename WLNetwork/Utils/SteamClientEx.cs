@@ -3,6 +3,9 @@ using SteamKit2;
 
 namespace WLNetwork.Utils
 {
+    /// <summary>
+    /// Extensions for convenience
+    /// </summary>
     public static class SteamClientEx
     {
         /// <summary>

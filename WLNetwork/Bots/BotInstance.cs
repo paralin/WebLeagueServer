@@ -49,6 +49,7 @@ namespace WLNetwork.Bots
         private readonly MatchSetupDetails Details;
         private readonly HashSet<string> teamMsgSent = new HashSet<string>();
         private ulong[] oldMembers = null;
+        private bool gameStartedAlready = false;
 
         public BotInstance(MatchSetupDetails details)
         {
@@ -68,7 +69,8 @@ namespace WLNetwork.Bots
             {
                 StateUpdate?.Invoke(this, transition.Destination);
 
-                if (transition.Destination != State.DotaMenu) return;
+                if(transition.Destination == State.DotaPlay) gameStartedAlready = true;
+                if (transition.Destination != State.DotaMenu || gameStartedAlready) return;
                 if (Details.IsRecovered)
                 {
                     Task.Run(() =>
