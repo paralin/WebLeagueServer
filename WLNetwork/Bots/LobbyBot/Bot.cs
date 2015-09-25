@@ -474,7 +474,6 @@ namespace WLNetwork.Bots.LobbyBot
             cb.Add<DotaGCHandler.Popup>(a => log.DebugFormat("GC popup message: {0}", a.result.id.ToString("G")));
             cb.Add<DotaGCHandler.PracticeLobbySnapshot>(a => HandleLobbyUpdate(a.lobby));
             cb.Add<DotaGCHandler.PracticeLobbyLeave>(a => HandleLobbyUpdate(null));
-            cb.Add<DotaGCHandler.PracticeLobbyUpdate>(a => HandleLobbyUpdate(a.lobby));
             cb.Add<DotaGCHandler.JoinChatChannelResponse>(a =>
             {
                 if (DotaGCHandler.Lobby != null && a.result.channel_id != 0 &&

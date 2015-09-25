@@ -48,6 +48,7 @@ namespace WLNetwork.Bots
 
         private readonly MatchSetupDetails Details;
         private readonly HashSet<string> teamMsgSent = new HashSet<string>();
+        private readonly HashSet<string> _wrongTeamSent = new HashSet<string>();
         private ulong[] oldMembers = null;
         private bool gameStartedAlready = false;
 
@@ -126,11 +127,24 @@ namespace WLNetwork.Bots
                                      plyr.Team == MatchTeam.Dire) ||
                                     (member.team == DOTA_GC_TEAM.DOTA_GC_TEAM_GOOD_GUYS &&
                                      plyr.Team == MatchTeam.Radiant);
+                                var wrongTeam = member.team == DOTA_GC_TEAM.DOTA_GC_TEAM_BAD_GUYS &&
+                                                   plyr.Team == MatchTeam.Radiant ||
+                                                   member.team == DOTA_GC_TEAM.DOTA_GC_TEAM_GOOD_GUYS &&
+                                                   plyr.Team == MatchTeam.Dire;
                                 players.Add(new PlayerReadyArgs.Player
                                 {
                                     IsReady = ready,
-                                    SteamID = plyr.SID
+                                    SteamID = plyr.SID,
+                                    WrongTeam = wrongTeam
                                 });
+                                if (wrongTeam)
+                                {
+                                    if (_wrongTeamSent.Contains(plyr.SID)) continue;
+                                    _wrongTeamSent.Add(plyr.SID);
+                                    bot.SendLobbyMessage(member.name + ", you are on " + (plyr.Team == MatchTeam.Dire ? "Dire" : "Radiant") + ", not " + (plyr.Team == MatchTeam.Radiant ? "Dire" : "Radiant") + "...");
+                                    continue;
+                                }
+                                _wrongTeamSent.Remove(plyr.SID);
                                 if (ready || teamMsgSent.Contains(plyr.SID) ||
                                     (plyr.Team != MatchTeam.Dire && plyr.Team != MatchTeam.Radiant)) continue;
                                 bot.SendLobbyMessage(plyr.Name + " is on " +

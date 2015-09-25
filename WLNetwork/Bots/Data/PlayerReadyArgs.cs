@@ -8,6 +8,7 @@
         {
             public string SteamID { get; set; }
             public bool IsReady { get; set; }
+            public bool WrongTeam { get; set; }
         }
     }
 }

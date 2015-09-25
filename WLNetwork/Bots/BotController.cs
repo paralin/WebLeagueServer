@@ -259,8 +259,14 @@ namespace WLNetwork.Bots
             bool anyNotReady = false;
             foreach (MatchPlayer plyr in game.Players)
             {
-                plyr.Ready = readyArgs.Players.Any(m => m.IsReady && m.SteamID == plyr.SID);
+                var player = readyArgs.Players.FirstOrDefault(m => m.SteamID == plyr.SID);
+                plyr.Ready = player != null && player.IsReady;
                 if (!plyr.Ready) anyNotReady = true;
+                if (player?.WrongTeam == true)
+                {
+                    log.Debug("Kicking player from wrong team.");
+                    instance.bot.DotaGCHandler.KickPlayerFromLobbyTeam(ulong.Parse(plyr.SID).ToAccountID());
+                }
             }
             if (g != null)
             {
