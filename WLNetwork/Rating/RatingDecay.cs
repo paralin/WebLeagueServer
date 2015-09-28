@@ -32,6 +32,8 @@ namespace WLNetwork.Rating
             foreach (var user in users)
             {
                 var lprof = user.profile.leagues[pid];
+                // This is to make sure those with it set to zero don't get docked a shitload of points
+                if ((now - lprof.lastGame).TotalDays > 30) continue;
                 var decayStart = lprof.lastGame.AddMinutes(decay.DecayStart);
                 if (now < decayStart) continue;
                 if (decay.LowerThreshold != 0 && lprof.rating <= decay.LowerThreshold) continue;
